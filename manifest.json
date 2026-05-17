@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "MarkTab",
+  "version": "1.0.0",
+  "description": "一个快速、清晰、隐私友好的书签新标签页",
+  "permissions": [
+    "bookmarks",
+    "storage",
+    "activeTab"
+  ],
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  }
+}
