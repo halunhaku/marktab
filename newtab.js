@@ -35,12 +35,41 @@ const SEARCH_ENGINES = [
   }
 ];
 
+// Theme Configuration
+const THEMES = [
+  {
+    id: 'midnight',
+    name: 'Midnight',
+    desc: 'Deep teal focus',
+    swatches: ['#0a0a0f', '#00d4aa', '#0891b2']
+  },
+  {
+    id: 'daylight',
+    name: 'Daylight',
+    desc: 'Clean light workspace',
+    swatches: ['#f8fafc', '#0ea5e9', '#14b8a6']
+  },
+  {
+    id: 'dusk',
+    name: 'Dusk',
+    desc: 'Soft violet evening',
+    swatches: ['#15111f', '#a78bfa', '#f472b6']
+  },
+  {
+    id: 'ember',
+    name: 'Ember',
+    desc: 'Warm reading mode',
+    swatches: ['#17120d', '#f59e0b', '#ef4444']
+  }
+];
+
 // Configuration
 const CONFIG = {
   defaultSettings: {
     hiddenFolderIds: [], // 隐藏的文件夹ID列表
     defaultEngine: 'google',
-    folderNavCollapsed: false
+    folderNavCollapsed: false,
+    theme: 'midnight'
   }
 };
 
@@ -81,11 +110,51 @@ async function init() {
   setInterval(updateTime, 1000);
   
   await loadSettings();
+  applyTheme(settings.theme);
   initSearchEngine();
   setupEventListeners();
   setupKeyboardShortcuts();
+  applyFolderNavState();
   
   await loadBookmarks();
+}
+
+// ==================== Theme Functions ====================
+
+function applyTheme(themeId) {
+  const theme = THEMES.find(item => item.id === themeId) || THEMES[0];
+  settings.theme = theme.id;
+  document.documentElement.dataset.theme = theme.id;
+}
+
+function selectTheme(themeId, container) {
+  applyTheme(themeId);
+  saveSettingsSilent();
+  renderThemeOptions(container);
+  showToast('Theme updated');
+}
+
+function renderThemeOptions(container) {
+  if (!container) return;
+
+  container.innerHTML = THEMES.map(theme => `
+    <button class="theme-option ${theme.id === settings.theme ? 'active' : ''}" data-theme="${theme.id}" type="button" aria-pressed="${theme.id === settings.theme}">
+      <span class="theme-swatch" aria-hidden="true">
+        ${theme.swatches.map(color => `<span style="background: ${color}"></span>`).join('')}
+      </span>
+      <span class="theme-copy">
+        <span class="theme-name">${theme.name}</span>
+        <span class="theme-desc">${theme.desc}</span>
+      </span>
+      <svg class="theme-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </button>
+  `).join('');
+
+  container.querySelectorAll('.theme-option').forEach(option => {
+    option.addEventListener('click', () => selectTheme(option.dataset.theme, container));
+  });
 }
 
 // ==================== Search Engine Functions ====================
@@ -490,22 +559,57 @@ function renderBookmarks(tree, searchQuery = '') {
     container.style.display = 'block';
     elements.noResults.style.display = 'none';
     elements.emptyState.style.display = 'none';
+    setupBookmarkFavicons(container);
   }
 }
 
 function createBookmarkCard(bookmark, index) {
   const domain = getDomain(bookmark.url);
   const initial = bookmark.title ? bookmark.title.charAt(0).toUpperCase() : '?';
+  const faviconUrl = getFaviconUrl(bookmark.url, 64);
   
   return `
     <a href="${escapeHtml(bookmark.url)}" class="bookmark-card" title="${escapeHtml(bookmark.title)}">
       <div class="bookmark-favicon">
+        ${faviconUrl ? `<img class="favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy">` : ''}
         <span class="favicon-letter">${escapeHtml(initial)}</span>
       </div>
       <span class="bookmark-title">${escapeHtml(bookmark.title || 'Untitled')}</span>
       <span class="bookmark-url">${escapeHtml(domain)}</span>
     </a>
   `;
+}
+
+function getFaviconUrl(pageUrl, size = 32) {
+  if (!pageUrl || typeof chrome === 'undefined' || !chrome.runtime) return '';
+
+  try {
+    const faviconUrl = new URL(chrome.runtime.getURL('/_favicon/'));
+    faviconUrl.searchParams.set('pageUrl', pageUrl);
+    faviconUrl.searchParams.set('size', String(size));
+    return faviconUrl.toString();
+  } catch {
+    return '';
+  }
+}
+
+function setupBookmarkFavicons(container) {
+  container.querySelectorAll('.favicon-img').forEach(img => {
+    const wrapper = img.closest('.bookmark-favicon');
+
+    img.addEventListener('load', () => {
+      wrapper.classList.add('has-image');
+    }, { once: true });
+
+    img.addEventListener('error', () => {
+      wrapper.classList.remove('has-image');
+      img.remove();
+    }, { once: true });
+
+    if (img.complete && img.naturalWidth > 0) {
+      wrapper.classList.add('has-image');
+    }
+  });
 }
 
 // ==================== Utility Functions ====================
@@ -598,6 +702,11 @@ function openSettingsPanel() {
       </div>
       <div class="settings-content">
         <div class="settings-section">
+          <h3>Theme</h3>
+          <div class="theme-options" id="themeOptions"></div>
+        </div>
+
+        <div class="settings-section">
           <h3>Visible Labels</h3>
           <p class="settings-hint">Click to toggle label visibility. Hidden labels won't appear in the main view.</p>
           
@@ -625,7 +734,7 @@ function openSettingsPanel() {
         </div>
       </div>
       <div class="settings-footer">
-        <button class="btn btn-secondary" id="btnReset">Reset All</button>
+        <button class="btn btn-secondary" id="btnReset">Show All Labels</button>
         <button class="btn btn-primary" id="btnSave">Done</button>
       </div>
     </div>
@@ -634,6 +743,7 @@ function openSettingsPanel() {
   document.body.appendChild(panel);
   
   // 渲染文件夹树
+  renderThemeOptions(panel.querySelector('#themeOptions'));
   renderFolderTree(panel.querySelector('#folderTree'));
   
   // 绑定事件
@@ -716,6 +826,11 @@ function closeSettingsPanel() {
     panel.classList.add('closing');
     setTimeout(() => panel.remove(), 300);
   }
+}
+
+function applyFolderNavState() {
+  elements.folderNavContent.classList.toggle('collapsed', settings.folderNavCollapsed);
+  elements.folderNavToggle.classList.toggle('collapsed', settings.folderNavCollapsed);
 }
 
 // ==================== Event Listeners ====================
