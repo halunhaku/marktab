@@ -35,6 +35,18 @@ const SEARCH_ENGINES = [
   }
 ];
 
+const SEARCH_ENGINE_PREFIXES = {
+  g: 'google',
+  google: 'google',
+  baidu: 'baidu',
+  bd: 'baidu',
+  b: 'bing',
+  bing: 'bing',
+  d: 'duckduckgo',
+  ddg: 'duckduckgo',
+  duck: 'duckduckgo'
+};
+
 // Theme Configuration
 const THEMES = [
   {
@@ -67,6 +79,7 @@ const THEMES = [
 const CONFIG = {
   defaultSettings: {
     hiddenFolderIds: [], // 隐藏的文件夹ID列表
+    pinnedBookmarkUrls: [],
     defaultEngine: 'google',
     folderNavCollapsed: false,
     theme: 'midnight'
@@ -81,6 +94,8 @@ let uncategorizedBookmarks = []; // 没有放进用户自建文件夹的书签
 let settings = { ...CONFIG.defaultSettings };
 let currentEngine = SEARCH_ENGINES[0];
 let activeFolderId = null; // 当前选中的文件夹
+let searchRenderTimer = null;
+let selectedBookmarkIndex = -1;
 
 // DOM Elements
 const elements = {
@@ -209,7 +224,8 @@ function selectEngine(engineId) {
 // ==================== Search Functions ====================
 
 function performSearch() {
-  const query = elements.searchInput.value.trim();
+  const searchIntent = parseSearchIntent(elements.searchInput.value);
+  const query = searchIntent.query;
   if (!query) return;
   
   if (isUrl(query)) {
@@ -221,7 +237,32 @@ function performSearch() {
     return;
   }
   
-  window.location.href = currentEngine.url + encodeURIComponent(query);
+  window.location.href = searchIntent.engine.url + encodeURIComponent(query);
+}
+
+function openSelectedBookmark() {
+  const cards = getVisibleBookmarkCards();
+  if (!cards.length) return false;
+
+  const index = selectedBookmarkIndex >= 0 ? selectedBookmarkIndex : 0;
+  const card = cards[index];
+  if (!card?.dataset.url) return false;
+
+  window.location.href = card.dataset.url;
+  return true;
+}
+
+function parseSearchIntent(rawQuery) {
+  const trimmed = rawQuery.trim();
+  const match = trimmed.match(/^([a-zA-Z]+)\s+(.+)$/);
+  const engineId = match ? SEARCH_ENGINE_PREFIXES[match[1].toLowerCase()] : null;
+  const engine = SEARCH_ENGINES.find(item => item.id === engineId) || currentEngine;
+
+  return {
+    engine,
+    isPrefixed: Boolean(engineId),
+    query: engineId ? match[2].trim() : trimmed
+  };
 }
 
 function isUrl(str) {
@@ -235,14 +276,48 @@ function isUrl(str) {
 function handleSearchInput(e) {
   const query = e.target.value.trim();
   elements.searchBox.classList.toggle('has-value', !!query);
-  renderBookmarks(bookmarkTree, query);
+  selectedBookmarkIndex = -1;
+  window.clearTimeout(searchRenderTimer);
+  searchRenderTimer = window.setTimeout(() => {
+    renderBookmarks(bookmarkTree, parseSearchIntent(query).query);
+  }, 80);
 }
 
 function clearSearch() {
+  window.clearTimeout(searchRenderTimer);
   elements.searchInput.value = '';
   elements.searchBox.classList.remove('has-value');
+  selectedBookmarkIndex = -1;
   renderBookmarks(bookmarkTree);
   elements.searchInput.focus();
+}
+
+function moveBookmarkSelection(direction) {
+  const cards = getVisibleBookmarkCards();
+  if (!cards.length) return;
+
+  if (selectedBookmarkIndex === -1) {
+    selectedBookmarkIndex = direction > 0 ? 0 : cards.length - 1;
+  } else {
+    selectedBookmarkIndex = (selectedBookmarkIndex + direction + cards.length) % cards.length;
+  }
+
+  updateBookmarkSelection(cards);
+}
+
+function getVisibleBookmarkCards() {
+  return Array.from(elements.bookmarksContent.querySelectorAll('.bookmark-card'));
+}
+
+function updateBookmarkSelection(cards = getVisibleBookmarkCards()) {
+  cards.forEach((card, index) => {
+    const isSelected = index === selectedBookmarkIndex;
+    card.classList.toggle('keyboard-selected', isSelected);
+    card.setAttribute('aria-selected', String(isSelected));
+    if (isSelected) {
+      card.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+  });
 }
 
 // ==================== Settings Functions ====================
@@ -412,6 +487,37 @@ function toggleFolderVisibility(folderId) {
   renderBookmarks(bookmarkTree);
 }
 
+function isBookmarkPinned(bookmark) {
+  return Boolean(bookmark?.url && settings.pinnedBookmarkUrls.includes(bookmark.url));
+}
+
+function toggleBookmarkPin(bookmarkUrl) {
+  if (!bookmarkUrl) return;
+
+  const index = settings.pinnedBookmarkUrls.indexOf(bookmarkUrl);
+  const willPin = index === -1;
+  if (willPin) {
+    settings.pinnedBookmarkUrls.push(bookmarkUrl);
+  } else {
+    settings.pinnedBookmarkUrls.splice(index, 1);
+  }
+
+  saveSettingsSilent();
+  renderBookmarks(bookmarkTree, parseSearchIntent(elements.searchInput.value).query);
+  showToast(willPin ? 'Bookmark pinned' : 'Bookmark unpinned');
+}
+
+function getPinnedBookmarks() {
+  const seen = new Set();
+  return allBookmarks.filter(bookmark => {
+    if (!bookmark.url || seen.has(bookmark.url) || !isBookmarkPinned(bookmark)) {
+      return false;
+    }
+    seen.add(bookmark.url);
+    return true;
+  });
+}
+
 // ==================== Folder Navigation ====================
 
 function renderFolderNav() {
@@ -473,9 +579,35 @@ function renderFolderNav() {
 function renderBookmarks(tree, searchQuery = '') {
   const container = elements.bookmarksContent;
   container.innerHTML = '';
+  selectedBookmarkIndex = -1;
   
   let hasResults = false;
   let sectionIndex = 0;
+  const normalizedQuery = searchQuery.toLowerCase();
+  const matchesSearch = bookmark => {
+    if (!normalizedQuery) return true;
+    const titleMatch = bookmark.title && bookmark.title.toLowerCase().includes(normalizedQuery);
+    const urlMatch = bookmark.url && bookmark.url.toLowerCase().includes(normalizedQuery);
+    return titleMatch || urlMatch;
+  };
+
+  if (!activeFolderId) {
+    const pinnedBookmarks = getPinnedBookmarks().filter(matchesSearch);
+    if (pinnedBookmarks.length > 0) {
+      const section = createBookmarkSection({
+        title: 'Pinned',
+        breadcrumb: 'Pinned bookmarks',
+        count: pinnedBookmarks.length,
+        bookmarks: pinnedBookmarks,
+        searchQuery,
+        sectionIndex,
+        icon: 'pin'
+      });
+      container.appendChild(section);
+      hasResults = true;
+      sectionIndex++;
+    }
+  }
   
   // 确定要显示的文件夹
   let foldersToRender = getUserFolders(false);
@@ -502,45 +634,25 @@ function renderBookmarks(tree, searchQuery = '') {
     let bookmarks = folder.bookmarks;
     
     // 搜索过滤
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      bookmarks = bookmarks.filter(b => {
-        const titleMatch = b.title && b.title.toLowerCase().includes(query);
-        const urlMatch = b.url && b.url.toLowerCase().includes(query);
-        return titleMatch || urlMatch;
-      });
+    if (normalizedQuery) {
+      bookmarks = bookmarks.filter(matchesSearch);
     }
     
     if (bookmarks.length === 0) return;
     
     hasResults = true;
     
-    // 创建分组
-    const section = document.createElement('div');
-    section.className = 'bookmark-section';
-    section.style.animationDelay = `${sectionIndex * 0.05}s`;
-    section.classList.add('fade-in');
-    
     // 路径面包屑
     const breadcrumb = folder.displayPath.join(' / ');
-    
-    section.innerHTML = `
-      <div class="section-header">
-        <div class="section-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-          </svg>
-        </div>
-        <div class="section-title-group">
-          <h2 class="section-title">${escapeHtml(folder.title)}</h2>
-          ${breadcrumb !== folder.title ? `<span class="section-breadcrumb">${escapeHtml(breadcrumb)}</span>` : ''}
-        </div>
-        <span class="section-count">${bookmarks.length}</span>
-      </div>
-      <div class="bookmarks-grid">
-        ${bookmarks.map((bookmark, index) => createBookmarkCard(bookmark, index)).join('')}
-      </div>
-    `;
+    const section = createBookmarkSection({
+      title: folder.title,
+      breadcrumb,
+      count: bookmarks.length,
+      bookmarks,
+      searchQuery,
+      sectionIndex,
+      icon: 'folder'
+    });
     
     container.appendChild(section);
     sectionIndex++;
@@ -560,23 +672,66 @@ function renderBookmarks(tree, searchQuery = '') {
     elements.noResults.style.display = 'none';
     elements.emptyState.style.display = 'none';
     setupBookmarkFavicons(container);
+    setupBookmarkCardSelection(container);
+    setupBookmarkPinButtons(container);
   }
 }
 
-function createBookmarkCard(bookmark, index) {
+function createBookmarkSection({ title, breadcrumb, count, bookmarks, searchQuery, sectionIndex, icon }) {
+  const section = document.createElement('div');
+  section.className = `bookmark-section ${icon === 'pin' ? 'pinned-section' : ''}`;
+  section.style.animationDelay = `${sectionIndex * 0.05}s`;
+  section.classList.add('fade-in');
+  const iconPath = icon === 'pin'
+    ? '<path d="M12 17v5"></path><path d="M5 17h14"></path><path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>'
+    : '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>';
+
+  section.innerHTML = `
+    <div class="section-header">
+      <div class="section-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          ${iconPath}
+        </svg>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title">${escapeHtml(title)}</h2>
+        ${breadcrumb !== title ? `<span class="section-breadcrumb">${escapeHtml(breadcrumb)}</span>` : ''}
+      </div>
+      <span class="section-count">${count}</span>
+    </div>
+    <div class="bookmarks-grid">
+      ${bookmarks.map((bookmark, index) => createBookmarkCard(bookmark, index, searchQuery)).join('')}
+    </div>
+  `;
+
+  return section;
+}
+
+function createBookmarkCard(bookmark, index, searchQuery = '') {
   const domain = getDomain(bookmark.url);
   const initial = bookmark.title ? bookmark.title.charAt(0).toUpperCase() : '?';
   const faviconUrl = getFaviconUrl(bookmark.url, 64);
+  const title = bookmark.title || 'Untitled';
+  const isPinned = isBookmarkPinned(bookmark);
   
   return `
-    <a href="${escapeHtml(bookmark.url)}" class="bookmark-card" title="${escapeHtml(bookmark.title)}">
-      <div class="bookmark-favicon">
-        ${faviconUrl ? `<img class="favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy">` : ''}
-        <span class="favicon-letter">${escapeHtml(initial)}</span>
-      </div>
-      <span class="bookmark-title">${escapeHtml(bookmark.title || 'Untitled')}</span>
-      <span class="bookmark-url">${escapeHtml(domain)}</span>
-    </a>
+    <div class="bookmark-card" data-url="${escapeHtml(bookmark.url)}" title="${escapeHtml(title)}" aria-selected="false">
+      <button class="pin-bookmark ${isPinned ? 'active' : ''}" type="button" data-url="${escapeHtml(bookmark.url)}" aria-label="${isPinned ? 'Unpin bookmark' : 'Pin bookmark'}" aria-pressed="${isPinned}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 17v5"></path>
+          <path d="M5 17h14"></path>
+          <path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>
+        </svg>
+      </button>
+      <a href="${escapeHtml(bookmark.url)}" class="bookmark-link">
+        <div class="bookmark-favicon">
+          ${faviconUrl ? `<img class="favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy">` : ''}
+          <span class="favicon-letter">${escapeHtml(initial)}</span>
+        </div>
+        <span class="bookmark-title">${highlightMatch(title, searchQuery)}</span>
+        <span class="bookmark-url">${highlightMatch(domain, searchQuery)}</span>
+      </a>
+    </div>
   `;
 }
 
@@ -609,6 +764,38 @@ function setupBookmarkFavicons(container) {
     if (img.complete && img.naturalWidth > 0) {
       wrapper.classList.add('has-image');
     }
+  });
+}
+
+function setupBookmarkCardSelection(container) {
+  container.querySelectorAll('.bookmark-card').forEach((card, index) => {
+    card.dataset.resultIndex = String(index);
+
+    card.addEventListener('focus', () => {
+      selectedBookmarkIndex = index;
+      updateBookmarkSelection();
+    });
+
+    card.addEventListener('mouseenter', () => {
+      selectedBookmarkIndex = index;
+      updateBookmarkSelection();
+    });
+
+    card.addEventListener('click', event => {
+      if (event.target.closest('.pin-bookmark')) return;
+      if (event.target.closest('a')) return;
+      window.location.href = card.dataset.url;
+    });
+  });
+}
+
+function setupBookmarkPinButtons(container) {
+  container.querySelectorAll('.pin-bookmark').forEach(button => {
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleBookmarkPin(button.dataset.url);
+    });
   });
 }
 
@@ -650,6 +837,15 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+function highlightMatch(text, searchQuery) {
+  const safeText = escapeHtml(text);
+  const query = parseSearchIntent(searchQuery).query.trim();
+  if (!query) return safeText;
+
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return safeText.replace(new RegExp(`(${escapedQuery})`, 'ig'), '<mark>$1</mark>');
 }
 
 function showToast(message) {
@@ -729,6 +925,24 @@ function openSettingsPanel() {
             <div class="stat-row">
               <span>Visible Labels</span>
               <span class="stat-value">${getUserFolders(false).length}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>Privacy</h3>
+          <div class="privacy-info">
+            <div class="privacy-row">
+              <span class="privacy-dot"></span>
+              <span>Bookmarks and settings stay in Chrome storage.</span>
+            </div>
+            <div class="privacy-row">
+              <span class="privacy-dot"></span>
+              <span>No remote code or developer server sync.</span>
+            </div>
+            <div class="privacy-row">
+              <span class="privacy-dot"></span>
+              <span>Web searches go only to the selected search engine.</span>
             </div>
           </div>
         </div>
@@ -841,9 +1055,18 @@ function setupEventListeners() {
   elements.searchClear.addEventListener('click', clearSearch);
   elements.searchSubmit.addEventListener('click', performSearch);
   elements.searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
-      performSearch();
+      moveBookmarkSelection(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveBookmarkSelection(-1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const intent = parseSearchIntent(elements.searchInput.value);
+      if (intent.isPrefixed || e.shiftKey || !openSelectedBookmark()) {
+        performSearch();
+      }
     }
   });
   

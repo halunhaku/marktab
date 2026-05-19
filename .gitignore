@@ -2,6 +2,8 @@
 node_modules/
 npm-debug.log*
 .tools/
+.ms-playwright/
+.tmp-store-assets/
 
 # Local-only generated assets
 *.tmp

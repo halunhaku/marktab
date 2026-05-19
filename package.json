@@ -1,0 +1,17 @@
+{
+  "name": "marktab",
+  "version": "1.2.0",
+  "private": true,
+  "description": "A fast, clear, privacy-friendly bookmark new tab extension.",
+  "scripts": {
+    "validate": "node scripts/validate-release.mjs",
+    "package": "npm run validate && mkdir -p dist && rm -f dist/marktab-*.zip && zip -X -r dist/marktab-$npm_package_version.zip manifest.json newtab.html newtab.js styles.css popup.html popup.js icons/icon16.png icons/icon32.png icons/icon48.png icons/icon128.png",
+    "release:zip": "npm run package",
+    "inspect:zip": "unzip -l dist/marktab-$npm_package_version.zip",
+    "bump": "node scripts/bump-version.mjs",
+    "screenshots": "node scripts/capture-store-assets.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
