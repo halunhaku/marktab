@@ -2,6 +2,11 @@ const VERSION = '1.2.1';
 const RELEASE_ZIP = `https://github.com/forhalunhaku/marktab/releases/download/v${VERSION}/marktab-${VERSION}.zip`;
 const GITHUB_REPO = 'https://github.com/forhalunhaku/marktab';
 const PRIVACY_URL = `${GITHUB_REPO}/blob/main/PRIVACY_POLICY.md`;
+const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="16" fill="#101215"/>
+  <rect x="8" y="8" width="48" height="48" rx="12" fill="#1d2226" stroke="#78b8a2" stroke-opacity=".55"/>
+  <path d="M18 45V19h7l7 13 7-13h7v26h-7V31.5L34.7 42h-5.4L25 31.5V45h-7Z" fill="#78b8a2"/>
+</svg>`;
 
 const html = `<!doctype html>
 <html lang="zh-CN">
@@ -14,8 +19,9 @@ const html = `<!doctype html>
   <meta property="og:description" content="一个快速、清晰、隐私友好的书签新标签页。">
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#101215">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23101215'/%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='%231d2226' stroke='%2378b8a2' stroke-opacity='.55'/%3E%3Cpath d='M18 45V19h7l7 13 7-13h7v26h-7V31.5L34.7 42h-5.4L25 31.5V45h-7Z' fill='%2378b8a2'/%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='42' fill='%23101215'/%3E%3Crect x='22' y='22' width='136' height='136' rx='32' fill='%231d2226' stroke='%2378b8a2' stroke-opacity='.55' stroke-width='4'/%3E%3Cpath d='M51 128V52h20l19 35 19-35h20v76h-19V89l-12 30H82L70 89v39H51Z' fill='%2378b8a2'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=marktab-${VERSION}">
+  <link rel="shortcut icon" type="image/svg+xml" href="/favicon.ico?v=marktab-${VERSION}">
+  <link rel="apple-touch-icon" href="/favicon.svg?v=marktab-${VERSION}">
   <style>
     :root {
       color-scheme: dark;
@@ -694,6 +700,11 @@ addEventListener('fetch', event => {
 
   if (url.pathname === '/robots.txt') {
     event.respondWith(response('User-agent: *\\nAllow: /\\n', 'text/plain; charset=utf-8'));
+    return;
+  }
+
+  if (url.pathname === '/favicon.svg' || url.pathname === '/favicon.ico') {
+    event.respondWith(response(faviconSvg, 'image/svg+xml; charset=utf-8'));
     return;
   }
 
