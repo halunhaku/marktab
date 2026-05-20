@@ -56,9 +56,9 @@ async function screenshotPopup(page, width, height, pngName, jpgName) {
       margin: 0;
       overflow: hidden;
       background:
-        radial-gradient(circle at 24% 28%, rgba(0, 212, 170, 0.28), transparent 30%),
-        radial-gradient(circle at 72% 72%, rgba(244, 114, 182, 0.24), transparent 34%),
-        linear-gradient(135deg, #0a0a0f 0%, #15111f 52%, #17120d 100%);
+        radial-gradient(circle at 22% 18%, rgba(120, 184, 162, 0.2), transparent 32%),
+        radial-gradient(circle at 76% 74%, rgba(214, 199, 161, 0.16), transparent 36%),
+        linear-gradient(135deg, #101215 0%, #16191d 52%, #252b30 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
     }
     .stage {
@@ -71,8 +71,8 @@ async function screenshotPopup(page, width, height, pngName, jpgName) {
       width: 320px;
       height: 440px;
       border: 0;
-      border-radius: 24px;
-      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+      border-radius: 20px;
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
       overflow: hidden;
     }
   </style>
