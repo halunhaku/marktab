@@ -51,27 +51,27 @@ const SEARCH_ENGINE_PREFIXES = {
 const THEMES = [
   {
     id: 'midnight',
-    name: 'Midnight',
-    desc: 'Deep teal focus',
-    swatches: ['#0a0a0f', '#00d4aa', '#0891b2']
+    name: 'Graphite',
+    desc: 'Dark calm workspace',
+    swatches: ['#101215', '#78b8a2', '#d6c7a1']
   },
   {
     id: 'daylight',
     name: 'Daylight',
-    desc: 'Clean light workspace',
-    swatches: ['#f8fafc', '#0ea5e9', '#14b8a6']
+    desc: 'Bright review mode',
+    swatches: ['#f6f3ee', '#3d7d6b', '#b77952']
   },
   {
     id: 'dusk',
-    name: 'Dusk',
-    desc: 'Soft violet evening',
-    swatches: ['#15111f', '#a78bfa', '#f472b6']
+    name: 'Forest',
+    desc: 'Low contrast green',
+    swatches: ['#101613', '#87a987', '#d8bb78']
   },
   {
     id: 'ember',
-    name: 'Ember',
-    desc: 'Warm reading mode',
-    swatches: ['#17120d', '#f59e0b', '#ef4444']
+    name: 'Clay',
+    desc: 'Warm muted desk',
+    swatches: ['#1b1612', '#c08c63', '#7aa29a']
   }
 ];
 
@@ -850,22 +850,7 @@ function highlightMatch(text, searchQuery) {
 
 function showToast(message) {
   const toast = document.createElement('div');
-  toast.style.cssText = `
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--bg-elevated);
-    color: var(--text-primary);
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    z-index: 1000;
-    animation: fadeInUp 0.3s ease-out;
-    border: 1px solid var(--border-subtle);
-    backdrop-filter: blur(10px);
-  `;
+  toast.className = 'toast';
   toast.textContent = message;
   toast.setAttribute('role', 'status');
   toast.setAttribute('aria-live', 'polite');

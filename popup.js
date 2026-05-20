@@ -70,20 +70,7 @@ async function loadStats() {
 // 显示通知
 function showNotification(message) {
   const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(78, 205, 196, 0.95);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    animation: fadeInUp 0.3s ease-out;
-    z-index: 1000;
-  `;
+  notification.className = 'popup-toast';
   notification.setAttribute('role', 'status');
   notification.setAttribute('aria-live', 'polite');
   notification.textContent = message;
