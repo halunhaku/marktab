@@ -33,7 +33,7 @@ const packageFiles = [
   'icons/icon128.png'
 ];
 
-const allowedPermissions = ['activeTab', 'bookmarks', 'favicon', 'storage'];
+const allowedPermissions = ['activeTab', 'bookmarks', 'favicon', 'search', 'storage'];
 const requiredIconSizes = ['16', '32', '48', '128'];
 const htmlFiles = ['newtab.html', 'popup.html'];
 const jsFiles = ['newtab.js', 'popup.js'];

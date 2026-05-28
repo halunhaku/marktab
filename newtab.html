@@ -7,132 +7,196 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- 背景效果层 -->
-  <div class="ambient-glow">
-    <div class="glow-wash wash-1"></div>
-    <div class="glow-wash wash-2"></div>
-  </div>
-  
-  <!-- 噪点纹理 -->
-  <div class="noise-overlay"></div>
+  <!-- ========================================= -->
+  <!-- HOME VIEW — Paper Launchpad                -->
+  <!-- ========================================= -->
+  <div class="view home-view" id="homeView" data-view="home">
+    <div class="home-container">
+      <!-- Top bar: clock + date, intentionally small -->
+      <header class="home-topbar">
+        <time class="home-clock" id="homeClock">00:00</time>
+        <span class="home-date" id="homeDate">Loading…</span>
+      </header>
 
-  <div class="container">
-    <!-- 顶部区域：时间和搜索 -->
-    <header class="header">
-      <div class="time-section">
-        <div class="clock" id="clock">00:00</div>
-        <div class="date" id="date">Loading…</div>
-      </div>
-      
-      <div class="search-section">
-        <div class="search-container">
-          <div class="search-box" id="searchBox">
-            <button class="engine-selector" id="engineBtn" title="Switch Search Engine" aria-label="Switch Search Engine" aria-expanded="false">
-              <div class="engine-icon-wrapper">
-                <span id="engineIcon" class="engine-icon-text">G</span>
-              </div>
-              <svg class="engine-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-            <div class="search-divider"></div>
-            <input type="text" id="searchInput" name="bookmark-search" placeholder="Search bookmarks or the web…" autocomplete="off" aria-label="Search bookmarks or the web">
-            <button class="search-clear" id="searchClear" aria-label="Clear">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-            <button class="search-submit" id="searchSubmit" aria-label="Search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
-            </button>
-          </div>
-          
-          <!-- 搜索引擎下拉菜单 -->
-          <div class="engine-dropdown" id="engineDropdown">
-            <div class="dropdown-arrow"></div>
-            <div class="dropdown-content"></div>
+      <!-- Main hero: search is the centerpiece -->
+      <div class="home-hero">
+        <div class="home-search-card">
+          <div class="home-search-inner">
+            <svg class="home-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="homeSearchInput" placeholder="Search bookmarks and folders…" autocomplete="off" aria-label="Search">
+            <span class="home-search-hint-badge">⌘K</span>
           </div>
         </div>
+        <div class="home-search-hints">
+          <span><kbd>Enter</kbd> open</span>
+          <span class="hint-dot">·</span>
+          <span><kbd>Shift</kbd>+<kbd>Enter</kbd> web</span>
+          <span class="hint-dot">·</span>
+          <span><kbd>Esc</kbd> close</span>
+        </div>
       </div>
-    </header>
 
-    <!-- 文件夹导航栏 -->
-    <nav class="folder-nav" id="folderNav">
-      <div class="folder-nav-header">
-        <span class="folder-nav-label">Folders</span>
-        <button class="folder-nav-toggle" id="folderNavToggle" title="Toggle All">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"></polyline>
+      <!-- Content sections -->
+      <div class="home-sections" id="homeSections">
+
+      <!-- Pinned -->
+      <section class="home-section" id="homePinnedSection">
+        <div class="home-section-label">
+          <svg class="home-section-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 17v5"></path><path d="M5 17h14"></path><path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>
           </svg>
+          <span>Pinned</span>
+        </div>
+        <div class="home-card-grid" id="homePinnedGrid"></div>
+      </section>
+
+      <!-- Recent -->
+      <section class="home-section" id="homeRecentSection">
+        <div class="home-section-label home-section-label-row">
+          <span class="home-section-label-left">
+            <svg class="home-section-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Recent</span>
+          </span>
+        </div>
+        <div class="home-card-grid" id="homeRecentGrid"></div>
+      </section>
+
+      <!-- Folders -->
+      <section class="home-section" id="homeFoldersSection">
+        <div class="home-section-label">
+          <svg class="home-section-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Folders</span>
+        </div>
+        <div class="home-folder-pills" id="homeFolderPills"></div>
+      </section>
+    </div><!-- /home-sections -->
+
+      <!-- Loading shimmer (inside container for centering) -->
+      <div class="home-loading" id="homeLoading">
+        <div class="loading-dots">
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+        </div>
+        <span>Loading bookmarks…</span>
+      </div>
+    </div><!-- /home-container -->
+
+    <!-- Settings FAB — lower right -->
+    <button class="home-fab" id="homeFab" aria-label="Settings">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="10" cy="10" r="2.5"></circle>
+        <path d="M10 1.5v1.5M10 17v1.5M3.1 3.1l1.06 1.06M15.84 15.84l1.06 1.06M1.5 10H3M17 10h1.5M3.1 16.9l1.06-1.06M15.84 8.16l1.06-1.06"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ========================================= -->
+  <!-- FOLDER VIEW (sidebar + content)            -->
+  <!-- ========================================= -->
+  <div class="view folder-view" id="folderView" data-view="folder" style="display:none">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+    <aside class="folder-sidebar" id="folderSidebar">
+      <div class="folder-sidebar-header">
+        <button class="sidebar-brand" id="sidebarHomeBtn" aria-label="Back to home">
+          <span class="sidebar-logo">M</span>
+          <span class="sidebar-title">MarkTab</span>
         </button>
       </div>
-      <div class="folder-nav-content" id="folderNavContent">
-        <!-- 动态生成文件夹树 -->
-      </div>
-    </nav>
-
-    <!-- 书签内容区域 -->
-    <main class="bookmarks-container">
-      <div class="loading-state" id="loadingState">
-        <div class="loading-shimmer">
-          <div class="shimmer-line"></div>
-          <div class="shimmer-line"></div>
-          <div class="shimmer-line"></div>
-        </div>
-      </div>
-      
-      <div class="bookmarks-content" id="bookmarksContent">
-        <!-- 书签将按层级分组显示 -->
-      </div>
-      
-      <div class="empty-state" id="emptyState">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-          </svg>
-        </div>
-        <h3>No bookmarks yet</h3>
-        <p>Add some bookmarks in your browser to see them here</p>
-      </div>
-      
-      <div class="no-results" id="noResults">
-        <div class="no-results-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- Populated by JS -->
+      </nav>
+    </aside>
+    <main class="sidebar-content" id="folderContent">
+      <div class="folder-toolbar">
+        <div class="folder-search-box" id="folderSearchBox">
+          <svg class="folder-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.35-4.35"></path>
           </svg>
+          <input type="text" id="folderSearchInput" placeholder="Search in folder…" autocomplete="off" aria-label="Search in folder">
         </div>
-        <h3>No matches found</h3>
-        <p>Try a different search term</p>
+      </div>
+      <div class="folder-header-area" id="folderHeaderArea">
+        <h2 class="folder-title" id="folderTitle">Folder</h2>
+        <div class="folder-meta">
+          <span class="folder-count" id="folderCount">0 bookmarks</span>
+        </div>
+      </div>
+      <div class="folder-bookmarks-grid" id="folderBookmarksGrid">
+        <!-- Populated by JS -->
+      </div>
+      <div class="folder-empty" id="folderEmpty" style="display:none">
+        <div class="folder-empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        <p>This folder is empty</p>
       </div>
     </main>
-
-    <!-- 底部信息 -->
-    <footer class="footer">
-      <div class="stats" id="stats">Loading...</div>
-      <div class="shortcuts-hint">
-        <kbd>Ctrl</kbd> + <kbd>K</kbd> focus · 
-        <kbd>↑</kbd><kbd>↓</kbd> select ·
-        <kbd>Enter</kbd> open ·
-        <kbd>Shift</kbd> + <kbd>Enter</kbd> web
-      </div>
-    </footer>
   </div>
 
-  <!-- 设置按钮 -->
-  <button class="fab" id="fab" aria-label="Settings">
-    <div class="fab-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-      </svg>
+  <!-- Settings removed — FAB now cycles theme directly -->
+
+  <!-- ========================================= -->
+  <!-- SEARCH PANEL OVERLAY                      -->
+  <!-- ========================================= -->
+  <div class="search-panel-overlay" id="searchPanelOverlay" style="display:none">
+    <div class="search-panel" id="searchPanel">
+      <div class="search-panel-input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input type="text" id="searchPanelInput" placeholder="Search bookmarks and folders…" autocomplete="off" aria-label="Search" spellcheck="false">
+        <button class="search-panel-clear" id="searchPanelClose" aria-label="Close search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="search-panel-results" id="searchPanelResults">
+        <div class="search-group" id="searchGroupBookmarks">
+          <div class="search-group-header">Bookmarks</div>
+          <div class="search-panel-items" id="searchBookmarkItems"></div>
+        </div>
+        <div class="search-group" id="searchGroupFolders">
+          <div class="search-group-header">Folders</div>
+          <div class="search-panel-items" id="searchFolderItems"></div>
+        </div>
+        <div class="search-group" id="searchGroupWeb">
+          <div class="search-panel-items" id="searchWebItem"></div>
+        </div>
+        <div class="search-panel-empty" id="searchEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="32" height="32">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <p>Start typing to search</p>
+        </div>
+      </div>
     </div>
-    <div class="fab-glow"></div>
-  </button>
+  </div>
+
+  <!-- ========================================= -->
+  <!-- TOAST                                      -->
+  <!-- ========================================= -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <script src="newtab.js"></script>
 </body>

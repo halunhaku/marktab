@@ -26,12 +26,12 @@ async function screenshotPage(page, file, width, height, pngName, jpgName) {
   await page.setViewportSize({ width, height });
   await page.goto(pathToFileURL(path.join(root, file)).href);
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForSelector('.search-box', { state: 'visible', timeout: 8000 });
+  await page.waitForSelector('.home-search-card', { state: 'visible', timeout: 8000 });
   await page.waitForFunction(() => {
-    const clock = document.querySelector('#clock');
-    const cards = document.querySelectorAll('.bookmark-card');
-    return clock && clock.textContent && clock.textContent !== '00:00' && cards.length > 0;
-  }, { timeout: 8000 });
+    const clock = document.querySelector('#homeClock');
+    const pills = document.querySelectorAll('.folder-pill');
+    return clock && clock.textContent !== '00:00' && pills.length > 0;
+  }, { timeout: 10000 });
   await page.waitForTimeout(1000);
   const pngPath = path.join(outputDir, pngName);
   await page.screenshot({ path: pngPath, fullPage: false });
