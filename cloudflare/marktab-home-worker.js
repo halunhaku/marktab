@@ -1,689 +1,621 @@
-const VERSION = '1.2.1';
+const VERSION = '1.3.0';
 const RELEASE_ZIP = `https://github.com/forhalunhaku/marktab/releases/download/v${VERSION}/marktab-${VERSION}.zip`;
 const GITHUB_REPO = 'https://github.com/forhalunhaku/marktab';
 const PRIVACY_URL = `${GITHUB_REPO}/blob/main/PRIVACY_POLICY.md`;
-const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="16" fill="#101215"/>
-  <rect x="8" y="8" width="48" height="48" rx="12" fill="#1d2226" stroke="#78b8a2" stroke-opacity=".55"/>
-  <path d="M18 45V19h7l7 13 7-13h7v26h-7V31.5L34.7 42h-5.4L25 31.5V45h-7Z" fill="#78b8a2"/>
-</svg>`;
 
 const html = `<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MarkTab - 隐私友好的书签新标签页</title>
-  <meta name="description" content="MarkTab 是一个 Chrome/Edge 新标签页扩展，把本地浏览器书签整理成快速、清晰、隐私友好的书签工作台。">
+  <title>MarkTab — 安静、快速、隐私友好的书签启动器</title>
+  <meta name="description" content="MarkTab 是一个 Chrome/Edge 新标签页扩展，把浏览器书签整理成安静、快速、隐私友好的书签启动器（Bookmark Launcher）。">
   <meta property="og:title" content="MarkTab">
-  <meta property="og:description" content="一个快速、清晰、隐私友好的书签新标签页。">
+  <meta property="og:description" content="一个安静、快速、隐私友好的书签启动器。">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#101215">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=marktab-${VERSION}">
-  <link rel="shortcut icon" type="image/svg+xml" href="/favicon.ico?v=marktab-${VERSION}">
-  <link rel="apple-touch-icon" href="/favicon.svg?v=marktab-${VERSION}">
+  <meta name="theme-color" content="#f7f5f0">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #101215;
-      --surface: rgba(22, 25, 29, 0.78);
-      --surface-strong: #1d2226;
-      --line: rgba(242, 241, 236, 0.1);
-      --line-strong: rgba(242, 241, 236, 0.18);
-      --text: #f2f1ec;
-      --muted: #b9c0bc;
-      --soft: #87918d;
-      --accent: #78b8a2;
-      --accent-2: #d6c7a1;
-      --accent-soft: rgba(120, 184, 162, 0.13);
-      --shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
-      font-family: "Avenir Next", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --bg: #f7f5f0;
+      --bg-card: rgba(255,255,255,0.82);
+      --bg-card-hover: rgba(255,255,255,0.95);
+      --bg-surface: #ffffff;
+      --accent: #6b9b7a;
+      --accent-hover: #5a8a69;
+      --accent-light: rgba(107,155,122,0.15);
+      --accent-glow: rgba(107,155,122,0.2);
+      --text: #2c2c2c;
+      --text-secondary: #787878;
+      --text-tertiary: #a8a8a8;
+      --text-muted: #c8c8c8;
+      --border: rgba(0,0,0,0.06);
+      --border-med: rgba(0,0,0,0.1);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.03);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.04);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.06);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", system-ui, sans-serif;
+      --font-display: ui-rounded, "SF Pro Rounded", "Avenir Next", "Nunito", system-ui, sans-serif;
+      --ease: cubic-bezier(0.4,0,0.2,1);
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; -webkit-font-smoothing: antialiased; }
     body {
-      margin: 0;
-      min-height: 100dvh;
-      background:
-        radial-gradient(circle at 14% -8%, rgba(120, 184, 162, 0.18), transparent 34rem),
-        radial-gradient(circle at 86% 22%, rgba(214, 199, 161, 0.12), transparent 30rem),
-        linear-gradient(180deg, #14181b 0%, var(--bg) 36rem);
+      font-family: var(--font);
+      background: var(--bg);
       color: var(--text);
       line-height: 1.6;
-      overflow-x: hidden;
+      min-height: 100dvh;
     }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; height: auto; }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.03;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
+    .container { width: min(1080px, calc(100% - 48px)); margin: 0 auto; }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .shell {
-      width: min(1180px, calc(100% - 40px));
-      margin: 0 auto;
-    }
-
-    .nav {
+    /* ── Nav ─────────────────────────── */
+    nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1rem;
-      padding: 1.4rem 0;
+      padding: 20px 0;
     }
-
     .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.8rem;
-      font-weight: 800;
-      letter-spacing: 0;
-    }
-
-    .mark {
-      width: 40px;
-      height: 40px;
-      display: grid;
-      place-items: center;
-      border: 1px solid rgba(120, 184, 162, 0.36);
-      border-radius: 12px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    }
-
-    .nav-links {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      color: var(--muted);
+      gap: 10px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+    .brand-mark {
+      width: 32px; height: 32px;
+      display: grid; place-items: center;
+      background: var(--accent-light);
+      border-radius: var(--radius-sm);
+      color: var(--accent);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 24px;
+      font-size: 0.9rem; color: var(--text-secondary);
+    }
+    .nav-links a { transition: color 0.2s var(--ease); }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Hero ────────────────────────── */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      padding: 40px 0 80px;
+      min-height: calc(100dvh - 80px);
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 5vw, 4.2rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.08;
+      margin-bottom: 16px;
+    }
+    .hero .lead {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: 28px;
+    }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 22px; border-radius: var(--radius-md);
+      font-size: 0.95rem; font-weight: 500;
+      transition: all 0.2s var(--ease);
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 1px 4px var(--accent-glow);
+    }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-secondary {
+      background: var(--bg-card); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-card-hover); border-color: var(--border-med);
+      transform: translateY(-1px);
+    }
+    .meta-tags {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 20px;
+    }
+    .meta-tags span {
+      font-size: 0.78rem; color: var(--text-tertiary);
+      padding: 3px 10px; border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    /* ── Mockup ──────────────────────── */
+    .mockup {
+      position: relative;
+      padding: 24px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      min-height: 400px;
+    }
+    .mockup::after {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+      pointer-events: none;
+    }
+    .mockup-clock {
+      display: flex; align-items: baseline; gap: 8px;
+      margin-bottom: 28px;
+    }
+    .mockup-time {
+      font-family: var(--font-display);
+      font-size: 1rem; font-weight: 450;
+      color: var(--text-secondary); letter-spacing: 0.03em;
+    }
+    .mockup-date {
+      font-size: 0.75rem; color: var(--text-tertiary);
+    }
+    .mockup-date::before {
+      content: "·"; margin-right: 8px; color: var(--text-muted);
+    }
+    .mockup-search {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .mockup-search-icon {
+      width: 18px; height: 18px;
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+    .mockup-search-placeholder {
+      flex: 1; font-size: 0.9rem; color: var(--text-tertiary);
+    }
+    .mockup-search-hint {
+      font-size: 0.65rem; color: var(--text-tertiary);
+      padding: 3px 8px; background: var(--bg-hover, rgba(0,0,0,0.03));
+      border: 1px solid var(--border); border-radius: 7px;
+      font-family: monospace;
+    }
+    .mockup-pinned-label {
+      font-size: 0.69rem; font-weight: 500;
+      color: var(--text-tertiary); text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 12px;
+    }
+    .mockup-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; margin-bottom: 24px;
+    }
+    .mockup-card {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 6px; padding: 12px 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .mockup-card-fav {
+      width: 28px; height: 28px;
+      display: grid; place-items: center;
+      background: rgba(0,0,0,0.04);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-display);
+      font-size: 0.75rem; font-weight: 600; color: var(--accent);
+    }
+    .mockup-card-title {
+      font-size: 0.75rem; font-weight: 500; text-align: center;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 100%;
+    }
+    .mockup-card-domain {
+      font-size: 0.62rem; color: var(--text-tertiary);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 100%;
+    }
+    .mockup-recent-label {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .mockup-recent-label span {
+      font-size: 0.69rem; font-weight: 500;
+      color: var(--text-tertiary); text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .mockup-recent-list {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .mockup-recent-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.5);
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: var(--radius-md);
+    }
+    .mockup-recent-fav {
+      width: 20px; height: 20px;
+      display: grid; place-items: center;
+      background: rgba(0,0,0,0.03);
+      border-radius: 5px;
+      font-family: var(--font-display);
+      font-size: 0.6rem; font-weight: 600; color: var(--accent);
+      flex-shrink: 0;
+    }
+    .mockup-recent-text {
+      flex: 1; min-width: 0;
+    }
+    .mockup-recent-text strong {
+      display: block;
+      font-size: 0.72rem; font-weight: 450; color: var(--text-secondary);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .mockup-recent-text span {
+      font-size: 0.6rem; color: var(--text-tertiary);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;
+    }
+
+    /* ── Sections ────────────────────── */
+    section { padding: 64px 0; border-top: 1px solid var(--border); }
+    .section-head {
+      text-align: center; max-width: 600px;
+      margin: 0 auto 48px;
+    }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+    }
+    .section-head p {
+      color: var(--text-secondary);
       font-size: 0.95rem;
     }
 
-    .nav-links a {
-      transition: color 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature {
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
     }
-
-    .nav-links a:hover {
-      color: var(--text);
+    .feature-icon {
+      width: 36px; height: 36px;
+      display: grid; place-items: center;
+      background: var(--accent-light);
+      border-radius: var(--radius-sm);
+      margin-bottom: 14px;
+      color: var(--accent);
     }
-
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
-      gap: clamp(2rem, 6vw, 5rem);
-      align-items: center;
-      min-height: calc(100dvh - 84px);
-      padding: 3rem 0 5rem;
+    .feature h3 {
+      font-size: 1rem; font-weight: 600;
+      margin-bottom: 6px;
     }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.55rem;
-      width: fit-content;
-      padding: 0.45rem 0.7rem;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.035);
-      color: var(--muted);
+    .feature p {
+      color: var(--text-secondary);
       font-size: 0.88rem;
+      line-height: 1.6;
     }
 
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 0 4px var(--accent-soft);
+    /* ── Theme showcase ──────────────── */
+    .theme-showcase {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; margin-top: 32px;
+    }
+    .theme-card {
+      padding: 20px; border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .theme-card.paper { background: #f7f5f0; color: #2c2c2c; }
+    .theme-card.dark { background: #1a1a1e; color: #e8e6e0; }
+    .theme-card.system {
+      background: linear-gradient(135deg, #f7f5f0 50%, #1a1a1e 50%);
+      color: #2c2c2c;
+    }
+    .theme-card .theme-name {
+      font-family: var(--font-display);
+      font-size: 1.2rem; font-weight: 600;
+    }
+    .theme-card .theme-desc {
+      font-size: 0.82rem; opacity: 0.6; margin-top: 4px;
     }
 
-    h1 {
-      margin: 1.4rem 0 1rem;
-      max-width: 10ch;
-      font-size: clamp(4rem, 11vw, 9rem);
-      line-height: 0.9;
-      letter-spacing: 0;
-      font-weight: 500;
+    /* ── Accent colors ───────────────── */
+    .accent-row {
+      display: flex; gap: 12px; justify-content: center;
+      margin-top: 20px; flex-wrap: wrap;
+    }
+    .accent-swatch {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .accent-swatch .dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid var(--bg-surface);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .accent-swatch span {
+      font-size: 0.75rem; color: var(--text-tertiary);
     }
 
-    .lead {
-      max-width: 36rem;
-      margin: 0;
-      color: var(--muted);
-      font-size: clamp(1rem, 1.7vw, 1.22rem);
+    /* ── Install ─────────────────────── */
+    .install-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      margin-top: 2rem;
+    .install-card {
+      padding: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
     }
-
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      min-height: 46px;
-      padding: 0.8rem 1rem;
-      border-radius: 13px;
-      border: 1px solid var(--line);
-      font-weight: 750;
-      transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), background 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    .install-card .label {
+      font-size: 0.72rem; font-weight: 500; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
     }
-
-    .button:hover {
-      transform: translateY(-2px);
-      border-color: var(--line-strong);
+    .install-card .version-num {
+      font-family: var(--font-display);
+      font-size: 2.8rem; font-weight: 600;
+      line-height: 1; margin: 12px 0 20px;
     }
-
-    .button:active {
-      transform: translateY(1px) scale(0.99);
+    .install-card ol {
+      margin: 12px 0 0; padding-left: 20px;
+      color: var(--text-secondary); font-size: 0.9rem;
     }
-
-    .primary {
-      background: var(--accent);
-      color: #101215;
-      border-color: transparent;
-    }
-
-    .secondary {
-      background: rgba(255, 255, 255, 0.035);
-      color: var(--text);
-    }
-
-    .meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.7rem;
-      margin-top: 1.4rem;
-      color: var(--soft);
-      font-size: 0.9rem;
-    }
-
-    .meta span {
-      padding: 0.25rem 0.55rem;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-    }
-
-    .product {
-      position: relative;
-      min-height: 560px;
-    }
-
-    .screen {
-      position: absolute;
-      inset: 2rem 0 auto auto;
-      width: min(700px, 100%);
-      min-height: 460px;
-      padding: 2rem;
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      background: rgba(16, 18, 21, 0.72);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      overflow: hidden;
-      animation: rise 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-
-    .screen::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 75% 25%, rgba(214, 199, 161, 0.13), transparent 18rem);
-      pointer-events: none;
-    }
-
-    .clock {
-      display: flex;
-      align-items: end;
-      gap: 1.2rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .time {
-      font-size: clamp(4rem, 8vw, 7rem);
-      line-height: 0.9;
-      font-weight: 500;
-    }
-
-    .date {
-      color: var(--soft);
-      padding-bottom: 0.65rem;
-    }
-
-    .search {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      margin-top: 2rem;
-      padding: 0.55rem;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.025);
-    }
-
-    .engine,
-    .submit {
-      display: grid;
-      place-items: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-    }
-
-    .engine {
-      background: var(--surface-strong);
-      color: var(--accent);
-      font-weight: 800;
-    }
-
-    .submit {
-      margin-left: auto;
-      background: var(--accent);
-      color: #101215;
-    }
-
-    .placeholder {
-      color: var(--soft);
-    }
-
-    .folders {
-      position: relative;
-      z-index: 1;
-      margin-top: 2.4rem;
-    }
-
-    .label {
-      color: var(--soft);
-      font-size: 0.78rem;
-      letter-spacing: 0.14em;
-      font-weight: 800;
-    }
-
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.7rem;
-      margin-top: 0.8rem;
-      padding: 0.7rem;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.025);
-    }
-
-    .chip {
-      padding: 0.55rem 0.7rem;
-      border: 1px solid transparent;
-      border-radius: 11px;
-      color: var(--muted);
-    }
-
-    .chip.active {
-      color: var(--text);
-      border-color: rgba(120, 184, 162, 0.38);
-      background: var(--accent-soft);
-    }
-
-    .cards {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.8rem;
-      margin-top: 1rem;
-    }
-
-    .card {
-      min-height: 110px;
-      padding: 1rem;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.025);
-    }
-
-    .favicon {
-      width: 36px;
-      height: 36px;
-      display: grid;
-      place-items: center;
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      color: var(--accent);
-      background: var(--surface-strong);
-      font-weight: 800;
-    }
-
-    .card strong {
-      display: block;
-      margin-top: 0.85rem;
-      font-size: 0.94rem;
-    }
-
-    .card span {
-      display: block;
-      color: var(--soft);
+    .install-card li + li { margin-top: 8px; }
+    .install-card code {
+      padding: 1px 6px; background: var(--bg-hover, rgba(0,0,0,0.04));
+      border: 1px solid var(--border); border-radius: 4px;
       font-size: 0.82rem;
     }
 
-    section {
-      padding: 5rem 0;
-      border-top: 1px solid var(--line);
+    /* ── Footer ──────────────────────── */
+    footer {
+      display: flex; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      padding: 32px 0 40px;
+      color: var(--text-tertiary);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
     }
+    footer a { color: var(--text-secondary); }
+    footer a:hover { color: var(--text); }
 
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 2rem;
-      align-items: end;
-      margin-bottom: 2rem;
+    /* ── Responsive ──────────────────── */
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; padding: 20px 0 48px; }
+      .features { grid-template-columns: 1fr 1fr; }
+      .theme-showcase { grid-template-columns: 1fr; }
     }
-
-    h2 {
-      max-width: 14ch;
-      margin: 0;
-      font-size: clamp(2rem, 5vw, 4.2rem);
-      line-height: 0.98;
-      font-weight: 560;
-    }
-
-    .section-head p {
-      max-width: 31rem;
-      margin: 0;
-      color: var(--muted);
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr 1fr;
-      gap: 1rem;
-    }
-
-    .feature {
-      min-height: 190px;
-      padding: 1.2rem;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: var(--surface);
-    }
-
-    .feature:nth-child(4) {
-      grid-column: span 2;
-    }
-
-    .feature h3 {
-      margin: 0 0 0.7rem;
-      font-size: 1.15rem;
-    }
-
-    .feature p {
-      margin: 0;
-      color: var(--muted);
-    }
-
-    .install {
-      display: grid;
-      grid-template-columns: 0.8fr 1.2fr;
-      gap: 1rem;
-      align-items: stretch;
-    }
-
-    .version-card,
-    .steps {
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      background: var(--surface);
-      padding: 1.3rem;
-    }
-
-    .version-card strong {
-      display: block;
-      font-size: 3.4rem;
-      line-height: 1;
-      font-weight: 520;
-      margin: 0.7rem 0 1rem;
-    }
-
-    ol {
-      margin: 0;
-      padding-left: 1.2rem;
-      color: var(--muted);
-    }
-
-    li + li {
-      margin-top: 0.75rem;
-    }
-
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-      padding: 2rem 0 3rem;
-      color: var(--soft);
-      font-size: 0.92rem;
-    }
-
-    .footer a {
-      color: var(--muted);
-    }
-
-    @keyframes rise {
-      from {
-        opacity: 0;
-        transform: translateY(24px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (max-width: 900px) {
-      .hero,
-      .install {
-        grid-template-columns: 1fr;
-      }
-
-      .hero {
-        min-height: auto;
-        padding-top: 2rem;
-      }
-
-      .product {
-        min-height: auto;
-      }
-
-      .screen {
-        position: relative;
-        inset: auto;
-      }
-
-      .feature-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .feature:nth-child(4) {
-        grid-column: auto;
-      }
-
-      .section-head {
-        display: grid;
-      }
-    }
-
-    @media (max-width: 560px) {
-      .shell {
-        width: min(100% - 28px, 1180px);
-      }
-
-      .nav-links {
-        display: none;
-      }
-
-      h1 {
-        font-size: clamp(3.3rem, 22vw, 5rem);
-      }
-
-      .screen {
-        min-height: auto;
-        padding: 1rem;
-        border-radius: 20px;
-      }
-
-      .clock {
-        display: block;
-      }
-
-      .date {
-        padding: 0.4rem 0 0;
-      }
-
-      .cards {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 600px) {
+      .features { grid-template-columns: 1fr; }
+      .install-grid { grid-template-columns: 1fr; }
+      .mockup-grid { grid-template-columns: repeat(2, 1fr); }
+      .mockup-recent-list { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
     }
   </style>
 </head>
 <body>
-  <nav class="nav shell" aria-label="主导航">
-    <a class="brand" href="/">
-      <span class="mark">M</span>
-      <span>MarkTab</span>
-    </a>
-    <div class="nav-links">
-      <a href="#features">功能</a>
-      <a href="#install">安装</a>
-      <a href="${PRIVACY_URL}">隐私</a>
-      <a href="${GITHUB_REPO}">GitHub</a>
-    </div>
-  </nav>
+  <div class="container">
+    <nav>
+      <a class="brand" href="/">
+        <span class="brand-mark">M</span>
+        <span>MarkTab</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#themes">Themes</a>
+        <a href="#install">Install</a>
+        <a href="${GITHUB_REPO}">GitHub</a>
+        <a href="${PRIVACY_URL}">Privacy</a>
+      </div>
+    </nav>
+  </div>
 
   <main>
-    <header class="hero shell">
-      <div>
-        <div class="eyebrow"><span class="dot"></span> Chrome / Edge Manifest V3</div>
-        <h1>MarkTab</h1>
-        <p class="lead">把浏览器书签整理成快速、清晰、隐私友好的新标签页工作台。所有书签标题、URL、文件夹和设置都留在本地浏览器里。</p>
-        <div class="actions">
-          <a class="button primary" href="${RELEASE_ZIP}">下载 v${VERSION}</a>
-          <a class="button secondary" href="${GITHUB_REPO}">查看源码</a>
+    <div class="container">
+      <header class="hero">
+        <div>
+          <h1>Your bookmarks,<br>quietly at hand.</h1>
+          <p class="lead">
+            MarkTab 把 Chrome 书签变成一个安静、高效的书签启动器。
+            搜索优先、键盘驱动、纸感设计。不收集数据。
+          </p>
+          <div class="actions">
+            <a class="btn btn-primary" href="${RELEASE_ZIP}">Download v${VERSION}</a>
+            <a class="btn btn-secondary" href="${GITHUB_REPO}">View on GitHub</a>
+          </div>
+          <div class="meta-tags">
+            <span>Chrome / Edge</span>
+            <span>Manifest V3</span>
+            <span>No frameworks</span>
+          </div>
         </div>
-        <div class="meta">
-          <span>无框架依赖</span>
-          <span>本地图标和系统字体</span>
-          <span>可恢复隐藏分类</span>
-        </div>
-      </div>
 
-      <div class="product" aria-label="MarkTab 界面预览">
-        <div class="screen">
-          <div class="clock">
-            <div class="time">12:14</div>
-            <div class="date">Wednesday, May 20, 2026</div>
+        <div class="mockup" aria-label="MarkTab 界面预览">
+          <div class="mockup-clock">
+            <span class="mockup-time">12:14</span>
+            <span class="mockup-date">Wednesday, May 28</span>
           </div>
-          <div class="search">
-            <div class="engine">G</div>
-            <div class="placeholder">Search bookmarks or the web...</div>
-            <div class="submit">⌕</div>
+          <div class="mockup-search">
+            <svg class="mockup-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <span class="mockup-search-placeholder">Search bookmarks and folders…</span>
+            <span class="mockup-search-hint">⌘K</span>
           </div>
-          <div class="folders">
-            <div class="label">FOLDERS</div>
-            <div class="chips">
-              <div class="chip active">All · 128</div>
-              <div class="chip">Research · 34</div>
-              <div class="chip">Tools · 19</div>
+          <div class="mockup-pinned-label">Pinned</div>
+          <div class="mockup-grid">
+            <div class="mockup-card">
+              <div class="mockup-card-fav">G</div>
+              <span class="mockup-card-title">GitHub</span>
+              <span class="mockup-card-domain">github.com</span>
+            </div>
+            <div class="mockup-card">
+              <div class="mockup-card-fav">N</div>
+              <span class="mockup-card-title">Notion</span>
+              <span class="mockup-card-domain">notion.so</span>
+            </div>
+            <div class="mockup-card">
+              <div class="mockup-card-fav">F</div>
+              <span class="mockup-card-title">Figma</span>
+              <span class="mockup-card-domain">figma.com</span>
             </div>
           </div>
-          <div class="cards">
-            <div class="card"><div class="favicon">G</div><strong>GitHub</strong><span>github.com</span></div>
-            <div class="card"><div class="favicon">F</div><strong>Figma</strong><span>figma.com</span></div>
-            <div class="card"><div class="favicon">D</div><strong>Docs</strong><span>developer.chrome.com</span></div>
+          <div class="mockup-recent-label">
+            <span>Recent</span>
+          </div>
+          <div class="mockup-recent-list">
+            <div class="mockup-recent-item">
+              <div class="mockup-recent-fav">C</div>
+              <div class="mockup-recent-text">
+                <strong>Claude</strong>
+                <span>claude.ai</span>
+              </div>
+            </div>
+            <div class="mockup-recent-item">
+              <div class="mockup-recent-fav">L</div>
+              <div class="mockup-recent-text">
+                <strong>Linear</strong>
+                <span>linear.app</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
 
     <section id="features">
-      <div class="shell">
+      <div class="container">
         <div class="section-head">
-          <h2>为日常打开而设计</h2>
-          <p>MarkTab 不试图接管你的浏览器，它只把已经存在的本地书签变得更容易搜索、浏览和管理。</p>
+          <h2>Designed for everyday use</h2>
+          <p>三个层级、一个搜索框、全部键盘可达。打开新标签页即可在 1-2 个动作内找到目标网站。</p>
         </div>
-        <div class="feature-grid">
+        <div class="features">
           <article class="feature">
-            <h3>自动按文件夹整理</h3>
-            <p>读取浏览器书签树，按用户自建文件夹展示，并保留未分类书签入口。</p>
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+            </div>
+            <h3>Search first</h3>
+            <p>Spotlight 风格搜索面板。输入即搜，结果按书签/文件夹/网页分组。键盘全程可达。</p>
           </article>
           <article class="feature">
-            <h3>快速搜索</h3>
-            <p>按标题和 URL 搜索书签，支持 Ctrl/Cmd + K、方向键和 Enter 键盘流。</p>
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <h3>Browse by folder</h3>
+            <p>左侧导航栏 + 右侧书签网格。文件夹内可搜索过滤，书签卡片显示 favicon、标题、域名。</p>
           </article>
           <article class="feature">
-            <h3>网页搜索清晰可控</h3>
-            <p>支持 Google、Baidu、Bing、DuckDuckGo；搜索词只会发往你选择的搜索引擎。</p>
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+              </svg>
+            </div>
+            <h3>Privacy by design</h3>
+            <p>书签标题、URL、文件夹名、设置数据均不发送到开发者服务器。网页搜索通过 Chrome Search API 处理。</p>
           </article>
-          <article class="feature">
-            <h3>隐私边界明确</h3>
-            <p>不向开发者服务器发送书签标题、URL、文件夹名、favicon 域名或设置数据。</p>
-          </article>
-          <article class="feature">
-            <h3>置顶、隐藏、恢复</h3>
-            <p>常用书签可置顶，不想展示的分类可隐藏，并能在设置面板里恢复。</p>
-          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="themes">
+      <div class="container">
+        <div class="section-head">
+          <h2>Three themes, five accents</h2>
+          <p>亮色 / 暗色 / 跟随系统，配合 5 种强调色。</p>
+        </div>
+        <div class="theme-showcase">
+          <div class="theme-card paper">
+            <div class="theme-name">Light</div>
+            <div class="theme-desc">Warm paper · Default</div>
+          </div>
+          <div class="theme-card dark">
+            <div class="theme-name">Dark</div>
+            <div class="theme-desc">Soft charcoal</div>
+          </div>
+          <div class="theme-card system">
+            <div class="theme-name">System</div>
+            <div class="theme-desc">Follows OS preference</div>
+          </div>
+        </div>
+        <div class="accent-row">
+          <div class="accent-swatch"><div class="dot" style="background:#6b9b7a"></div><span>Sage</span></div>
+          <div class="accent-swatch"><div class="dot" style="background:#5a9e9e"></div><span>Teal</span></div>
+          <div class="accent-swatch"><div class="dot" style="background:#b8697a"></div><span>Rose</span></div>
+          <div class="accent-swatch"><div class="dot" style="background:#6b8fa3"></div><span>Stone</span></div>
+          <div class="accent-swatch"><div class="dot" style="background:#b8926b"></div><span>Warmth</span></div>
         </div>
       </div>
     </section>
 
     <section id="install">
-      <div class="shell install">
-        <div class="version-card">
-          <span class="label">LATEST RELEASE</span>
-          <strong>v${VERSION}</strong>
-          <a class="button primary" href="${RELEASE_ZIP}">下载安装包</a>
+      <div class="container">
+        <div class="section-head">
+          <h2>Get started</h2>
+          <p>下载解压，在 Chrome/Edge 扩展管理页面加载已解压的扩展即可。</p>
         </div>
-        <div class="steps">
-          <span class="label">INSTALL</span>
-          <ol>
-            <li>下载并解压 <code>marktab-${VERSION}.zip</code>。</li>
-            <li>打开 <code>chrome://extensions/</code> 或 <code>edge://extensions/</code>。</li>
-            <li>开启开发者模式，点击“加载已解压的扩展程序”。</li>
-            <li>选择解压后的 MarkTab 文件夹。</li>
-          </ol>
+        <div class="install-grid">
+          <div class="install-card">
+            <div class="label">Latest Release</div>
+            <div class="version-num">v${VERSION}</div>
+            <a class="btn btn-primary" href="${RELEASE_ZIP}">Download .zip</a>
+          </div>
+          <div class="install-card">
+            <div class="label">Installation</div>
+            <ol>
+              <li>Download and extract <code>marktab-${VERSION}.zip</code>.</li>
+              <li>Open <code>chrome://extensions/</code> or <code>edge://extensions/</code>.</li>
+              <li>Enable Developer mode, click "Load unpacked".</li>
+              <li>Select the extracted MarkTab folder.</li>
+            </ol>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer shell">
-    <span>© 2026 MarkTab</span>
-    <span><a href="${PRIVACY_URL}">Privacy Policy</a> · <a href="${GITHUB_REPO}">GitHub</a></span>
-  </footer>
+  <div class="container">
+    <footer>
+      <span>© 2026 MarkTab</span>
+      <span>
+        <a href="${PRIVACY_URL}">Privacy Policy</a>
+        · <a href="${GITHUB_REPO}">GitHub</a>
+      </span>
+    </footer>
+  </div>
 </body>
 </html>`;
 
-function response(body, contentType, status = 200) {
+function respond(body, contentType, status = 200) {
   return new Response(body, {
     status,
     headers: {
@@ -699,12 +631,7 @@ addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
   if (url.pathname === '/robots.txt') {
-    event.respondWith(response('User-agent: *\\nAllow: /\\n', 'text/plain; charset=utf-8'));
-    return;
-  }
-
-  if (url.pathname === '/favicon.svg' || url.pathname === '/favicon.ico') {
-    event.respondWith(response(faviconSvg, 'image/svg+xml; charset=utf-8'));
+    event.respondWith(respond('User-agent: *\nAllow: /\n', 'text/plain; charset=utf-8'));
     return;
   }
 
@@ -718,5 +645,5 @@ addEventListener('fetch', event => {
     return;
   }
 
-  event.respondWith(response(html, 'text/html; charset=utf-8'));
+  event.respondWith(respond(html, 'text/html; charset=utf-8'));
 });
