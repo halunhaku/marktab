@@ -20,15 +20,23 @@
 
 ## Preview / 预览
 
-当前截图资源位于 `store-assets/`。如果需要为 README 单独维护截图，可以后续复制或重新导出到 `screenshots/`。
+README 预览截图位于 `screenshots/`，按功能视图单独维护，避免和 Chrome Web Store 素材混在一起。
 
-| New Tab / 首页 | Folder View / 文件夹视图 |
-| --- | --- |
-| <img src="./store-assets/newtab-screenshot-1280x800.png" alt="MarkTab new tab preview" width="100%"> | <img src="./store-assets/folder-screenshot-1280x800.png" alt="MarkTab folder view preview" width="100%"> |
+| Home / 首页 |
+| --- |
+| <img src="./screenshots/home.png" alt="MarkTab home view" width="100%"> |
 
-| Dark Mode / 深色模式 | Popup / 扩展弹窗 |
+| Pinned / 固定书签 | Recent / 最近访问 |
 | --- | --- |
-| <img src="./store-assets/newtab-dark-1280x800.png" alt="MarkTab dark mode preview" width="100%"> | <img src="./store-assets/popup-screenshot-1280x800.png" alt="MarkTab popup preview" width="100%"> |
+| <img src="./screenshots/pinned.png" alt="MarkTab pinned bookmarks" width="100%"> | <img src="./screenshots/recent.png" alt="MarkTab recent bookmarks" width="100%"> |
+
+| Spotlight / 快速搜索 | Folder View / 文件夹视图 |
+| --- | --- |
+| <img src="./screenshots/spotlight.png" alt="MarkTab spotlight search" width="100%"> | <img src="./screenshots/folder.png" alt="MarkTab folder view" width="100%"> |
+
+| Popup / 快捷面板 |
+| --- |
+| <img src="./screenshots/popup.png" alt="MarkTab extension popup" width="420"> |
 
 ## Features / 功能
 

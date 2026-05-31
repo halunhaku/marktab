@@ -7,53 +7,63 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="popup-page">
-  <div class="header">
-    <div class="logo">M</div>
-    <div class="title">MarkTab</div>
-    <div class="version">v1.3.0</div>
-  </div>
-  
-  <div class="stats">
-    <div class="stat-item">
-      <div class="stat-value" id="bookmarkCount">-</div>
-      <div class="stat-label">书签</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-value" id="folderCount">-</div>
-      <div class="stat-label">文件夹</div>
-    </div>
-  </div>
-  
-  <div class="actions">
-    <button class="btn btn-primary" id="openNewTab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-        <line x1="12" y1="8" x2="12" y2="16"></line>
-        <line x1="8" y1="12" x2="16" y2="12"></line>
-      </svg>
-      打开新标签页
-    </button>
-    <button class="btn btn-secondary" id="addBookmark">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-      </svg>
-      添加当前页面
-    </button>
-    <button class="btn btn-secondary" id="manageBookmarks">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-        <polyline points="14 2 14 8 20 8"></polyline>
-        <line x1="16" y1="13" x2="8" y2="13"></line>
-        <line x1="16" y1="17" x2="8" y2="17"></line>
-        <polyline points="10 9 9 9 8 9"></polyline>
-      </svg>
-      管理书签
-    </button>
-  </div>
-  
-  <div class="footer">
-    <div class="footer-text">按 Ctrl+K 快速搜索</div>
-  </div>
+  <main class="popup-shell" aria-label="MarkTab quick actions">
+    <header class="popup-header">
+      <img class="popup-logo" src="icons/icon32.png" alt="" width="32" height="32">
+      <div class="popup-title-block">
+        <div class="popup-title-row">
+          <h1 class="popup-title">MarkTab</h1>
+          <span class="popup-version">v1.3.0</span>
+        </div>
+        <p class="popup-subtitle">书签驱动的新标签页</p>
+      </div>
+    </header>
+
+    <section class="popup-stats" aria-label="Bookmark overview">
+      <div class="popup-stat-card">
+        <span class="popup-stat-value" id="bookmarkCount">-</span>
+        <span class="popup-stat-label">书签</span>
+      </div>
+      <div class="popup-stat-card">
+        <span class="popup-stat-value" id="folderCount">-</span>
+        <span class="popup-stat-label">文件夹</span>
+      </div>
+    </section>
+
+    <section class="popup-actions" aria-label="Quick actions">
+      <button class="popup-button popup-button-primary" id="openNewTab" type="button">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="4" y="4" width="16" height="16" rx="4"></rect>
+          <path d="M9 12h6"></path>
+          <path d="M12 9v6"></path>
+        </svg>
+        <span>打开 MarkTab 新标签页</span>
+      </button>
+      <button class="popup-button popup-button-secondary" id="addBookmark" type="button">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M18 20l-6-3.75L6 20V6.5A2.5 2.5 0 0 1 8.5 4h7A2.5 2.5 0 0 1 18 6.5V20z"></path>
+        </svg>
+        <span>添加当前页面</span>
+      </button>
+      <button class="popup-button popup-button-secondary" id="manageBookmarks" type="button">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M4.5 7.5A2.5 2.5 0 0 1 7 5h3l2 2h5A2.5 2.5 0 0 1 19.5 9.5v7A2.5 2.5 0 0 1 17 19H7a2.5 2.5 0 0 1-2.5-2.5v-9z"></path>
+        </svg>
+        <span>管理书签</span>
+      </button>
+    </section>
+
+    <section class="popup-shortcut" aria-label="Search shortcut">
+      <span class="popup-shortcut-keys"><kbd>Ctrl</kbd><span>+</span><kbd>K</kbd></span>
+      <span class="popup-shortcut-text">在新标签页快速搜索书签</span>
+    </section>
+
+    <footer class="popup-footer">
+      <span>本地优先</span>
+      <span aria-hidden="true">·</span>
+      <span>不上传书签数据</span>
+    </footer>
+  </main>
   
   <script src="popup.js"></script>
 </body>
