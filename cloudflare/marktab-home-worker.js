@@ -1,7 +1,8 @@
-const VERSION = '1.3.1';
-const RELEASE_ZIP = `https://github.com/forhalunhaku/marktab/releases/download/v${VERSION}/marktab-${VERSION}.zip`;
+const FALLBACK_VERSION = '1.3.1';
 const GITHUB_REPO = 'https://github.com/forhalunhaku/marktab';
-const RELEASE_URL = `${GITHUB_REPO}/releases/tag/v${VERSION}`;
+const GITHUB_API_LATEST_RELEASE = 'https://api.github.com/repos/forhalunhaku/marktab/releases/latest';
+const FALLBACK_RELEASE_URL = `${GITHUB_REPO}/releases/tag/v${FALLBACK_VERSION}`;
+const FALLBACK_RELEASE_ZIP = `${GITHUB_REPO}/releases/download/v${FALLBACK_VERSION}/marktab-${FALLBACK_VERSION}.zip`;
 const PRIVACY_URL = `${GITHUB_REPO}/blob/main/PRIVACY_POLICY.md`;
 const LICENSE_URL = `${GITHUB_REPO}#license`;
 const SCREENSHOT_BASE = 'https://raw.githubusercontent.com/forhalunhaku/marktab/main/screenshots';
@@ -22,7 +23,49 @@ const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <path d="M32 35l12 6V22a3 3 0 0 0-3-3H23a3 3 0 0 0-3 3v19l12-6z" fill="#f7f5f0"/>
 </svg>`;
 
-const html = `<!doctype html>
+function fallbackRelease() {
+  return {
+    version: FALLBACK_VERSION,
+    releaseUrl: FALLBACK_RELEASE_URL,
+    zipUrl: FALLBACK_RELEASE_ZIP,
+    zipName: `marktab-${FALLBACK_VERSION}.zip`
+  };
+}
+
+async function getLatestRelease() {
+  try {
+    const response = await fetch(GITHUB_API_LATEST_RELEASE, {
+      headers: {
+        'accept': 'application/vnd.github+json',
+        'user-agent': 'marktab-home-worker'
+      }
+    });
+
+    if (!response.ok) return fallbackRelease();
+
+    const release = await response.json();
+    const tag = typeof release.tag_name === 'string' ? release.tag_name : `v${FALLBACK_VERSION}`;
+    const version = tag.replace(/^v/i, '');
+    const zipAsset = Array.isArray(release.assets)
+      ? release.assets.find(asset => /^marktab-\d+\.\d+\.\d+\.zip$/.test(asset.name || '')) ||
+        release.assets.find(asset => typeof asset.name === 'string' && asset.name.endsWith('.zip'))
+      : null;
+
+    return {
+      version,
+      releaseUrl: release.html_url || `${GITHUB_REPO}/releases/tag/${tag}`,
+      zipUrl: zipAsset?.browser_download_url || `${GITHUB_REPO}/releases/download/${tag}/marktab-${version}.zip`,
+      zipName: zipAsset?.name || `marktab-${version}.zip`
+    };
+  } catch {
+    return fallbackRelease();
+  }
+}
+
+function renderHtml(release) {
+  const { version, releaseUrl, zipUrl, zipName } = release;
+
+  return `<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -497,7 +540,7 @@ const html = `<!doctype html>
               MarkTab 是一个以书签为核心的浏览器新标签页扩展，用更安静、清晰、快速的方式管理和访问你的常用网页。
             </p>
             <div class="hero-actions">
-              <a class="btn btn-primary" href="${RELEASE_ZIP}">Download v${VERSION}</a>
+              <a class="btn btn-primary" href="${zipUrl}">Download v${version}</a>
               <a class="btn btn-secondary" href="${GITHUB_REPO}">View on GitHub</a>
             </div>
             <div class="badges" aria-label="Project badges">
@@ -660,7 +703,7 @@ const html = `<!doctype html>
             <article class="install-card">
               <span class="step">1</span>
               <h3>下载 Release zip</h3>
-              <p>下载 <code>marktab-${VERSION}.zip</code>，并解压到一个固定文件夹。</p>
+              <p>下载 <code>${zipName}</code>，并解压到一个固定文件夹。</p>
             </article>
             <article class="install-card">
               <span class="step">2</span>
@@ -675,10 +718,10 @@ const html = `<!doctype html>
           </div>
           <div class="download-panel">
             <div>
-              <strong>Latest release: v${VERSION}</strong>
+              <strong>Latest release: v${version}</strong>
               <span>Manifest V3 package for Chrome and Edge compatible browsers.</span>
             </div>
-            <a class="btn btn-primary" href="${RELEASE_ZIP}">Download v${VERSION}</a>
+            <a class="btn btn-primary" href="${zipUrl}">Download v${version}</a>
           </div>
         </div>
       </section>
@@ -689,7 +732,7 @@ const html = `<!doctype html>
         <span>© 2026 MarkTab. MIT License.</span>
         <div class="footer-links">
           <a href="${GITHUB_REPO}">GitHub</a>
-          <a href="${RELEASE_URL}">Release</a>
+          <a href="${releaseUrl}">Release</a>
           <a href="${PRIVACY_URL}">Privacy</a>
           <a href="${LICENSE_URL}">License</a>
         </div>
@@ -698,6 +741,7 @@ const html = `<!doctype html>
   </div>
 </body>
 </html>`;
+}
 
 function respond(body, contentType, status = 200) {
   return new Response(body, {
@@ -715,38 +759,38 @@ function redirectTo(url) {
   return Response.redirect(url, 302);
 }
 
-addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
+async function handleRequest(request) {
+  const url = new URL(request.url);
 
   if (url.pathname === '/robots.txt') {
-    event.respondWith(respond('User-agent: *\nAllow: /\n', 'text/plain; charset=utf-8'));
-    return;
+    return respond('User-agent: *\nAllow: /\n', 'text/plain; charset=utf-8');
   }
 
   if (url.pathname === '/favicon.svg') {
-    event.respondWith(respond(faviconSvg, 'image/svg+xml; charset=utf-8'));
-    return;
+    return respond(faviconSvg, 'image/svg+xml; charset=utf-8');
   }
 
+  const latestRelease = await getLatestRelease();
+
   if (url.pathname === '/download') {
-    event.respondWith(redirectTo(RELEASE_ZIP));
-    return;
+    return redirectTo(latestRelease.zipUrl);
   }
 
   if (url.pathname === '/github') {
-    event.respondWith(redirectTo(GITHUB_REPO));
-    return;
+    return redirectTo(GITHUB_REPO);
   }
 
   if (url.pathname === '/release') {
-    event.respondWith(redirectTo(RELEASE_URL));
-    return;
+    return redirectTo(latestRelease.releaseUrl);
   }
 
   if (url.pathname === '/privacy') {
-    event.respondWith(redirectTo(PRIVACY_URL));
-    return;
+    return redirectTo(PRIVACY_URL);
   }
 
-  event.respondWith(respond(html, 'text/html; charset=utf-8'));
+  return respond(renderHtml(latestRelease), 'text/html; charset=utf-8');
+}
+
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
 });
