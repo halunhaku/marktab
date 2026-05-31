@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           title: tab.title || tab.url,
           url: tab.url
         });
-        showNotification('书签添加成功！');
+        showNotification('已添加到书签');
         await loadStats();
       } catch (error) {
         showNotification('添加失败，请重试');
