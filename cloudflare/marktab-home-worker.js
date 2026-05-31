@@ -1,4 +1,4 @@
-const VERSION = '1.3.0';
+const VERSION = '1.3.1';
 const RELEASE_ZIP = `https://github.com/forhalunhaku/marktab/releases/download/v${VERSION}/marktab-${VERSION}.zip`;
 const GITHUB_REPO = 'https://github.com/forhalunhaku/marktab';
 const RELEASE_URL = `${GITHUB_REPO}/releases/tag/v${VERSION}`;

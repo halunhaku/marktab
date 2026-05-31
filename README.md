@@ -13,7 +13,7 @@
   · <code>Chrome Extension</code>
   · <code>Edge Compatible</code>
   · <code>MIT License</code>
-  · <code>v1.3.0</code>
+  · <code>v1.3.1</code>
 </p>
 
 ---
@@ -69,7 +69,7 @@ MarkTab 的界面目标是长期使用，而不是制造短暂的新鲜感。它
 
 ### 从 GitHub Release 安装
 
-1. 在 GitHub Releases 中下载最新的 `marktab-1.3.0.zip`。
+1. 在 GitHub Releases 中下载最新的 `marktab-1.3.1.zip`。
 2. 解压 zip 到一个固定的本地文件夹。
 3. 打开扩展管理页面：
    - Chrome: `chrome://extensions/`
@@ -136,7 +136,7 @@ npm install
 | 命令 | 用途 |
 | --- | --- |
 | `npm run validate` | 校验发布所需文件、权限、Manifest V3 约束和文档权限说明。 |
-| `npm run package` | 先执行校验，再生成 `dist/marktab-1.3.0.zip`。 |
+| `npm run package` | 先执行校验，再生成 `dist/marktab-1.3.1.zip`。 |
 | `npm run release:zip` | `npm run package` 的别名。 |
 | `npm run inspect:zip` | 查看当前 release zip 的文件列表。 |
 | `npm run screenshots` | 使用 Playwright 更新 `store-assets/` 中的截图资源。 |
@@ -173,7 +173,7 @@ npm run package
 npm run inspect:zip
 ```
 
-生成的 zip 位于 `dist/marktab-1.3.0.zip`。上传前请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS 和图标文件。Chrome Web Store 提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md)。
+生成的 zip 位于 `dist/marktab-1.3.1.zip`。上传前请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS 和图标文件。Chrome Web Store 提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md)。
 
 ## Roadmap / 后续计划
 
