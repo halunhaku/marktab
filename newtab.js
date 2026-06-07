@@ -594,7 +594,7 @@ function renderSidebar() {
   el.sidebarNav.querySelectorAll('.sidebar-nav-item').forEach(item => {
     item.addEventListener('click', () => {
       if (item.dataset.action === 'home') {
-        showView('home');
+        returnHome();
       } else if (item.dataset.action === 'recent') {
         // show recent bookmarks in folder view
         const recent = getRecentBookmarks(20);
@@ -689,6 +689,8 @@ function afterRenderFolderCards() {
       e.stopPropagation();
       togglePin(btn.dataset.url);
       btn.classList.toggle('pinned');
+      btn.setAttribute('aria-label', btn.classList.contains('pinned') ? 'Unpin' : 'Pin');
+      renderHome();
       showToast(btn.classList.contains('pinned') ? 'Pinned' : 'Unpinned');
     });
   });
@@ -903,8 +905,13 @@ function cycleTheme() {
 }
 
 // ─── View Manager ───────────────────────────────────────────
+function returnHome() {
+  renderHome();
+  showView('home');
+}
+
 function showView(view) {
-  el.homeView.style.display = view === 'home' ? 'flex' : 'none';
+  el.homeView.style.display = view === 'home' ? 'grid' : 'none';
   el.folderView.style.display = view === 'folder' ? 'flex' : 'none';
   el.homeFab.style.display = view === 'home' ? 'flex' : 'none';
 }
@@ -933,7 +940,7 @@ function setupEvents() {
   el.homeFab.addEventListener('click', cycleTheme);
 
   // Sidebar home button
-  el.sidebarHomeBtn.addEventListener('click', () => showView('home'));
+  el.sidebarHomeBtn.addEventListener('click', returnHome);
 
   // Sidebar toggle (mobile)
   const sidebarToggle = document.getElementById('sidebarToggle');
