@@ -387,7 +387,9 @@ function renderHome() {
 function renderHomePinned() {
   const pinned = getPinnedBookmarks();
   let html = pinned.map(b => createHomeCard(b)).join('');
-  // When fewer than 4, fill with placeholder hints
+  el.homePinnedGrid.className = `home-card-grid home-pinned-grid pinned-count-${Math.min(pinned.length, 8)}`;
+
+  // Keep the home rhythm stable: pinned areas up to 4 items stay as one 4-column row.
   if (pinned.length < 4) {
     const placeholder = `
       <div class="home-card-placeholder">
@@ -397,8 +399,7 @@ function renderHomePinned() {
         </svg>
         <span>Pin a bookmark<br>from any folder</span>
       </div>`;
-    // Ensure at least 2 cols visible — repeat placeholder up to 3
-    const fillCount = Math.min(3 - pinned.length, 3);
+    const fillCount = 4 - pinned.length;
     for (let i = 0; i < fillCount; i++) {
       html += placeholder;
     }
@@ -445,6 +446,7 @@ function createRecentRow(bookmark) {
   const title = bookmark.title || 'Untitled';
   const initial = title.charAt(0).toUpperCase();
   const faviconUrl = getFaviconUrl(bookmark.url, 32);
+  const timeLabel = formatRecentTime(bookmark.dateAdded);
   return `
     <a class="home-recent-item" href="${escapeHtml(bookmark.url)}" data-url="${escapeHtml(bookmark.url)}" title="${escapeHtml(title)}">
       <div class="home-recent-favicon">
@@ -455,8 +457,25 @@ function createRecentRow(bookmark) {
         <div class="home-recent-item-title">${escapeHtml(title)}</div>
         <div class="home-recent-item-domain">${escapeHtml(domain)}</div>
       </div>
+      ${timeLabel ? `<span class="home-recent-time">${escapeHtml(timeLabel)}</span>` : ''}
     </a>
   `;
+}
+
+function formatRecentTime(timestamp) {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return '';
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const dayDiff = Math.round((startToday - startDate) / 86400000);
+  if (dayDiff === 0) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+  if (dayDiff === 1) return 'Yesterday';
+  if (dayDiff > 1 && dayDiff < 7) return `${dayDiff}d`;
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
 function afterRenderRecent() {
