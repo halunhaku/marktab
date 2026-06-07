@@ -13,7 +13,7 @@
   · <code>Chrome Extension</code>
   · <code>Edge Compatible</code>
   · <code>MIT License</code>
-  · <code>v1.3.1</code>
+  · <code>v1.3.2</code>
 </p>
 
 ---
@@ -140,7 +140,7 @@ npm install
 | `npm run release:zip` | `npm run package` 的别名。 |
 | `npm run inspect:zip` | 查看当前 release zip 的文件列表。 |
 | `npm run screenshots` | 使用 Playwright 更新 `store-assets/` 中的截图资源。 |
-| `npm run bump -- 1.3.1` | 同步更新 `package.json`、`manifest.json`、README、提交说明和弹窗版本号。 |
+| `npm run bump -- 1.3.2` | 同步更新 `package.json`、`manifest.json`、README、提交说明和弹窗版本号。 |
 
 ## Project Structure / 项目结构
 

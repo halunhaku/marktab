@@ -31,8 +31,12 @@ const manifest = await readJson('manifest.json');
 manifest.version = nextVersion;
 await writeJson('manifest.json', manifest);
 
-await replaceInFile('README.md', text => text.replace(/marktab-\d+\.\d+\.\d+\.zip/g, `marktab-${nextVersion}.zip`));
+await replaceInFile('README.md', text => text
+  .replace(/marktab-\d+\.\d+\.\d+\.zip/g, `marktab-${nextVersion}.zip`)
+  .replace(/<code>v\d+\.\d+\.\d+<\/code>/g, `<code>v${nextVersion}</code>`)
+  .replace(/npm run bump -- \d+\.\d+\.\d+/g, `npm run bump -- ${nextVersion}`));
 await replaceInFile('CHROME_STORE_SUBMISSION.md', text => text.replace(/marktab-\d+\.\d+\.\d+\.zip/g, `marktab-${nextVersion}.zip`));
 await replaceInFile('popup.html', text => text.replace(/v\d+\.\d+\.\d+/g, `v${nextVersion}`));
+await replaceInFile('cloudflare/marktab-home-worker.js', text => text.replace(/const FALLBACK_VERSION = '\d+\.\d+\.\d+';/, `const FALLBACK_VERSION = '${nextVersion}';`));
 
 console.log(`Version bumped to ${nextVersion}.`);
