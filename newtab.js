@@ -391,17 +391,24 @@ function renderHomePinned() {
 
   // Keep the home rhythm stable: pinned areas up to 4 items stay as one 4-column row.
   if (pinned.length < 4) {
-    const placeholder = `
-      <div class="home-card-placeholder">
+    const placeholders = [
+      ['Pin a bookmark', 'from any folder'],
+      ['Import bookmarks', 'from browser'],
+      ['Recent first', 'quick access'],
+      ['Browse folders', 'organize links']
+    ];
+    const placeholder = ([title, meta]) => `
+      <div class="home-card-placeholder empty-pin-card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M12 17v5"></path><path d="M5 17h14"></path>
           <path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>
         </svg>
-        <span>Pin a bookmark<br>from any folder</span>
+        <span class="empty-pin-title">${title}</span>
+        <span class="empty-pin-meta">${meta}</span>
       </div>`;
     const fillCount = 4 - pinned.length;
     for (let i = 0; i < fillCount; i++) {
-      html += placeholder;
+      html += placeholder(placeholders[pinned.length + i]);
     }
   }
   el.homePinnedGrid.innerHTML = html;
@@ -411,7 +418,13 @@ function renderHomePinned() {
 function renderHomeRecent() {
   if (!settings.homeShowRecent) { el.homeRecentGrid.innerHTML = ''; return; }
   const allRecent = getRecentBookmarks(settings.homeRecentCount);
-  if (!allRecent.length) { el.homeRecentGrid.innerHTML = ''; return; }
+  if (!allRecent.length) {
+    el.homeRecentGrid.className = 'home-recent-list';
+    el.homeRecentGrid.innerHTML = '<div class="recent-empty">No recent bookmarks yet</div>';
+    const existing = el.homeRecentGrid.closest('.home-section')?.querySelector('.home-recent-view-all');
+    if (existing) existing.remove();
+    return;
+  }
   const showCount = Math.min(allRecent.length, 4);
   const recent = allRecent.slice(0, showCount);
 
@@ -911,8 +924,8 @@ function returnHome() {
 }
 
 function showView(view) {
-  el.homeView.style.display = view === 'home' ? 'grid' : 'none';
-  el.folderView.style.display = view === 'folder' ? 'flex' : 'none';
+  el.homeView.style.display = view === 'home' ? '' : 'none';
+  el.folderView.style.display = view === 'folder' ? '' : 'none';
   el.homeFab.style.display = view === 'home' ? 'flex' : 'none';
 }
 

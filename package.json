@@ -1,6 +1,6 @@
 {
   "name": "marktab",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "private": true,
   "description": "A fast, clear, privacy-friendly bookmark new tab extension.",
   "scripts": {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MarkTab",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "一个快速、清晰、隐私友好的书签新标签页",
   "permissions": [
     "bookmarks",
