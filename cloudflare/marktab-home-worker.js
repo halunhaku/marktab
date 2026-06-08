@@ -1,11 +1,11 @@
 const FALLBACK_VERSION = '1.3.3';
-const GITHUB_REPO = 'https://github.com/forhalunhaku/marktab';
-const GITHUB_API_LATEST_RELEASE = 'https://api.github.com/repos/forhalunhaku/marktab/releases/latest';
+const GITHUB_REPO = 'https://github.com/halunhaku/marktab';
+const GITHUB_API_LATEST_RELEASE = 'https://api.github.com/repos/halunhaku/marktab/releases/latest';
 const FALLBACK_RELEASE_URL = `${GITHUB_REPO}/releases/tag/v${FALLBACK_VERSION}`;
 const FALLBACK_RELEASE_ZIP = `${GITHUB_REPO}/releases/download/v${FALLBACK_VERSION}/marktab-${FALLBACK_VERSION}.zip`;
 const PRIVACY_URL = `${GITHUB_REPO}/blob/main/PRIVACY_POLICY.md`;
 const LICENSE_URL = `${GITHUB_REPO}#license`;
-const SCREENSHOT_BASE = 'https://raw.githubusercontent.com/forhalunhaku/marktab/main/screenshots';
+const SCREENSHOT_BASE = 'https://raw.githubusercontent.com/halunhaku/marktab/main/screenshots';
 
 const screenshots = {
   home: `${SCREENSHOT_BASE}/home.png`,
