@@ -10,21 +10,12 @@ const THEMES = [
   { id: 'system', name: 'System', desc: 'Follows OS' }
 ];
 
-const ACCENTS = [
-  { id: 'green', name: 'Sage',    value: '#6b9b7a' },
-  { id: 'teal',  name: 'Teal',    value: '#5a9e9e' },
-  { id: 'rose',  name: 'Rose',    value: '#b8697a' },
-  { id: 'blue',  name: 'Stone',   value: '#6b8fa3' },
-  { id: 'warm',  name: 'Warmth',  value: '#b8926b' }
-];
-
 // ─── Defaults ────────────────────────────────────────────────
 const DEFAULTS = {
   hiddenFolderIds: [],
   pinnedBookmarkUrls: [],
   recentUrls: [],
   theme: 'light',
-  accent: 'green',
   homeShowRecent: true,
   homeRecentCount: 8
 };
@@ -140,11 +131,9 @@ function updateTime() {
 let systemWatcher = null;
 let systemCallback = null;
 
-function applyTheme(themeId, accentId) {
+function applyTheme(themeId) {
   const theme = THEMES.find(t => t.id === themeId) || THEMES[0];
-  const accent = ACCENTS.find(a => a.id === accentId) || ACCENTS[0];
   settings.theme = theme.id;
-  settings.accent = accent.id;
 
   // Stop previous system watcher
   if (systemWatcher && systemCallback) {
@@ -164,16 +153,6 @@ function applyTheme(themeId, accentId) {
   } else {
     document.documentElement.dataset.theme = theme.id;
   }
-
-  document.documentElement.style.setProperty('--accent-primary', accent.value);
-  document.documentElement.style.setProperty('--accent-rgb', hexToRgb(accent.value));
-}
-
-function hexToRgb(hex) {
-  const r = parseInt(hex.slice(1,3), 16);
-  const g = parseInt(hex.slice(3,5), 16);
-  const b = parseInt(hex.slice(5,7), 16);
-  return `${r},${g},${b}`;
 }
 
 // ─── Settings ────────────────────────────────────────────────
@@ -911,7 +890,7 @@ function cycleTheme() {
   const current = settings.theme;
   const idx = themeIds.indexOf(current);
   const next = themeIds[(idx + 1) % themeIds.length];
-  applyTheme(next, settings.accent);
+  applyTheme(next);
   saveSettingsSilent();
   const names = { light: 'Light ☀️', dark: 'Dark 🌙', system: 'System 🖥️' };
   showToast(`Theme: ${names[next] || next}`);
@@ -1036,7 +1015,7 @@ async function init() {
   setInterval(updateTime, 1000);
 
   await loadSettings();
-  applyTheme(settings.theme, settings.accent);
+  applyTheme(settings.theme);
   setupEvents();
   setupKeyboard();
   await loadBookmarks();

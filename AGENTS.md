@@ -27,6 +27,16 @@ MarkTab is a Chrome/Edge Manifest V3 new tab extension for browsing, searching, 
 - Icon-only buttons need accessible labels or titles.
 - Any visibility-setting feature must offer a way to recover hidden folders or settings.
 
+## Visual Language
+
+MarkTab follows the HALUNHAKU design system (see `./DESIGN_SYSTEM.md`):
+
+- Single forest-green accent (`#2f6f4e`), no multi-color accent selector.
+- Serif headings (`Noto Serif SC`), sans body, mono for dates/numbers/clock.
+- White cards with 20-28px radius, 1px green-gray borders, soft green-tinted shadows.
+- No glassmorphism except search overlay backdrop and the Cloudflare landing-page header.
+- No decorative gradients in the extension runtime UI.
+
 ## Privacy And Store Review
 
 - Keep privacy claims aligned across code, README, privacy policy, and store submission notes.

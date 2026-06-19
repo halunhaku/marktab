@@ -38,6 +38,31 @@ const requiredIconSizes = ['16', '32', '48', '128'];
 const htmlFiles = ['newtab.html', 'popup.html'];
 const jsFiles = ['newtab.js', 'popup.js'];
 const docFiles = ['README.md', 'PRIVACY_POLICY.md', 'CHROME_STORE_SUBMISSION.md'];
+const migrationChecks = [
+  {
+    file: 'newtab.js',
+    forbidden: [
+      { pattern: /\bACCENTS\b/, message: 'newtab.js should not keep the removed ACCENTS registry.' },
+      { pattern: /--accent-primary|--accent-rgb/, message: 'newtab.js should not inject dynamic accent CSS variables.' },
+      { pattern: /\baccent\s*:/, message: 'newtab.js DEFAULTS should not keep the removed accent setting.' },
+      { pattern: /settings\.accent/, message: 'newtab.js should not read or write settings.accent after accent removal.' }
+    ]
+  },
+  {
+    file: 'styles.css',
+    forbidden: [
+      { pattern: /--bg-page|--font-display|--accent(?!-color)|--radius-sm|--radius-md|--radius-lg|--shadow-card|--shadow-elevated|--shadow-panel/, message: 'styles.css contains old MarkTab visual tokens.' },
+      { pattern: /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\.(?:0[1-9]|[1-9])\s*\)/, message: 'styles.css contains pure black alpha shadows or overlays.' }
+    ]
+  },
+  {
+    file: 'cloudflare/marktab-home-worker.js',
+    forbidden: [
+      { pattern: /--font-display|--radius-sm|--radius-md|--radius-lg/, message: 'cloudflare/marktab-home-worker.js contains old visual tokens.' },
+      { pattern: /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\.(?:0[1-9]|[1-9])\s*\)/, message: 'cloudflare/marktab-home-worker.js contains pure black alpha shadows or overlays.' }
+    ]
+  }
+];
 
 const errors = [];
 const warnings = [];
@@ -147,8 +172,30 @@ for (const file of docFiles) {
   }
 }
 
+for (const { file, forbidden } of migrationChecks) {
+  const text = await readText(file);
+  for (const { pattern, message } of forbidden) {
+    if (pattern.test(text)) {
+      errors.push(message);
+    }
+  }
+}
+
+const styles = await readText('styles.css');
+const backdropMatches = [...styles.matchAll(/(?:-webkit-)?backdrop-filter\s*:/g)];
+if (backdropMatches.length !== 2 || !/\.search-panel-overlay\s*\{[\s\S]*backdrop-filter\s*:\s*blur\(4px\)[\s\S]*-webkit-backdrop-filter\s*:\s*blur\(4px\)/.test(styles)) {
+  errors.push('styles.css should only keep backdrop-filter on the Spotlight search overlay.');
+}
+
+const storeSubmission = await readText('CHROME_STORE_SUBMISSION.md');
+if (/accent color|theme,\s*accent/i.test(storeSubmission)) {
+  errors.push('CHROME_STORE_SUBMISSION.md still describes the removed accent color setting.');
+}
+
 const packageList = packageFiles.join(' ');
-if (pkg?.scripts?.package && !pkg.scripts.package.includes(packageList)) {
+const packageScriptText = await readText('scripts/package-release.mjs');
+const packageScriptHasFiles = packageFiles.every(file => packageScriptText.includes(`'${file}'`));
+if (pkg?.scripts?.package && !pkg.scripts.package.includes(packageList) && !packageScriptHasFiles) {
   warnings.push('Package script does not appear to include the expected runtime file list.');
 }
 

@@ -13,7 +13,7 @@
   · <code>Chrome Extension</code>
   · <code>Edge Compatible</code>
   · <code>MIT License</code>
-  · <code>v1.3.3</code>
+  · <code>v1.4.0</code>
 </p>
 
 ---
@@ -51,7 +51,7 @@ MarkTab 直接使用浏览器书签作为数据源，把 New Tab 变成一个轻
 | 文件夹视图 | 以侧边栏和网格卡片浏览浏览器书签文件夹。 |
 | 文件夹内搜索 | 在当前文件夹内快速过滤书签。 |
 | 键盘操作 | 支持搜索打开、结果导航、打开结果和关闭面板。 |
-| 主题外观 | Light、Dark、System 三种主题，以及多种低饱和强调色。 |
+| 主题外观 | Light、Dark、System 三种主题，森林绿单一强调色。 |
 | 本地优先 | 不依赖开发者云服务，不上传书签、文件夹或设置数据。 |
 
 ## Design Philosophy / 设计理念
@@ -69,7 +69,7 @@ MarkTab 的界面目标是长期使用，而不是制造短暂的新鲜感。它
 
 ### 从 GitHub Release 安装
 
-1. 在 GitHub Releases 中下载最新的 `marktab-1.3.3.zip`。
+1. 在 GitHub Releases 中下载最新的 `marktab-1.4.0.zip`。
 2. 解压 zip 到一个固定的本地文件夹。
 3. 打开扩展管理页面：
    - Chrome: `chrome://extensions/`
@@ -116,7 +116,7 @@ MarkTab 保持 Manifest V3 权限范围尽量小。当前权限如下：
 | `bookmarks` | 读取书签树、展示书签和文件夹、统计数量，并在用户点击弹窗中的「添加当前页面」时创建书签。 |
 | `favicon` | 通过 Chrome 内置 favicon 服务显示网站图标；加载失败时回退到首字母图标。 |
 | `search` | 用户主动提交网页搜索时，通过 Chrome Search API 调用浏览器默认搜索引擎。 |
-| `storage` | 保存主题、强调色、隐藏文件夹、Pinned 书签和 Recent 记录等偏好。 |
+| `storage` | 保存主题、隐藏文件夹、Pinned 书签和 Recent 记录等偏好。 |
 | `activeTab` | 仅在用户点击「添加当前页面」时读取当前标签页标题和 URL，用于创建书签。 |
 
 ## Privacy / 隐私
@@ -136,11 +136,11 @@ npm install
 | 命令 | 用途 |
 | --- | --- |
 | `npm run validate` | 校验发布所需文件、权限、Manifest V3 约束和文档权限说明。 |
-| `npm run package` | 先执行校验，再生成 `dist/marktab-1.3.3.zip`。 |
+| `npm run package` | 先执行校验，再生成 `dist/marktab-1.4.0.zip`。 |
 | `npm run release:zip` | `npm run package` 的别名。 |
 | `npm run inspect:zip` | 查看当前 release zip 的文件列表。 |
 | `npm run screenshots` | 使用 Playwright 更新 `store-assets/` 中的截图资源。 |
-| `npm run bump -- 1.3.3` | 同步更新 `package.json`、`manifest.json`、README、提交说明和弹窗版本号。 |
+| `npm run bump -- 1.4.0` | 同步更新 `package.json`、`manifest.json`、README、提交说明和弹窗版本号。 |
 
 ## Project Structure / 项目结构
 
@@ -173,7 +173,7 @@ npm run package
 npm run inspect:zip
 ```
 
-生成的 zip 位于 `dist/marktab-1.3.3.zip`。上传前请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS 和图标文件。Chrome Web Store 提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md)。
+生成的 zip 位于 `dist/marktab-1.4.0.zip`。上传前请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS 和图标文件。Chrome Web Store 提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md)。
 
 ## Roadmap / 后续计划
 

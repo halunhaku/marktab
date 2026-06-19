@@ -1,4 +1,4 @@
-const FALLBACK_VERSION = '1.3.3';
+const FALLBACK_VERSION = '1.4.0';
 const GITHUB_REPO = 'https://github.com/halunhaku/marktab';
 const GITHUB_API_LATEST_RELEASE = 'https://api.github.com/repos/halunhaku/marktab/releases/latest';
 const FALLBACK_RELEASE_URL = `${GITHUB_REPO}/releases/tag/v${FALLBACK_VERSION}`;
@@ -81,29 +81,29 @@ function renderHtml(release) {
   <style>
     :root {
       color-scheme: light dark;
-      --bg: #f7f5f0;
+      --bg: #f6f8f3;
       --surface: #ffffff;
-      --surface-soft: #fbfaf6;
+      --surface-soft: #f9fbf6;
       --surface-glass: rgba(255, 255, 255, 0.76);
-      --text: #202520;
+      --text: #1f2722;
       --text-muted: #66736b;
       --text-faint: #9aa59e;
       --green: #2f6f4e;
-      --green-hover: #255b3f;
+      --green-dark: #1f5138;
       --green-soft: #e7f1ea;
       --green-border: #d7e5dc;
       --line: #e5ebe4;
       --shadow-sm: 0 4px 16px rgba(37, 58, 43, 0.05);
       --shadow: 0 18px 50px rgba(37, 58, 43, 0.08);
       --shadow-hover: 0 24px 60px rgba(37, 58, 43, 0.12);
-      --radius-sm: 10px;
-      --radius-md: 16px;
-      --radius-lg: 24px;
-      --radius-xl: 28px;
+      --radius-card: 20px;
+      --radius-card-lg: 24px;
+      --radius-card-xl: 28px;
+      --radius-input: 12px;
       --radius-pill: 999px;
-      --font: "Geist", "Noto Sans SC", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --font-display: ui-rounded, "SF Pro Rounded", "Avenir Next", "Nunito", var(--font);
-      --font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+      --serif: "Noto Serif SC", "Songti SC", "STSong", "Source Han Serif SC", Georgia, serif;
+      --sans: "Geist", "Noto Sans SC", "PingFang SC", "Helvetica Neue", system-ui, sans-serif;
+      --mono: "SFMono-Regular", "Menlo", "Consolas", "JetBrains Mono", monospace;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -116,13 +116,13 @@ function renderHtml(release) {
         --text-muted: #9a9e9a;
         --text-faint: #5d635d;
         --green: #4a9e6e;
-        --green-hover: #5caf7c;
+        --green-dark: #3a8a5e;
         --green-soft: #1a2e24;
         --green-border: #2a4038;
         --line: rgba(232, 235, 230, 0.08);
-        --shadow-sm: 0 4px 18px rgba(0, 0, 0, 0.18);
-        --shadow: 0 18px 54px rgba(0, 0, 0, 0.28);
-        --shadow-hover: 0 24px 64px rgba(0, 0, 0, 0.34);
+        --shadow-sm: 0 4px 16px rgba(37, 58, 43, 0.18);
+        --shadow: 0 18px 50px rgba(37, 58, 43, 0.24);
+        --shadow-hover: 0 24px 60px rgba(37, 58, 43, 0.3);
       }
     }
 
@@ -136,7 +136,7 @@ function renderHtml(release) {
         radial-gradient(circle at 88% 10%, rgba(215, 229, 220, 0.42), transparent 28rem),
         var(--bg);
       color: var(--text);
-      font-family: var(--font);
+      font-family: var(--sans);
       line-height: 1.6;
     }
     a { color: inherit; text-decoration: none; }
@@ -165,8 +165,8 @@ function renderHtml(release) {
       box-shadow: 0 0 0 5px var(--green-soft);
     }
     h1, h2, h3, p { margin: 0; }
-    h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
-    h2 { font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.08; font-weight: 650; }
+    h1, h2, h3 { font-family: var(--serif); letter-spacing: 0; }
+    h2 { font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.08; font-weight: 400; }
     .section-desc { margin-top: 12px; color: var(--text-muted); max-width: 620px; }
 
     .nav {
@@ -190,7 +190,7 @@ function renderHtml(release) {
       align-items: center;
       gap: 10px;
       padding-right: 8px;
-      font-family: var(--font-display);
+      font-family: var(--serif);
       font-size: 0.96rem;
       font-weight: 700;
       white-space: nowrap;
@@ -219,7 +219,7 @@ function renderHtml(release) {
       transition: background 160ms ease, color 160ms ease;
       white-space: nowrap;
     }
-    .nav-links a:hover { background: var(--green-soft); color: var(--green-hover); }
+    .nav-links a:hover { background: var(--green-soft); color: var(--green-dark); }
 
     .hero {
       display: grid;
@@ -231,7 +231,7 @@ function renderHtml(release) {
     .hero h1 {
       font-size: clamp(3.8rem, 9vw, 7.8rem);
       line-height: 0.92;
-      font-weight: 720;
+      font-weight: 400;
       margin-bottom: 20px;
     }
     .hero-lead {
@@ -262,7 +262,7 @@ function renderHtml(release) {
     }
     .btn:hover { transform: translateY(-1px); }
     .btn-primary { background: var(--green); color: #fff; box-shadow: 0 12px 28px rgba(47, 111, 78, 0.22); }
-    .btn-primary:hover { background: var(--green-hover); box-shadow: 0 16px 34px rgba(47, 111, 78, 0.28); }
+    .btn-primary:hover { background: var(--green-dark); box-shadow: 0 16px 34px rgba(47, 111, 78, 0.28); }
     .btn-secondary { background: var(--surface); border-color: var(--line); color: var(--text); }
     .btn-secondary:hover { border-color: var(--green-border); background: var(--surface-soft); }
     .badges {
@@ -287,7 +287,7 @@ function renderHtml(release) {
     .hero-shot {
       overflow: hidden;
       border: 1px solid var(--line);
-      border-radius: var(--radius-xl);
+      border-radius: var(--radius-card-xl);
       background: var(--surface);
       box-shadow: var(--shadow);
     }
@@ -301,9 +301,8 @@ function renderHtml(release) {
       padding: 8px;
       border: 1px solid var(--line);
       border-radius: 22px;
-      background: color-mix(in srgb, var(--surface) 84%, transparent);
+      background: var(--surface);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
     }
     .popup-card img {
       border-radius: 16px;
@@ -319,7 +318,7 @@ function renderHtml(release) {
     .preview-large,
     .preview-small {
       border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-card-lg);
       background: var(--surface);
       box-shadow: var(--shadow-sm);
       overflow: hidden;
@@ -342,7 +341,7 @@ function renderHtml(release) {
     }
     .shot-caption span:last-child {
       color: var(--text-faint);
-      font-family: var(--font-mono);
+      font-family: var(--mono);
       font-size: 0.72rem;
       font-weight: 500;
     }
@@ -357,7 +356,7 @@ function renderHtml(release) {
     .privacy-card,
     .install-card {
       border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-card-lg);
       background: var(--surface-glass);
       box-shadow: var(--shadow-sm);
     }
@@ -371,7 +370,7 @@ function renderHtml(release) {
       display: grid;
       place-items: center;
       margin-bottom: 18px;
-      border-radius: 14px;
+      border-radius: var(--radius-input);
       background: var(--green-soft);
       color: var(--green);
       font-weight: 800;
@@ -392,8 +391,8 @@ function renderHtml(release) {
     .principle {
       padding: 18px 20px;
       border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: var(--surface-glass);
+      border-radius: var(--radius-card);
+      background: var(--surface);
     }
     .principle h3 { font-size: 0.98rem; margin-bottom: 6px; }
     .principle p { color: var(--text-muted); font-size: 0.9rem; }
@@ -409,7 +408,7 @@ function renderHtml(release) {
     .privacy-card strong {
       display: block;
       margin-bottom: 8px;
-      font-family: var(--font-display);
+      font-family: var(--serif);
       font-size: 1rem;
     }
     .privacy-card p { color: var(--text-muted); font-size: 0.9rem; }
@@ -424,7 +423,7 @@ function renderHtml(release) {
       border-radius: 50%;
       background: var(--green-soft);
       color: var(--green);
-      font-family: var(--font-mono);
+      font-family: var(--mono);
       font-size: 0.78rem;
       font-weight: 800;
     }
@@ -435,7 +434,7 @@ function renderHtml(release) {
       border: 1px solid var(--line);
       border-radius: 7px;
       background: var(--surface-soft);
-      font-family: var(--font-mono);
+      font-family: var(--mono);
       font-size: 0.84em;
     }
 
@@ -447,10 +446,10 @@ function renderHtml(release) {
       margin-top: 26px;
       padding: 22px;
       border: 1px solid var(--green-border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-card-lg);
       background: var(--green-soft);
     }
-    .download-panel strong { display: block; font-family: var(--font-display); font-size: 1.1rem; }
+    .download-panel strong { display: block; font-family: var(--serif); font-size: 1.1rem; font-weight: 400; }
     .download-panel span { color: var(--text-muted); font-size: 0.9rem; }
 
     .footer {
@@ -471,7 +470,7 @@ function renderHtml(release) {
       flex-wrap: wrap;
       gap: 14px;
     }
-    .footer a:hover { color: var(--green-hover); }
+    .footer a:hover { color: var(--green-dark); }
 
     @media (max-width: 900px) {
       .hero,
