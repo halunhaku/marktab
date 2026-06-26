@@ -2,8 +2,60 @@
  * MarkTab - Popup Script
  */
 
+const FALLBACK_MESSAGES = {
+  popupQuickActions: 'MarkTab quick actions',
+  bookmarkOverview: 'Bookmark overview',
+  quickActions: 'Quick actions',
+  searchShortcut: 'Search shortcut',
+  popupSubtitle: 'A bookmark-powered new tab',
+  bookmarks: 'Bookmarks',
+  folders: 'Folders',
+  openMarktabNewTab: 'Open MarkTab new tab',
+  addCurrentPage: 'Add current page',
+  manageBookmarks: 'Manage bookmarks',
+  quickSearchBookmarks: 'Quickly search bookmarks on the new tab page',
+  localFirst: 'Local first',
+  noBookmarkUpload: 'No bookmark data upload',
+  addedToBookmarks: 'Added to bookmarks',
+  addBookmarkFailed: 'Could not add bookmark. Try again.',
+  cannotBookmarkPage: 'This page cannot be bookmarked'
+};
+
+function getUiLocale() {
+  const language = typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage
+    ? chrome.i18n.getUILanguage()
+    : navigator.language;
+  return language || 'en';
+}
+
+function msg(key, substitutions = []) {
+  const values = Array.isArray(substitutions) ? substitutions : [substitutions];
+  if (typeof chrome !== 'undefined' && chrome.i18n?.getMessage) {
+    const translated = chrome.i18n.getMessage(key, values);
+    if (translated) return translated;
+  }
+  return values.reduce(
+    (text, value, index) => text.replaceAll(`$${index + 1}`, String(value)),
+    FALLBACK_MESSAGES[key] || key
+  );
+}
+
+function localizeDocument() {
+  const locale = getUiLocale().replace('_', '-');
+  document.documentElement.lang = locale.startsWith('zh') ? 'zh-CN' : 'en';
+
+  document.querySelectorAll('[data-i18n]').forEach(node => {
+    node.textContent = msg(node.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(node => {
+    node.setAttribute('aria-label', msg(node.dataset.i18nAriaLabel));
+  });
+}
+
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
+  localizeDocument();
+
   // 加载统计
   await loadStats();
   
@@ -21,13 +73,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           title: tab.title || tab.url,
           url: tab.url
         });
-        showNotification('已添加到书签');
+        showNotification(msg('addedToBookmarks'));
         await loadStats();
       } catch (error) {
-        showNotification('添加失败，请重试');
+        showNotification(msg('addBookmarkFailed'));
       }
     } else {
-      showNotification('当前页面无法添加为书签');
+      showNotification(msg('cannotBookmarkPage'));
     }
   });
   

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +15,7 @@
       <!-- Top bar: clock + date, intentionally small -->
       <header class="home-topbar">
         <time class="home-clock" id="homeClock">00:00</time>
-        <span class="home-date" id="homeDate">Loading…</span>
+        <span class="home-date" id="homeDate" data-i18n="loadingBookmarks">Loading...</span>
       </header>
 
       <!-- Main hero: search is the centerpiece -->
@@ -26,16 +26,16 @@
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
             </svg>
-            <input type="text" id="homeSearchInput" placeholder="Search bookmarks and folders…" autocomplete="off" aria-label="Search">
+            <input type="text" id="homeSearchInput" placeholder="Search bookmarks and folders..." autocomplete="off" aria-label="Search" data-i18n-placeholder="searchBookmarksAndFolders" data-i18n-aria-label="search">
             <span class="home-search-hint-badge">⌘K</span>
           </div>
         </div>
         <div class="home-search-hints">
-          <span><kbd>Enter</kbd> open</span>
+          <span><kbd>Enter</kbd> <span data-i18n="hintOpen">open</span></span>
           <span class="hint-dot">·</span>
-          <span><kbd>Shift</kbd>+<kbd>Enter</kbd> web</span>
+          <span><kbd>Shift</kbd>+<kbd>Enter</kbd> <span data-i18n="hintWeb">web</span></span>
           <span class="hint-dot">·</span>
-          <span><kbd>Esc</kbd> close</span>
+          <span><kbd>Esc</kbd> <span data-i18n="hintClose">close</span></span>
         </div>
       </div>
 
@@ -48,7 +48,7 @@
           <svg class="home-section-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M12 17v5"></path><path d="M5 17h14"></path><path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>
           </svg>
-          <span>Pinned</span>
+          <span data-i18n="pinned">Pinned</span>
         </div>
         <div class="home-card-grid" id="homePinnedGrid"></div>
       </section>
@@ -60,7 +60,7 @@
             <svg class="home-section-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
             </svg>
-            <span>Recent</span>
+            <span data-i18n="recent">Recent</span>
           </span>
         </div>
         <div class="home-card-grid" id="homeRecentGrid"></div>
@@ -72,7 +72,7 @@
           <svg class="home-section-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
           </svg>
-          <span>Folders</span>
+          <span data-i18n="folders">Folders</span>
         </div>
         <div class="home-folder-pills" id="homeFolderPills"></div>
       </section>
@@ -85,12 +85,12 @@
           <div class="loading-dot"></div>
           <div class="loading-dot"></div>
         </div>
-        <span>Loading bookmarks…</span>
+        <span data-i18n="loadingBookmarks">Loading bookmarks...</span>
       </div>
     </div><!-- /home-container -->
 
     <!-- Settings FAB — lower right -->
-    <button class="home-fab" id="homeFab" aria-label="Settings">
+    <button class="home-fab" id="homeFab" aria-label="Settings" data-i18n-aria-label="settings">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
         <circle cx="10" cy="10" r="2.5"></circle>
         <path d="M10 1.5v1.5M10 17v1.5M3.1 3.1l1.06 1.06M15.84 15.84l1.06 1.06M1.5 10H3M17 10h1.5M3.1 16.9l1.06-1.06M15.84 8.16l1.06-1.06"></path>
@@ -102,7 +102,7 @@
   <!-- FOLDER VIEW (sidebar + content)            -->
   <!-- ========================================= -->
   <div class="view folder-view" id="folderView" data-view="folder" style="display:none">
-    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" data-i18n-aria-label="toggleSidebar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <line x1="3" y1="6" x2="21" y2="6"></line>
         <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -111,7 +111,7 @@
     </button>
     <aside class="folder-sidebar" id="folderSidebar">
       <div class="folder-sidebar-header">
-        <button class="sidebar-brand" id="sidebarHomeBtn" aria-label="Back to home">
+        <button class="sidebar-brand" id="sidebarHomeBtn" aria-label="Back to home" data-i18n-aria-label="backToHome">
           <span class="sidebar-logo">M</span>
           <span class="sidebar-title">MarkTab</span>
         </button>
@@ -127,10 +127,10 @@
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.35-4.35"></path>
           </svg>
-          <input type="text" id="folderSearchInput" placeholder="Search in folder…" autocomplete="off" aria-label="Search in folder">
+          <input type="text" id="folderSearchInput" placeholder="Search in folder..." autocomplete="off" aria-label="Search in folder" data-i18n-placeholder="searchInFolder" data-i18n-aria-label="searchInFolder">
         </div>
-        <div class="folder-toolbar-actions" aria-label="Folder tools">
-          <button class="folder-tool-button active" type="button" aria-label="Grid view" title="Grid view">
+        <div class="folder-toolbar-actions" aria-label="Folder tools" data-i18n-aria-label="folderTools">
+          <button class="folder-tool-button active" type="button" aria-label="Grid view" title="Grid view" data-i18n-aria-label="gridView" data-i18n-title="gridView">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
               <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
@@ -138,7 +138,7 @@
               <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
             </svg>
           </button>
-          <button class="folder-tool-button" type="button" aria-label="Sort bookmarks" title="Sort bookmarks">
+          <button class="folder-tool-button" type="button" aria-label="Sort bookmarks" title="Sort bookmarks" data-i18n-aria-label="sortBookmarks" data-i18n-title="sortBookmarks">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M6 4v16"></path>
               <path d="m3 17 3 3 3-3"></path>
@@ -150,7 +150,7 @@
         </div>
       </div>
       <div class="folder-header-area" id="folderHeaderArea">
-        <h2 class="folder-title" id="folderTitle">Folder</h2>
+        <h2 class="folder-title" id="folderTitle" data-i18n="folder">Folder</h2>
         <div class="folder-meta">
           <span class="folder-count" id="folderCount">0 bookmarks</span>
         </div>
@@ -164,7 +164,7 @@
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
           </svg>
         </div>
-        <p>This folder is empty</p>
+        <p data-i18n="thisFolderIsEmpty">This folder is empty</p>
       </div>
     </main>
   </div>
@@ -181,8 +181,8 @@
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.35-4.35"></path>
         </svg>
-        <input type="text" id="searchPanelInput" placeholder="Search bookmarks and folders…" autocomplete="off" aria-label="Search" spellcheck="false">
-        <button class="search-panel-clear" id="searchPanelClose" aria-label="Close search">
+        <input type="text" id="searchPanelInput" placeholder="Search bookmarks and folders..." autocomplete="off" aria-label="Search" spellcheck="false" data-i18n-placeholder="searchBookmarksAndFolders" data-i18n-aria-label="search">
+        <button class="search-panel-clear" id="searchPanelClose" aria-label="Close search" data-i18n-aria-label="closeSearch">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -191,11 +191,11 @@
       </div>
       <div class="search-panel-results" id="searchPanelResults">
         <div class="search-group" id="searchGroupBookmarks">
-          <div class="search-group-header">Bookmarks</div>
+          <div class="search-group-header" data-i18n="bookmarks">Bookmarks</div>
           <div class="search-panel-items" id="searchBookmarkItems"></div>
         </div>
         <div class="search-group" id="searchGroupFolders">
-          <div class="search-group-header">Folders</div>
+          <div class="search-group-header" data-i18n="folders">Folders</div>
           <div class="search-panel-items" id="searchFolderItems"></div>
         </div>
         <div class="search-group" id="searchGroupWeb">
@@ -206,7 +206,7 @@
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.35-4.35"></path>
           </svg>
-          <p>Start typing to search</p>
+          <p data-i18n="startTypingToSearch">Start typing to search</p>
         </div>
       </div>
     </div>

@@ -1,0 +1,227 @@
+{
+  "appName": {
+    "message": "MarkTab",
+    "description": "扩展名称。"
+  },
+  "appDescription": {
+    "message": "一个快速、清晰、隐私友好的书签新标签页",
+    "description": "浏览器扩展列表中显示的扩展描述。"
+  },
+  "searchBookmarksAndFolders": {
+    "message": "搜索书签和文件夹..."
+  },
+  "search": {
+    "message": "搜索"
+  },
+  "enterOpen": {
+    "message": "Enter 打开"
+  },
+  "hintOpen": {
+    "message": "打开"
+  },
+  "shiftEnterWeb": {
+    "message": "Shift+Enter 搜网页"
+  },
+  "hintWeb": {
+    "message": "搜网页"
+  },
+  "escClose": {
+    "message": "Esc 关闭"
+  },
+  "hintClose": {
+    "message": "关闭"
+  },
+  "pinned": {
+    "message": "固定书签"
+  },
+  "recent": {
+    "message": "最近访问"
+  },
+  "folders": {
+    "message": "文件夹"
+  },
+  "loadingBookmarks": {
+    "message": "正在加载书签..."
+  },
+  "settings": {
+    "message": "设置"
+  },
+  "toggleSidebar": {
+    "message": "展开或收起侧边栏"
+  },
+  "backToHome": {
+    "message": "返回首页"
+  },
+  "searchInFolder": {
+    "message": "在文件夹内搜索..."
+  },
+  "folderTools": {
+    "message": "文件夹工具"
+  },
+  "gridView": {
+    "message": "网格视图"
+  },
+  "sortBookmarks": {
+    "message": "排序书签"
+  },
+  "folder": {
+    "message": "文件夹"
+  },
+  "bookmarkCount": {
+    "message": "$COUNT$ 个书签",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "bookmarkCountPlural": {
+    "message": "$COUNT$ 个书签",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "thisFolderIsEmpty": {
+    "message": "这个文件夹是空的"
+  },
+  "closeSearch": {
+    "message": "关闭搜索"
+  },
+  "bookmarks": {
+    "message": "书签"
+  },
+  "startTypingToSearch": {
+    "message": "输入内容开始搜索"
+  },
+  "pinABookmark": {
+    "message": "固定一个书签"
+  },
+  "fromAnyFolder": {
+    "message": "可从任意文件夹固定"
+  },
+  "importBookmarks": {
+    "message": "导入书签"
+  },
+  "fromBrowser": {
+    "message": "来自浏览器"
+  },
+  "recentFirst": {
+    "message": "最近优先"
+  },
+  "quickAccess": {
+    "message": "快速访问"
+  },
+  "browseFolders": {
+    "message": "浏览文件夹"
+  },
+  "organizeLinks": {
+    "message": "整理链接"
+  },
+  "noRecentBookmarksYet": {
+    "message": "还没有最近访问的书签"
+  },
+  "viewAll": {
+    "message": "查看全部"
+  },
+  "untitled": {
+    "message": "未命名"
+  },
+  "yesterday": {
+    "message": "昨天"
+  },
+  "home": {
+    "message": "首页"
+  },
+  "searchInFolderNamed": {
+    "message": "在 $FOLDER$ 中搜索...",
+    "placeholders": {
+      "folder": {
+        "content": "$1"
+      }
+    }
+  },
+  "pin": {
+    "message": "固定"
+  },
+  "unpin": {
+    "message": "取消固定"
+  },
+  "unpinned": {
+    "message": "已取消固定"
+  },
+  "searchWebFor": {
+    "message": "搜索网页：$QUERY$",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "searchFailed": {
+    "message": "搜索失败"
+  },
+  "theme": {
+    "message": "主题：$NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "themeLight": {
+    "message": "浅色"
+  },
+  "themeDark": {
+    "message": "深色"
+  },
+  "themeSystem": {
+    "message": "跟随系统"
+  },
+  "settingsSaved": {
+    "message": "设置已保存"
+  },
+  "popupQuickActions": {
+    "message": "MarkTab 快捷操作"
+  },
+  "popupSubtitle": {
+    "message": "书签驱动的新标签页"
+  },
+  "bookmarkOverview": {
+    "message": "书签概览"
+  },
+  "quickActions": {
+    "message": "快捷操作"
+  },
+  "openMarktabNewTab": {
+    "message": "打开 MarkTab 新标签页"
+  },
+  "addCurrentPage": {
+    "message": "添加当前页面"
+  },
+  "manageBookmarks": {
+    "message": "管理书签"
+  },
+  "searchShortcut": {
+    "message": "搜索快捷键"
+  },
+  "quickSearchBookmarks": {
+    "message": "在新标签页快速搜索书签"
+  },
+  "localFirst": {
+    "message": "本地优先"
+  },
+  "noBookmarkUpload": {
+    "message": "不上传书签数据"
+  },
+  "addedToBookmarks": {
+    "message": "已添加到书签"
+  },
+  "addBookmarkFailed": {
+    "message": "添加失败，请重试"
+  },
+  "cannotBookmarkPage": {
+    "message": "当前页面无法添加为书签"
+  }
+}

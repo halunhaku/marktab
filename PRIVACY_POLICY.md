@@ -1,6 +1,6 @@
 # MarkTab 隐私政策
 
-最后更新：2026-06-19
+最后更新：2026-06-26
 
 MarkTab 是一个用于在 Chrome 和 Microsoft Edge 新标签页展示、搜索和整理本地浏览器书签的扩展。
 
@@ -22,7 +22,7 @@ MarkTab 不会出售、出租或共享用户数据给广告平台、数据经纪
 
 ## 远程代码
 
-MarkTab 不加载或执行远程托管代码。扩展的 HTML、CSS、JavaScript 和图标资源都随扩展包一起提供。
+MarkTab 不加载或执行远程托管代码。扩展的 HTML、CSS、JavaScript、语言文件和图标资源都随扩展包一起提供。
 
 ## 权限说明
 
@@ -35,5 +35,47 @@ MarkTab 不加载或执行远程托管代码。扩展的 HTML、CSS、JavaScript
 ## 联系方式
 
 如需反馈隐私问题，请通过 GitHub Issues 联系开发者：
+
+https://github.com/halunhaku/marktab/issues
+
+---
+
+# MarkTab Privacy Policy
+
+Last updated: 2026-06-26
+
+MarkTab is a browser extension for displaying, searching, and organizing local Chrome and Microsoft Edge bookmarks on the new tab page.
+
+## Data Use
+
+MarkTab reads browser bookmarks to display bookmarks, folder counts, folder lists, and search results on the new tab page and extension popup.
+
+MarkTab saves a small amount of settings data, including hidden folder IDs, pinned bookmark URLs, recently opened bookmark URLs, theme, and other interface preferences. These settings are stored with browser extension storage so user preferences can persist in the same browser or browser sync environment.
+
+MarkTab uses the browser's built-in favicon service to display website icons for bookmarks. If an icon fails to load, the interface falls back to a letter icon.
+
+## Data Transfer
+
+MarkTab does not send bookmark titles, bookmark URLs, folder names, recent visit records, search records, or settings data to developer servers.
+
+MarkTab does not sell, rent, or share user data with advertising platforms, data brokers, or other third parties.
+
+When a user actively submits a web search from the search box, MarkTab uses the browser search API with the user's default browser search engine. This is expected behavior for the web search feature.
+
+## Remote Code
+
+MarkTab does not load or execute remotely hosted code. The extension's HTML, CSS, JavaScript, locale files, and icon assets are packaged with the extension.
+
+## Permissions
+
+- `bookmarks`: Reads the bookmark tree, displays bookmarks and folders, and creates bookmarks only when the user explicitly adds the current page.
+- `favicon`: Uses the browser's built-in favicon service to display bookmark icons.
+- `search`: Uses the browser's default search engine through the browser search API only when the user actively submits a web search.
+- `storage`: Saves user settings such as hidden folders, pinned bookmarks, recent visit records, and theme.
+- `activeTab`: Reads the current tab only when the user clicks "Add current page" in the extension popup, so the extension can create a bookmark.
+
+## Contact
+
+For privacy questions, contact the developer through GitHub Issues:
 
 https://github.com/halunhaku/marktab/issues

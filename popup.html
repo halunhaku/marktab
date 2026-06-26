@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,61 +7,61 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="popup-page">
-  <main class="popup-shell" aria-label="MarkTab quick actions">
+  <main class="popup-shell" aria-label="MarkTab quick actions" data-i18n-aria-label="popupQuickActions">
     <header class="popup-header">
       <img class="popup-logo" src="icons/icon32.png" alt="" width="32" height="32">
       <div class="popup-title-block">
         <div class="popup-title-row">
           <h1 class="popup-title">MarkTab</h1>
-          <span class="popup-version">v1.4.0</span>
+          <span class="popup-version">v1.4.1</span>
         </div>
-        <p class="popup-subtitle">书签驱动的新标签页</p>
+        <p class="popup-subtitle" data-i18n="popupSubtitle">A bookmark-powered new tab</p>
       </div>
     </header>
 
-    <section class="popup-stats" aria-label="Bookmark overview">
+    <section class="popup-stats" aria-label="Bookmark overview" data-i18n-aria-label="bookmarkOverview">
       <div class="popup-stat-card">
         <span class="popup-stat-value" id="bookmarkCount">-</span>
-        <span class="popup-stat-label">书签</span>
+        <span class="popup-stat-label" data-i18n="bookmarks">Bookmarks</span>
       </div>
       <div class="popup-stat-card">
         <span class="popup-stat-value" id="folderCount">-</span>
-        <span class="popup-stat-label">文件夹</span>
+        <span class="popup-stat-label" data-i18n="folders">Folders</span>
       </div>
     </section>
 
-    <section class="popup-actions" aria-label="Quick actions">
+    <section class="popup-actions" aria-label="Quick actions" data-i18n-aria-label="quickActions">
       <button class="popup-button popup-button-primary" id="openNewTab" type="button">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <rect x="4" y="4" width="16" height="16" rx="4"></rect>
           <path d="M9 12h6"></path>
           <path d="M12 9v6"></path>
         </svg>
-        <span>打开 MarkTab 新标签页</span>
+        <span data-i18n="openMarktabNewTab">Open MarkTab new tab</span>
       </button>
       <button class="popup-button popup-button-secondary" id="addBookmark" type="button">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M18 20l-6-3.75L6 20V6.5A2.5 2.5 0 0 1 8.5 4h7A2.5 2.5 0 0 1 18 6.5V20z"></path>
         </svg>
-        <span>添加当前页面</span>
+        <span data-i18n="addCurrentPage">Add current page</span>
       </button>
       <button class="popup-button popup-button-secondary" id="manageBookmarks" type="button">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M4.5 7.5A2.5 2.5 0 0 1 7 5h3l2 2h5A2.5 2.5 0 0 1 19.5 9.5v7A2.5 2.5 0 0 1 17 19H7a2.5 2.5 0 0 1-2.5-2.5v-9z"></path>
         </svg>
-        <span>管理书签</span>
+        <span data-i18n="manageBookmarks">Manage bookmarks</span>
       </button>
     </section>
 
-    <section class="popup-shortcut" aria-label="Search shortcut">
+    <section class="popup-shortcut" aria-label="Search shortcut" data-i18n-aria-label="searchShortcut">
       <span class="popup-shortcut-keys"><kbd>Ctrl</kbd><span>+</span><kbd>K</kbd></span>
-      <span class="popup-shortcut-text">在新标签页快速搜索书签</span>
+      <span class="popup-shortcut-text" data-i18n="quickSearchBookmarks">Quickly search bookmarks on the new tab page</span>
     </section>
 
     <footer class="popup-footer">
-      <span>本地优先</span>
+      <span data-i18n="localFirst">Local first</span>
       <span aria-hidden="true">·</span>
-      <span>不上传书签数据</span>
+      <span data-i18n="noBookmarkUpload">No bookmark data upload</span>
     </footer>
   </main>
   

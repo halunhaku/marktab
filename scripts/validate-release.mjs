@@ -15,6 +15,8 @@ const requiredFiles = [
   'icons/icon32.png',
   'icons/icon48.png',
   'icons/icon128.png',
+  '_locales/en/messages.json',
+  '_locales/zh_CN/messages.json',
   'README.md',
   'PRIVACY_POLICY.md',
   'CHROME_STORE_SUBMISSION.md'
@@ -30,7 +32,8 @@ const packageFiles = [
   'icons/icon16.png',
   'icons/icon32.png',
   'icons/icon48.png',
-  'icons/icon128.png'
+  'icons/icon128.png',
+  '_locales'
 ];
 
 const allowedPermissions = ['activeTab', 'bookmarks', 'favicon', 'search', 'storage'];
@@ -137,6 +140,31 @@ if (manifest) {
 
   if (manifest.action?.default_popup !== 'popup.html') {
     errors.push('action.default_popup must point to popup.html.');
+  }
+
+  if (manifest.default_locale !== 'en') {
+    errors.push('manifest.default_locale must be en when localized __MSG_...__ fields are used.');
+  }
+
+  if (manifest.name !== '__MSG_appName__') {
+    errors.push('manifest.name must use the localized appName message.');
+  }
+
+  if (manifest.description !== '__MSG_appDescription__') {
+    errors.push('manifest.description must use the localized appDescription message.');
+  }
+}
+
+for (const localeFile of ['_locales/en/messages.json', '_locales/zh_CN/messages.json']) {
+  try {
+    const messages = JSON.parse(await readText(localeFile));
+    for (const key of ['appName', 'appDescription', 'searchBookmarksAndFolders', 'openMarktabNewTab']) {
+      if (!messages[key]?.message) {
+        errors.push(`${localeFile} is missing message key: ${key}`);
+      }
+    }
+  } catch (error) {
+    errors.push(`${localeFile} is not valid JSON: ${error.message}`);
   }
 }
 

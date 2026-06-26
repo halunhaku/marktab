@@ -27,6 +27,40 @@ let bookmarkTree = [];
 let flatFolders = [];
 let uncategorizedBookmarks = [];
 
+const FALLBACK_MESSAGES = {
+  settingsSaved: 'Settings saved',
+  loadingBookmarks: 'Loading bookmarks...',
+  untitled: 'Untitled',
+  pinABookmark: 'Pin a bookmark',
+  fromAnyFolder: 'from any folder',
+  importBookmarks: 'Import bookmarks',
+  fromBrowser: 'from browser',
+  recentFirst: 'Recent first',
+  quickAccess: 'quick access',
+  browseFolders: 'Browse folders',
+  organizeLinks: 'organize links',
+  noRecentBookmarksYet: 'No recent bookmarks yet',
+  viewAll: 'View all',
+  recent: 'Recent',
+  yesterday: 'Yesterday',
+  home: 'Home',
+  folders: 'Folders',
+  bookmarkCount: '$1 bookmark',
+  bookmarkCountPlural: '$1 bookmarks',
+  searchInFolderNamed: 'Search in $1...',
+  pin: 'Pin',
+  unpin: 'Unpin',
+  pinned: 'Pinned',
+  unpinned: 'Unpinned',
+  startTypingToSearch: 'Start typing to search',
+  searchWebFor: 'Search web for $1',
+  searchFailed: 'Search failed',
+  theme: 'Theme: $1',
+  themeLight: 'Light',
+  themeDark: 'Dark',
+  themeSystem: 'System'
+};
+
 // ─── DOM refs ────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const el = {
@@ -101,6 +135,47 @@ function debounce(fn, ms) {
   };
 }
 
+function getUiLocale() {
+  const language = typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage
+    ? chrome.i18n.getUILanguage()
+    : navigator.language;
+  return language || 'en';
+}
+
+function msg(key, substitutions = []) {
+  const values = Array.isArray(substitutions) ? substitutions : [substitutions];
+  if (typeof chrome !== 'undefined' && chrome.i18n?.getMessage) {
+    const translated = chrome.i18n.getMessage(key, values);
+    if (translated) return translated;
+  }
+  return values.reduce(
+    (text, value, index) => text.replaceAll(`$${index + 1}`, String(value)),
+    FALLBACK_MESSAGES[key] || key
+  );
+}
+
+function bookmarkCountLabel(count) {
+  return msg(count === 1 ? 'bookmarkCount' : 'bookmarkCountPlural', String(count));
+}
+
+function localizeDocument() {
+  const locale = getUiLocale().replace('_', '-');
+  document.documentElement.lang = locale.startsWith('zh') ? 'zh-CN' : 'en';
+
+  document.querySelectorAll('[data-i18n]').forEach(node => {
+    node.textContent = msg(node.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(node => {
+    node.setAttribute('placeholder', msg(node.dataset.i18nPlaceholder));
+  });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(node => {
+    node.setAttribute('aria-label', msg(node.dataset.i18nAriaLabel));
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(node => {
+    node.setAttribute('title', msg(node.dataset.i18nTitle));
+  });
+}
+
 // ─── Toast ───────────────────────────────────────────────────
 function showToast(message) {
   const toast = document.createElement('div');
@@ -122,7 +197,7 @@ function updateTime() {
   const h = String(now.getHours()).padStart(2, '0');
   const m = String(now.getMinutes()).padStart(2, '0');
   el.homeClock.textContent = `${h}:${m}`;
-  el.homeDate.textContent = now.toLocaleDateString('en-US', {
+  el.homeDate.textContent = now.toLocaleDateString(getUiLocale(), {
     weekday: 'long', month: 'long', day: 'numeric'
   });
 }
@@ -186,7 +261,7 @@ async function saveSettingsSilent() {
 
 async function saveSettings() {
   await saveSettingsSilent();
-  showToast('Settings saved');
+  showToast(msg('settingsSaved'));
 }
 
 // ─── Bookmark Manager ────────────────────────────────────────
@@ -195,20 +270,20 @@ function flattenFolders(tree) {
   function traverse(node, depth = 0, parentPath = []) {
     if (node.children && !node.url) {
       const directBm = node.children.filter(c => c.url);
-      const currentPath = [...parentPath.map(p => p.title), node.title || 'Untitled'];
+      const currentPath = [...parentPath.map(p => p.title), node.title || msg('untitled')];
       const pathIds = [...parentPath.map(p => p.id), node.id];
       const displayPath = currentPath.slice(2).filter(Boolean);
       folders.push({
-        id: node.id, title: node.title || 'Untitled', depth,
+        id: node.id, title: node.title || msg('untitled'), depth,
         displayDepth: Math.max(depth - 2, 0),
-        path: currentPath, pathIds, displayPath: displayPath.length ? displayPath : [node.title || 'Untitled'],
+        path: currentPath, pathIds, displayPath: displayPath.length ? displayPath : [node.title || msg('untitled')],
         pathString: currentPath.join(' / '), bookmarks: directBm,
         bookmarkCount: countAllBookmarks(node), parentId: node.parentId,
         children: node.children.filter(c => c.children).map(c => c.id),
         isSystemFolder: depth <= 1
       });
       node.children.forEach(child => {
-        if (child.children) traverse(child, depth + 1, [...parentPath, { id: node.id, title: node.title || 'Untitled' }]);
+        if (child.children) traverse(child, depth + 1, [...parentPath, { id: node.id, title: node.title || msg('untitled') }]);
       });
     }
   }
@@ -371,10 +446,10 @@ function renderHomePinned() {
   // Keep the home rhythm stable: pinned areas up to 4 items stay as one 4-column row.
   if (pinned.length < 4) {
     const placeholders = [
-      ['Pin a bookmark', 'from any folder'],
-      ['Import bookmarks', 'from browser'],
-      ['Recent first', 'quick access'],
-      ['Browse folders', 'organize links']
+      [msg('pinABookmark'), msg('fromAnyFolder')],
+      [msg('importBookmarks'), msg('fromBrowser')],
+      [msg('recentFirst'), msg('quickAccess')],
+      [msg('browseFolders'), msg('organizeLinks')]
     ];
     const placeholder = ([title, meta]) => `
       <div class="home-card-placeholder empty-pin-card">
@@ -399,7 +474,7 @@ function renderHomeRecent() {
   const allRecent = getRecentBookmarks(settings.homeRecentCount);
   if (!allRecent.length) {
     el.homeRecentGrid.className = 'home-recent-list';
-    el.homeRecentGrid.innerHTML = '<div class="recent-empty">No recent bookmarks yet</div>';
+    el.homeRecentGrid.innerHTML = `<div class="recent-empty">${escapeHtml(msg('noRecentBookmarksYet'))}</div>`;
     const existing = el.homeRecentGrid.closest('.home-section')?.querySelector('.home-recent-view-all');
     if (existing) existing.remove();
     return;
@@ -421,10 +496,10 @@ function renderHomeRecent() {
     if (!existing) {
       const btn = document.createElement('button');
       btn.className = 'home-recent-view-all';
-      btn.textContent = 'View all';
+      btn.textContent = msg('viewAll');
       btn.addEventListener('click', () => {
         const recent20 = getRecentBookmarks(20);
-        openFolderViewForBookmarks(recent20, 'Recent');
+        openFolderViewForBookmarks(recent20, msg('recent'));
       });
       label.appendChild(btn);
     }
@@ -435,7 +510,7 @@ function renderHomeRecent() {
 
 function createRecentRow(bookmark) {
   const domain = getDomain(bookmark.url);
-  const title = bookmark.title || 'Untitled';
+  const title = bookmark.title || msg('untitled');
   const initial = title.charAt(0).toUpperCase();
   const faviconUrl = getFaviconUrl(bookmark.url, 32);
   const timeLabel = formatRecentTime(bookmark.dateAdded);
@@ -465,7 +540,7 @@ function formatRecentTime(timestamp) {
   if (dayDiff === 0) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
   }
-  if (dayDiff === 1) return 'Yesterday';
+  if (dayDiff === 1) return msg('yesterday');
   if (dayDiff > 1 && dayDiff < 7) return `${dayDiff}d`;
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
@@ -514,7 +589,7 @@ function renderHomeFolders() {
 
 function createHomeCard(bookmark) {
   const domain = getDomain(bookmark.url);
-  const title = bookmark.title || 'Untitled';
+  const title = bookmark.title || msg('untitled');
   const initial = title.charAt(0).toUpperCase();
   const faviconUrl = getFaviconUrl(bookmark.url, 64);
   const pinned = isPinned(bookmark.url);
@@ -565,18 +640,18 @@ function renderSidebar() {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
       </svg>
-      <span>Home</span>
+      <span>${escapeHtml(msg('home'))}</span>
     </button>
     <button class="sidebar-nav-item" data-action="recent">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
         <circle cx="12" cy="12" r="10"></circle>
         <polyline points="12 6 12 12 16 14"></polyline>
       </svg>
-      <span>Recent</span>
+      <span>${escapeHtml(msg('recent'))}</span>
     </button>
   `;
 
-  html += `<div class="sidebar-nav-label">Folders</div>`;
+  html += `<div class="sidebar-nav-label">${escapeHtml(msg('folders'))}</div>`;
   folders.forEach(f => {
     html += createSidebarFolderItem(f);
   });
@@ -591,7 +666,7 @@ function renderSidebar() {
         // show recent bookmarks in folder view
         const recent = getRecentBookmarks(20);
         activeFolderId = '__recent';
-        renderFolderContentForBookmarks(recent, 'Recent');
+        renderFolderContentForBookmarks(recent, msg('recent'));
         renderSidebar();
       } else if (item.dataset.folderId) {
         openFolderView(item.dataset.folderId);
@@ -622,8 +697,8 @@ function renderFolderContent(folderId) {
 
 function renderFolderContentForBookmarks(bookmarks, title, breadcrumb = '') {
   el.folderTitle.textContent = title;
-  el.folderCount.textContent = `${bookmarks.length} bookmark${bookmarks.length !== 1 ? 's' : ''}`;
-  el.folderSearchInput.placeholder = `Search in ${title}…`;
+  el.folderCount.textContent = bookmarkCountLabel(bookmarks.length);
+  el.folderSearchInput.placeholder = msg('searchInFolderNamed', title);
 
   if (!bookmarks.length) {
     el.folderBookmarksGrid.innerHTML = '';
@@ -637,13 +712,13 @@ function renderFolderContentForBookmarks(bookmarks, title, breadcrumb = '') {
 
 function createFolderCard(bookmark) {
   const domain = getDomain(bookmark.url);
-  const title = bookmark.title || 'Untitled';
+  const title = bookmark.title || msg('untitled');
   const initial = title.charAt(0).toUpperCase();
   const faviconUrl = getFaviconUrl(bookmark.url, 64);
   const pinned = isPinned(bookmark.url);
   return `
     <div class="folder-card" data-url="${escapeHtml(bookmark.url)}">
-      <button class="folder-card-pin ${pinned ? 'pinned' : ''}" data-url="${escapeHtml(bookmark.url)}" aria-label="${pinned ? 'Unpin' : 'Pin'}">
+      <button class="folder-card-pin ${pinned ? 'pinned' : ''}" data-url="${escapeHtml(bookmark.url)}" aria-label="${pinned ? msg('unpin') : msg('pin')}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14">
           <path d="M12 17v5"></path><path d="M5 17h14"></path>
           <path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>
@@ -681,9 +756,9 @@ function afterRenderFolderCards() {
       e.stopPropagation();
       togglePin(btn.dataset.url);
       btn.classList.toggle('pinned');
-      btn.setAttribute('aria-label', btn.classList.contains('pinned') ? 'Unpin' : 'Pin');
+      btn.setAttribute('aria-label', btn.classList.contains('pinned') ? msg('unpin') : msg('pin'));
       renderHome();
-      showToast(btn.classList.contains('pinned') ? 'Pinned' : 'Unpinned');
+      showToast(btn.classList.contains('pinned') ? msg('pinned') : msg('unpinned'));
     });
   });
 }
@@ -708,7 +783,7 @@ function filterFolderBookmarks(query) {
       (b.title && b.title.toLowerCase().includes(q)) ||
       (b.url && b.url.toLowerCase().includes(q))
     ) : bookmarks;
-    renderFolderContentForBookmarks(filtered, 'Recent');
+    renderFolderContentForBookmarks(filtered, msg('recent'));
     return;
   }
   const folder = flatFolders.find(f => f.id === activeFolderId);
@@ -718,7 +793,7 @@ function filterFolderBookmarks(query) {
     (b.url && b.url.toLowerCase().includes(q))
   ) : folder.bookmarks;
   renderFolderContentForBookmarks(bookmarks, folder.title);
-  if (!q) el.folderSearchInput.placeholder = `Search in ${folder.title}…`;
+  if (!q) el.folderSearchInput.placeholder = msg('searchInFolderNamed', folder.title);
 }
 
 // ─── Search Panel (Spotlight Style) ─────────────────────────
@@ -736,7 +811,7 @@ function openSearch() {
   el.searchFolderItems.innerHTML = '';
   el.searchWebItem.innerHTML = '';
   el.searchEmpty.style.display = 'flex';
-  el.searchEmpty.querySelector('p').textContent = 'Start typing to search';
+  el.searchEmpty.querySelector('p').textContent = msg('startTypingToSearch');
   document.body.classList.add('search-open');
 }
 
@@ -755,7 +830,7 @@ function handleSearchInput() {
     el.searchFolderItems.innerHTML = '';
     el.searchWebItem.innerHTML = '';
     el.searchEmpty.style.display = 'flex';
-    el.searchEmpty.querySelector('p').textContent = 'Start typing to search';
+    el.searchEmpty.querySelector('p').textContent = msg('startTypingToSearch');
     return;
   }
 
@@ -787,7 +862,7 @@ function handleSearchInput() {
         <path d="m21 21-4.35-4.35"></path>
       </svg>
       <div class="search-result-content">
-        <span class="search-result-title">Search web for <strong>${escapeHtml(query.trim())}</strong></span>
+        <span class="search-result-title">${escapeHtml(msg('searchWebFor', query.trim()))}</span>
       </div>
     </button>
   `;
@@ -811,7 +886,7 @@ function handleSearchInput() {
 
 function createSearchBookmarkItem(bookmark, query, index) {
   const domain = getDomain(bookmark.url);
-  const title = bookmark.title || 'Untitled';
+  const title = bookmark.title || msg('untitled');
   const initial = title.charAt(0).toUpperCase();
   const faviconUrl = getFaviconUrl(bookmark.url, 32);
   return `
@@ -838,7 +913,7 @@ function createSearchFolderItem(folder, query, index) {
       </div>
       <div class="search-result-content">
         <span class="search-result-title">${highlightMatch(folder.title, query)}</span>
-        <span class="search-result-domain">${folder.bookmarkCount} bookmarks</span>
+        <span class="search-result-domain">${escapeHtml(bookmarkCountLabel(folder.bookmarkCount))}</span>
       </div>
     </button>
   `;
@@ -878,7 +953,7 @@ async function performWebSearch(query) {
   if (typeof chrome !== 'undefined' && chrome.search?.query) {
     try {
       await chrome.search.query({ text: query, disposition: 'CURRENT_TAB' });
-    } catch { showToast('Search failed'); }
+    } catch { showToast(msg('searchFailed')); }
   } else {
     window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
   }
@@ -892,8 +967,8 @@ function cycleTheme() {
   const next = themeIds[(idx + 1) % themeIds.length];
   applyTheme(next);
   saveSettingsSilent();
-  const names = { light: 'Light ☀️', dark: 'Dark 🌙', system: 'System 🖥️' };
-  showToast(`Theme: ${names[next] || next}`);
+  const names = { light: msg('themeLight'), dark: msg('themeDark'), system: msg('themeSystem') };
+  showToast(msg('theme', names[next] || next));
 }
 
 // ─── View Manager ───────────────────────────────────────────
@@ -1011,6 +1086,7 @@ function isInputFocused() {
 
 // ─── Init ───────────────────────────────────────────────────
 async function init() {
+  localizeDocument();
   updateTime();
   setInterval(updateTime, 1000);
 

@@ -1,0 +1,227 @@
+{
+  "appName": {
+    "message": "MarkTab",
+    "description": "Extension name."
+  },
+  "appDescription": {
+    "message": "A fast, clear, privacy-friendly bookmark new tab extension.",
+    "description": "Extension description shown in browser extension listings."
+  },
+  "searchBookmarksAndFolders": {
+    "message": "Search bookmarks and folders..."
+  },
+  "search": {
+    "message": "Search"
+  },
+  "enterOpen": {
+    "message": "Enter open"
+  },
+  "hintOpen": {
+    "message": "open"
+  },
+  "shiftEnterWeb": {
+    "message": "Shift+Enter web"
+  },
+  "hintWeb": {
+    "message": "web"
+  },
+  "escClose": {
+    "message": "Esc close"
+  },
+  "hintClose": {
+    "message": "close"
+  },
+  "pinned": {
+    "message": "Pinned"
+  },
+  "recent": {
+    "message": "Recent"
+  },
+  "folders": {
+    "message": "Folders"
+  },
+  "loadingBookmarks": {
+    "message": "Loading bookmarks..."
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "toggleSidebar": {
+    "message": "Toggle sidebar"
+  },
+  "backToHome": {
+    "message": "Back to home"
+  },
+  "searchInFolder": {
+    "message": "Search in folder..."
+  },
+  "folderTools": {
+    "message": "Folder tools"
+  },
+  "gridView": {
+    "message": "Grid view"
+  },
+  "sortBookmarks": {
+    "message": "Sort bookmarks"
+  },
+  "folder": {
+    "message": "Folder"
+  },
+  "bookmarkCount": {
+    "message": "$COUNT$ bookmark",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "bookmarkCountPlural": {
+    "message": "$COUNT$ bookmarks",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "thisFolderIsEmpty": {
+    "message": "This folder is empty"
+  },
+  "closeSearch": {
+    "message": "Close search"
+  },
+  "bookmarks": {
+    "message": "Bookmarks"
+  },
+  "startTypingToSearch": {
+    "message": "Start typing to search"
+  },
+  "pinABookmark": {
+    "message": "Pin a bookmark"
+  },
+  "fromAnyFolder": {
+    "message": "from any folder"
+  },
+  "importBookmarks": {
+    "message": "Import bookmarks"
+  },
+  "fromBrowser": {
+    "message": "from browser"
+  },
+  "recentFirst": {
+    "message": "Recent first"
+  },
+  "quickAccess": {
+    "message": "quick access"
+  },
+  "browseFolders": {
+    "message": "Browse folders"
+  },
+  "organizeLinks": {
+    "message": "organize links"
+  },
+  "noRecentBookmarksYet": {
+    "message": "No recent bookmarks yet"
+  },
+  "viewAll": {
+    "message": "View all"
+  },
+  "untitled": {
+    "message": "Untitled"
+  },
+  "yesterday": {
+    "message": "Yesterday"
+  },
+  "home": {
+    "message": "Home"
+  },
+  "searchInFolderNamed": {
+    "message": "Search in $FOLDER$...",
+    "placeholders": {
+      "folder": {
+        "content": "$1"
+      }
+    }
+  },
+  "pin": {
+    "message": "Pin"
+  },
+  "unpin": {
+    "message": "Unpin"
+  },
+  "unpinned": {
+    "message": "Unpinned"
+  },
+  "searchWebFor": {
+    "message": "Search web for $QUERY$",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "searchFailed": {
+    "message": "Search failed"
+  },
+  "theme": {
+    "message": "Theme: $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "themeSystem": {
+    "message": "System"
+  },
+  "settingsSaved": {
+    "message": "Settings saved"
+  },
+  "popupQuickActions": {
+    "message": "MarkTab quick actions"
+  },
+  "popupSubtitle": {
+    "message": "A bookmark-powered new tab"
+  },
+  "bookmarkOverview": {
+    "message": "Bookmark overview"
+  },
+  "quickActions": {
+    "message": "Quick actions"
+  },
+  "openMarktabNewTab": {
+    "message": "Open MarkTab new tab"
+  },
+  "addCurrentPage": {
+    "message": "Add current page"
+  },
+  "manageBookmarks": {
+    "message": "Manage bookmarks"
+  },
+  "searchShortcut": {
+    "message": "Search shortcut"
+  },
+  "quickSearchBookmarks": {
+    "message": "Quickly search bookmarks on the new tab page"
+  },
+  "localFirst": {
+    "message": "Local first"
+  },
+  "noBookmarkUpload": {
+    "message": "No bookmark data upload"
+  },
+  "addedToBookmarks": {
+    "message": "Added to bookmarks"
+  },
+  "addBookmarkFailed": {
+    "message": "Could not add bookmark. Try again."
+  },
+  "cannotBookmarkPage": {
+    "message": "This page cannot be bookmarked"
+  }
+}

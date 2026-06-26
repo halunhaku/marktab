@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "MarkTab",
-  "version": "1.4.0",
-  "description": "一个快速、清晰、隐私友好的书签新标签页",
+  "name": "__MSG_appName__",
+  "version": "1.4.1",
+  "default_locale": "en",
+  "description": "__MSG_appDescription__",
   "permissions": [
     "bookmarks",
     "favicon",

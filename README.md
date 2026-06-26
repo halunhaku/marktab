@@ -13,7 +13,7 @@
   · <code>Chrome Extension</code>
   · <code>Edge Compatible</code>
   · <code>MIT License</code>
-  · <code>v1.4.0</code>
+  · <code>v1.4.1</code>
 </p>
 
 ---
@@ -52,6 +52,7 @@ MarkTab 直接使用浏览器书签作为数据源，把 New Tab 变成一个轻
 | 文件夹内搜索 | 在当前文件夹内快速过滤书签。 |
 | 键盘操作 | 支持搜索打开、结果导航、打开结果和关闭面板。 |
 | 主题外观 | Light、Dark、System 三种主题，森林绿单一强调色。 |
+| 双语界面 | 使用 Chrome 原生 i18n，支持 English 和简体中文界面。 |
 | 本地优先 | 不依赖开发者云服务，不上传书签、文件夹或设置数据。 |
 
 ## Design Philosophy / 设计理念
@@ -69,7 +70,7 @@ MarkTab 的界面目标是长期使用，而不是制造短暂的新鲜感。它
 
 ### 从 GitHub Release 安装
 
-1. 在 GitHub Releases 中下载最新的 `marktab-1.4.0.zip`。
+1. 在 GitHub Releases 中下载最新的 `marktab-1.4.1.zip`。
 2. 解压 zip 到一个固定的本地文件夹。
 3. 打开扩展管理页面：
    - Chrome: `chrome://extensions/`
@@ -136,11 +137,11 @@ npm install
 | 命令 | 用途 |
 | --- | --- |
 | `npm run validate` | 校验发布所需文件、权限、Manifest V3 约束和文档权限说明。 |
-| `npm run package` | 先执行校验，再生成 `dist/marktab-1.4.0.zip`。 |
+| `npm run package` | 先执行校验，再生成 `dist/marktab-1.4.1.zip`。 |
 | `npm run release:zip` | `npm run package` 的别名。 |
 | `npm run inspect:zip` | 查看当前 release zip 的文件列表。 |
 | `npm run screenshots` | 使用 Playwright 更新 `store-assets/` 中的截图资源。 |
-| `npm run bump -- 1.4.0` | 同步更新 `package.json`、`manifest.json`、README、提交说明和弹窗版本号。 |
+| `npm run bump -- 1.4.1` | 同步更新 `package.json`、`manifest.json`、README、提交说明和弹窗版本号。 |
 
 ## Project Structure / 项目结构
 
@@ -152,6 +153,7 @@ marktab/
 ├─ styles.css                     # MarkTab 设计系统与界面样式
 ├─ popup.html                     # 扩展弹窗
 ├─ popup.js                       # 弹窗统计、添加当前页面、书签管理入口
+├─ _locales/                      # Chrome i18n 语言包，当前支持 en / zh_CN
 ├─ icons/                         # 扩展图标
 ├─ store-assets/                  # README / 商店截图与宣传图
 ├─ scripts/                       # 校验、截图、版本更新脚本
@@ -173,7 +175,7 @@ npm run package
 npm run inspect:zip
 ```
 
-生成的 zip 位于 `dist/marktab-1.4.0.zip`。上传前请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS 和图标文件。Chrome Web Store 提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md)。
+生成的 zip 位于 `dist/marktab-1.4.1.zip`。上传前请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS、`_locales/` 和图标文件。Chrome Web Store 提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md)。
 
 ## Roadmap / 后续计划
 
