@@ -1,6 +1,7 @@
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const STORE_API_ROOT = 'https://www.googleapis.com/chromewebstore/v1.1/items';
 const STORE_UPLOAD_ROOT = 'https://www.googleapis.com/upload/chromewebstore/v1.1/items';
+const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
 
 function normalizedSecrets(secrets) {
   return [...new Set(secrets.filter(Boolean).map(String))].sort(
@@ -25,28 +26,83 @@ function redactJson(value, secrets) {
   return value;
 }
 
-async function requestJson({ action, url, init, fetchImpl, secrets = [] }) {
-  let response;
+function validateTimeout(milliseconds, name) {
+  if (!Number.isFinite(milliseconds) || milliseconds <= 0) {
+    throw new Error(`${name} must be a positive number.`);
+  }
+}
+
+async function requestJson({
+  action,
+  url,
+  init,
+  fetchImpl,
+  secrets = [],
+  signal,
+  requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
+}) {
+  validateTimeout(requestTimeoutMs, 'requestTimeoutMs');
+  const controller = new AbortController();
+  let timer;
+  let removeExternalAbort = () => {};
+
+  const operation = (async () => {
+    let response;
+    try {
+      response = await fetchImpl(url, { ...init, signal: controller.signal });
+    } catch (error) {
+      if (controller.signal.aborted) throw controller.signal.reason;
+      throw new Error(`${action} failed: ${redact(error?.message ?? error, secrets)}`);
+    }
+
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`${action} failed (HTTP ${response.status}): malformed JSON`);
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `${action} failed (HTTP ${response.status}): ${JSON.stringify(redactJson(data, secrets))}`,
+      );
+    }
+    return data;
+  })();
+
+  const requestTimeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const error = new Error(`${action} timed out after ${requestTimeoutMs}ms.`);
+      controller.abort(error);
+      reject(error);
+    }, requestTimeoutMs);
+  });
+  const externalAbort = new Promise((_, reject) => {
+    if (!signal) return;
+    const abort = () => {
+      const reason = signal.reason instanceof Error
+        ? signal.reason
+        : new Error(`${action} was aborted.`);
+      controller.abort(reason);
+      reject(reason);
+    };
+    if (signal.aborted) abort();
+    else {
+      signal.addEventListener('abort', abort, { once: true });
+      removeExternalAbort = () => signal.removeEventListener('abort', abort);
+    }
+  });
+
   try {
-    response = await fetchImpl(url, init);
+    return await Promise.race([operation, requestTimeout, externalAbort]);
   } catch (error) {
-    throw new Error(`${action} failed: ${redact(error?.message ?? error, secrets)}`);
+    const message = redact(error?.message ?? error, secrets);
+    throw new Error(message.startsWith(action) ? message : `${action} failed: ${message}`);
+  } finally {
+    clearTimeout(timer);
+    removeExternalAbort();
   }
-
-  const text = await response.text();
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error(`${action} failed (HTTP ${response.status}): malformed JSON`);
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      `${action} failed (HTTP ${response.status}): ${JSON.stringify(redactJson(data, secrets))}`,
-    );
-  }
-  return data;
 }
 
 function itemUrl(root, itemId, suffix = '') {
@@ -66,6 +122,8 @@ export async function exchangeRefreshToken({
   clientSecret,
   refreshToken,
   fetchImpl = fetch,
+  signal,
+  requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
 }) {
   const secrets = [clientId, clientSecret, refreshToken];
   const data = await requestJson({
@@ -83,13 +141,22 @@ export async function exchangeRefreshToken({
     },
     fetchImpl,
     secrets,
+    signal,
+    requestTimeoutMs,
   });
 
   if (!data.access_token) throw new Error('Token exchange failed: missing access_token');
   return data.access_token;
 }
 
-export function uploadItem({ itemId, accessToken, zipBytes, fetchImpl = fetch }) {
+export function uploadItem({
+  itemId,
+  accessToken,
+  zipBytes,
+  fetchImpl = fetch,
+  signal,
+  requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
+}) {
   return requestJson({
     action: 'Upload item',
     url: itemUrl(STORE_UPLOAD_ROOT, itemId, '?uploadType=media'),
@@ -100,10 +167,18 @@ export function uploadItem({ itemId, accessToken, zipBytes, fetchImpl = fetch })
     },
     fetchImpl,
     secrets: [accessToken],
+    signal,
+    requestTimeoutMs,
   });
 }
 
-export function getItemStatus({ itemId, accessToken, fetchImpl = fetch }) {
+export function getItemStatus({
+  itemId,
+  accessToken,
+  fetchImpl = fetch,
+  signal,
+  requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
+}) {
   return requestJson({
     action: 'Get item status',
     url: itemUrl(STORE_API_ROOT, itemId, '?projection=DRAFT'),
@@ -113,6 +188,8 @@ export function getItemStatus({ itemId, accessToken, fetchImpl = fetch }) {
     },
     fetchImpl,
     secrets: [accessToken],
+    signal,
+    requestTimeoutMs,
   });
 }
 
@@ -127,8 +204,22 @@ function inspectUploadState(result) {
   throw new Error(`Upload response has unexpected state ${state}`);
 }
 
-function defaultSleep(milliseconds) {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+function defaultSleep(milliseconds, { signal } = {}) {
+  return new Promise((resolve, reject) => {
+    const finish = (error) => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abort);
+      if (error) reject(error);
+      else resolve();
+    };
+    const timer = setTimeout(() => finish(), milliseconds);
+    const abort = () => {
+      finish(signal.reason instanceof Error ? signal.reason : new Error('Upload polling aborted.'));
+    };
+    if (!signal) return;
+    if (signal.aborted) abort();
+    else signal.addEventListener('abort', abort, { once: true });
+  });
 }
 
 function publishOutcomeError(reason, data, accessToken) {
@@ -147,20 +238,36 @@ export async function waitForUpload({
   sleep = defaultSleep,
   maxAttempts = 30,
   intervalMs = 5000,
+  signal,
+  requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
 }) {
   let current = initial;
   if (inspectUploadState(current) === 'success') return current;
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    await sleep(intervalMs);
-    current = await getItemStatus({ itemId, accessToken, fetchImpl });
+    if (signal?.aborted) throw signal.reason;
+    await sleep(intervalMs, { signal });
+    if (signal?.aborted) throw signal.reason;
+    current = await getItemStatus({
+      itemId,
+      accessToken,
+      fetchImpl,
+      signal,
+      requestTimeoutMs,
+    });
     if (inspectUploadState(current) === 'success') return current;
   }
 
   throw new Error(`Upload timed out after ${maxAttempts} status checks`);
 }
 
-export async function publishItem({ itemId, accessToken, fetchImpl = fetch }) {
+export async function publishItem({
+  itemId,
+  accessToken,
+  fetchImpl = fetch,
+  signal,
+  requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
+}) {
   const data = await requestJson({
     action: 'Publish item',
     url: itemUrl(STORE_API_ROOT, itemId, '/publish'),
@@ -171,6 +278,8 @@ export async function publishItem({ itemId, accessToken, fetchImpl = fetch }) {
     },
     fetchImpl,
     secrets: [accessToken],
+    signal,
+    requestTimeoutMs,
   });
 
   if (!data || typeof data !== 'object' || Array.isArray(data)) {

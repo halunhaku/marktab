@@ -120,6 +120,30 @@ test('storeRefreshToken propagates a failed gh child safely', async () => {
   );
 });
 
+test('storeRefreshToken terminates a stalled gh child when aborted', async () => {
+  const controller = new AbortController();
+  let killed = false;
+  const runGh = () => {
+    const child = new EventEmitter();
+    child.stdin = new PassThrough();
+    child.kill = () => {
+      killed = true;
+      queueMicrotask(() => child.emit('close', null));
+      return true;
+    };
+    return child;
+  };
+
+  const storage = storeRefreshToken('refresh-token-sensitive', {
+    runGh,
+    signal: controller.signal,
+  });
+  controller.abort(new Error('OAuth authorization timed out.'));
+
+  await assert.rejects(storage, /timed out/i);
+  assert.equal(killed, true);
+});
+
 test('runAuthorization validates local OAuth environment in order', async () => {
   await assert.rejects(runAuthorization({ env: {} }), new Error('Missing CWS_CLIENT_ID.'));
   await assert.rejects(
@@ -192,6 +216,50 @@ test('runAuthorization times out safely and closes the loopback server', async (
     /timed out/i,
   );
   await assert.rejects(fetch(redirectUri));
+});
+
+test('runAuthorization deadline covers a stalled token exchange after callback', async () => {
+  let redirectUri;
+  const startedAt = Date.now();
+  await assert.rejects(
+    runAuthorization({
+      env: completeEnv,
+      launch: async (authorizationUrl) => {
+        const url = new URL(authorizationUrl);
+        redirectUri = url.searchParams.get('redirect_uri');
+        await fetch(`${redirectUri}?state=${encodeURIComponent(url.searchParams.get('state'))}&code=short-code`);
+      },
+      fetchImpl: async () => new Promise(() => {}),
+      save: async () => { throw new Error('must not save'); },
+      timeoutMs: 25,
+    }),
+    /timed out/i,
+  );
+  assert.ok(Date.now() - startedAt < 250);
+  await assert.rejects(fetch(redirectUri));
+});
+
+test('runAuthorization deadline covers stalled secret storage after token exchange', async () => {
+  let saveSignal;
+  const startedAt = Date.now();
+  await assert.rejects(
+    runAuthorization({
+      env: completeEnv,
+      launch: async (authorizationUrl) => {
+        const url = new URL(authorizationUrl);
+        await fetch(`${url.searchParams.get('redirect_uri')}?state=${encodeURIComponent(url.searchParams.get('state'))}&code=short-code`);
+      },
+      fetchImpl: async () => jsonResponse({ refresh_token: 'refresh-token' }),
+      save: async (_token, { signal }) => {
+        saveSignal = signal;
+        return new Promise(() => {});
+      },
+      timeoutMs: 25,
+    }),
+    /timed out/i,
+  );
+  assert.equal(saveSignal.aborted, true);
+  assert.ok(Date.now() - startedAt < 250);
 });
 
 test('runAuthorization observes a terminal callback while the browser launcher is still pending', async () => {

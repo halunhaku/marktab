@@ -33,36 +33,69 @@ export async function publishPackage({
   env = process.env,
   api = cwsApi,
   log = console.log,
+  timeoutMs = 10 * 60_000,
 } = {}) {
   for (const name of REQUIRED_ENV) {
     if (!String(env[name] ?? '').trim()) throw new Error(`Missing ${name}.`);
   }
   if (!artifactPath) throw new Error('Artifact path is required.');
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    throw new Error('timeoutMs must be a positive number.');
+  }
 
   const { CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN, CWS_ITEM_ID } = env;
   const secrets = [CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN, CWS_ITEM_ID];
   let accessToken;
+  const controller = new AbortController();
+  let timer;
 
   try {
-    const zipBytes = await readArtifact(artifactPath);
-    accessToken = await api.exchangeRefreshToken({
-      clientId: CWS_CLIENT_ID,
-      clientSecret: CWS_CLIENT_SECRET,
-      refreshToken: CWS_REFRESH_TOKEN,
+    const deadline = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        const error = new Error(`Chrome Web Store publication timed out after ${timeoutMs}ms.`);
+        controller.abort(error);
+        reject(error);
+      }, timeoutMs);
     });
-    log('Chrome Web Store authentication completed.');
+    const publication = (async () => {
+      const zipBytes = await readArtifact(artifactPath);
+      accessToken = await api.exchangeRefreshToken({
+        clientId: CWS_CLIENT_ID,
+        clientSecret: CWS_CLIENT_SECRET,
+        refreshToken: CWS_REFRESH_TOKEN,
+        signal: controller.signal,
+      });
+      log('Chrome Web Store authentication completed.');
 
-    const initial = await api.uploadItem({ itemId: CWS_ITEM_ID, accessToken, zipBytes });
-    log('Chrome Web Store upload started.');
+      const initial = await api.uploadItem({
+        itemId: CWS_ITEM_ID,
+        accessToken,
+        zipBytes,
+        signal: controller.signal,
+      });
+      log('Chrome Web Store upload started.');
 
-    await api.waitForUpload({ itemId: CWS_ITEM_ID, accessToken, initial });
-    log('Chrome Web Store upload completed.');
+      await api.waitForUpload({
+        itemId: CWS_ITEM_ID,
+        accessToken,
+        initial,
+        signal: controller.signal,
+      });
+      log('Chrome Web Store upload completed.');
 
-    const result = await api.publishItem({ itemId: CWS_ITEM_ID, accessToken });
-    log('Chrome Web Store publication completed.');
-    return result;
+      const result = await api.publishItem({
+        itemId: CWS_ITEM_ID,
+        accessToken,
+        signal: controller.signal,
+      });
+      log('Chrome Web Store public review submission accepted.');
+      return result;
+    })();
+    return await Promise.race([publication, deadline]);
   } catch (error) {
     throw safeError(error, [...secrets, accessToken]);
+  } finally {
+    clearTimeout(timer);
   }
 }
 

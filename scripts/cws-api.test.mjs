@@ -55,6 +55,21 @@ test('exchangeRefreshToken rejects a response without an access token', async ()
   );
 });
 
+test('exchangeRefreshToken times out a fetch that never settles', async () => {
+  const startedAt = Date.now();
+  await assert.rejects(
+    exchangeRefreshToken({
+      clientId: 'client',
+      clientSecret: 'secret',
+      refreshToken: 'refresh',
+      fetchImpl: async () => new Promise(() => {}),
+      requestTimeoutMs: 20,
+    }),
+    /token exchange.*timed out/i,
+  );
+  assert.ok(Date.now() - startedAt < 250);
+});
+
 test('uploadItem puts zip bytes at the encoded item URL with required headers', async () => {
   const zipBytes = new Uint8Array([80, 75, 3, 4]);
   let request;
