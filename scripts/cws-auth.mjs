@@ -32,8 +32,8 @@ export function buildAuthorizationUrl({ clientId, redirectUri, state }) {
 export function parseOAuthCallback(callbackUrl, expectedState) {
   const url = new URL(callbackUrl);
   if (url.pathname !== '/callback') throw new Error('Unexpected OAuth callback path.');
-  if (url.searchParams.has('error')) throw new Error('OAuth authorization was denied.');
   if (url.searchParams.get('state') !== expectedState) throw new Error('OAuth state mismatch.');
+  if (url.searchParams.has('error')) throw new Error('OAuth authorization was denied.');
   const code = url.searchParams.get('code');
   if (!code) throw new Error('OAuth callback is missing authorization code.');
   return code;
@@ -172,6 +172,7 @@ export async function runAuthorization({
   let callbackSettled = false;
   let resolveCallback;
   let rejectCallback;
+  const sockets = new Set();
   const callback = new Promise((resolve, reject) => {
     resolveCallback = resolve;
     rejectCallback = reject;
@@ -183,8 +184,23 @@ export async function runAuthorization({
       return;
     }
 
+    let callbackUrl;
     try {
-      const callbackUrl = new URL(request.url, 'http://127.0.0.1');
+      callbackUrl = new URL(request.url, 'http://127.0.0.1');
+    } catch {
+      plainText(response, 404, 'Not found.');
+      return;
+    }
+    if (request.method !== 'GET' || callbackUrl.pathname !== '/callback') {
+      plainText(response, 404, 'Not found.');
+      return;
+    }
+    if (callbackUrl.searchParams.get('state') !== state) {
+      plainText(response, 400, 'Invalid OAuth state.');
+      return;
+    }
+
+    try {
       code = parseOAuthCallback(callbackUrl.href, state);
       callbackSettled = true;
       plainText(response, 200, 'Authorization complete. You can close this tab.');
@@ -194,6 +210,10 @@ export async function runAuthorization({
       plainText(response, 400, 'Authorization failed. Return to the terminal.');
       rejectCallback(error);
     }
+  });
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.once('close', () => sockets.delete(socket));
   });
 
   try {
@@ -206,10 +226,7 @@ export async function runAuthorization({
     });
 
     code = await Promise.race([
-      (async () => {
-        await launch(authorizationUrl);
-        return callback;
-      })(),
+      Promise.all([launch(authorizationUrl), callback]).then(([, callbackCode]) => callbackCode),
       timeout,
     ]);
     refreshToken = await exchangeAuthorizationCode({
@@ -229,6 +246,7 @@ export async function runAuthorization({
     throw new Error(redact(error, [clientId, clientSecret, state, code, refreshToken]));
   } finally {
     if (timer) clearTimeout(timer);
+    for (const socket of sockets) socket.destroy();
     await close(server);
   }
 }

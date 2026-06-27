@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import { spawn } from 'node:child_process';
+import { createConnection } from 'node:net';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -66,6 +67,13 @@ test('parseOAuthCallback returns the authorization code', () => {
   );
 });
 
+test('parseOAuthCallback validates state before honoring an OAuth error', () => {
+  assert.throws(
+    () => parseOAuthCallback('http://127.0.0.1:1234/callback?error=access_denied', 'expected'),
+    /state mismatch/i,
+  );
+});
+
 for (const [name, url, pattern] of [
   ['wrong path', 'http://127.0.0.1:1234/not-callback?state=expected&code=private-code', /callback path/i],
   ['OAuth error', 'http://127.0.0.1:1234/callback?error=access_denied&error_description=private-code&state=expected', /authorization was denied/i],
@@ -125,6 +133,7 @@ test('runAuthorization validates local OAuth environment in order', async () => 
 });
 
 test('runAuthorization completes a live loopback callback and keeps credentials in their intended channels', async () => {
+  const startedAt = Date.now();
   let launchedUrl;
   let tokenRequest;
   const saved = [];
@@ -163,6 +172,7 @@ test('runAuthorization completes a live loopback callback and keeps credentials 
     grant_type: 'authorization_code',
   });
   assert.deepEqual(saved, ['new-refresh-token']);
+  assert.ok(Date.now() - startedAt < 500, 'successful keep-alive cleanup should settle promptly');
 
   await assert.rejects(fetch(launchedUrl.searchParams.get('redirect_uri')));
 });
@@ -182,6 +192,103 @@ test('runAuthorization times out safely and closes the loopback server', async (
     /timed out/i,
   );
   await assert.rejects(fetch(redirectUri));
+});
+
+test('runAuthorization observes a terminal callback while the browser launcher is still pending', async () => {
+  const startedAt = Date.now();
+  await assert.rejects(
+    runAuthorization({
+      env: completeEnv,
+      launch: async (authorizationUrl) => {
+        const url = new URL(authorizationUrl);
+        const redirectUri = url.searchParams.get('redirect_uri');
+        const state = url.searchParams.get('state');
+        const response = await fetch(`${redirectUri}?state=${encodeURIComponent(state)}&error=access_denied`);
+        assert.equal(response.status, 400);
+        await new Promise(() => {});
+      },
+      fetchImpl: async () => { throw new Error('must not exchange'); },
+      save: async () => { throw new Error('must not save'); },
+      timeoutMs: 1_000,
+    }),
+    /authorization was denied/i,
+  );
+  assert.ok(Date.now() - startedAt < 500, 'terminal callback should beat the timeout');
+});
+
+for (const [name, expectedStatus, sendProbe] of [
+  ['wrong path', 404, (redirectUri, state) => fetch(`${new URL(redirectUri).origin}/probe?state=${encodeURIComponent(state)}`)],
+  ['wrong state', 400, (redirectUri) => fetch(`${redirectUri}?state=wrong-state&code=probe-code`)],
+  ['state-less OAuth error', 400, (redirectUri) => fetch(`${redirectUri}?error=access_denied`)],
+  ['wrong method', 404, (redirectUri, state) => fetch(`${redirectUri}?state=${encodeURIComponent(state)}&code=probe-code`, { method: 'POST' })],
+]) {
+  test(`runAuthorization ignores a nonterminal ${name} probe before a valid callback`, async () => {
+    let exchangedCode;
+    const saved = [];
+    await runAuthorization({
+      env: completeEnv,
+      launch: async (authorizationUrl) => {
+        const url = new URL(authorizationUrl);
+        const redirectUri = url.searchParams.get('redirect_uri');
+        const state = url.searchParams.get('state');
+        const probeResponse = await sendProbe(redirectUri, state);
+        assert.equal(probeResponse.status, expectedStatus);
+        assert.ok((await probeResponse.text()).length < 100);
+        const validResponse = await fetch(`${redirectUri}?state=${encodeURIComponent(state)}&code=genuine-code`);
+        assert.equal(validResponse.status, 200);
+        await validResponse.text();
+      },
+      fetchImpl: async (_url, init) => {
+        exchangedCode = new URLSearchParams(init.body).get('code');
+        return jsonResponse({ refresh_token: 'fresh-token' });
+      },
+      save: async (token) => saved.push(token),
+      timeoutMs: 2_000,
+    });
+
+    assert.equal(exchangedCode, 'genuine-code');
+    assert.deepEqual(saved, ['fresh-token']);
+  });
+}
+
+test('runAuthorization destroys incomplete loopback sockets when timing out', async (t) => {
+  let socket;
+  const startedAt = Date.now();
+  const authorization = runAuthorization({
+    env: completeEnv,
+    launch: async (authorizationUrl) => {
+      const redirectUri = new URL(new URL(authorizationUrl).searchParams.get('redirect_uri'));
+      socket = createConnection({ host: redirectUri.hostname, port: Number(redirectUri.port) });
+      t.after(() => socket.destroy());
+      await new Promise((resolve, reject) => {
+        socket.once('connect', resolve);
+        socket.once('error', reject);
+      });
+      socket.write('GET /callback HTTP/1.1\r\nHost: 127.0.0.1\r\n');
+    },
+    fetchImpl: async () => { throw new Error('must not exchange'); },
+    save: async () => { throw new Error('must not save'); },
+    timeoutMs: 25,
+  });
+  let guardTimer;
+  const outcome = await Promise.race([
+    authorization.then(
+      () => ({ type: 'resolved' }),
+      (error) => ({ type: 'rejected', error }),
+    ),
+    new Promise((resolve) => {
+      guardTimer = setTimeout(() => resolve({ type: 'late' }), 250);
+    }),
+  ]);
+  clearTimeout(guardTimer);
+
+  if (outcome.type === 'late') {
+    socket.destroy();
+    await authorization.catch(() => {});
+  }
+  assert.equal(outcome.type, 'rejected', 'timeout cleanup must not wait for the client socket');
+  assert.match(outcome.error.message, /timed out/i);
+  assert.ok(Date.now() - startedAt < 250, 'socket cleanup should settle promptly');
 });
 
 test('runAuthorization normalizes secret-storage failures without leaking the refresh token', async () => {
