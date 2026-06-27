@@ -37,7 +37,8 @@ test('release workflow resolves and validates an exact tag before checking it ou
   assert.match(workflow, /\^v\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$/);
   assert.match(workflow, /echo "tag=\$REQUESTED_TAG" >> "\$GITHUB_OUTPUT"/);
   assert.match(workflow, /echo "version=\$\{REQUESTED_TAG#v\}" >> "\$GITHUB_OUTPUT"/);
-  assert.match(workflow, /uses: actions\/checkout@v4\n        with:\n          fetch-depth: 0\n          ref: \$\{\{ steps\.release\.outputs\.tag \}\}/);
+  assert.match(workflow, /uses: actions\/checkout@v4\n        with:\n          fetch-depth: 0\n          ref: refs\/tags\/\$\{\{ steps\.release\.outputs\.tag \}\}/);
+  assert.doesNotMatch(workflow, /^          ref: \$\{\{ steps\.release\.outputs\.tag \}\}$/m);
   assert.match(workflow, /uses: actions\/setup-node@v4\n        with:\n          node-version: 20/);
 });
 
