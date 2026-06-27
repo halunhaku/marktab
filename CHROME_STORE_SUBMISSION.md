@@ -89,7 +89,9 @@ Key features:
 ### One-time prerequisites
 
 - Start with an item that is already published in the Chrome Web Store, has two-step verification enabled for its publisher account, and has a review-ready listing and privacy disclosures.
-- In Google Cloud, enable the Chrome Web Store API, configure the OAuth consent screen, and create a **Desktop app** OAuth client.
+- In Google Cloud, enable the Chrome Web Store API, configure the OAuth consent screen, and create a **Desktop app** OAuth client. The helper uses that client with a temporary loopback callback on `127.0.0.1`.
+- If the OAuth consent app uses the **External** user type and remains in **Testing**, add the target item's owner email as a Test user before authorizing.
+- Google limits refresh tokens to seven days for External consent apps in Testing when the `chromewebstore` scope is requested. For durable CI, move the consent app to **In production** before generating the final `CWS_REFRESH_TOKEN`. If Testing is intentional, rerun `npm run cws:auth` and rotate the GitHub secret before each seven-day expiry.
 - Find the extension's item ID in the Chrome Web Store Developer Dashboard or in its listing URL. Store that value as `CWS_ITEM_ID`; do not substitute an invented or example ID.
 - Rotate any client secret, refresh token, or other credential that has been exposed through an uncontrolled channel before configuring automation.
 
@@ -124,13 +126,13 @@ try {
 }
 ```
 
-`npm run cws:auth` opens the browser for OAuth authorization and pipes the returned refresh token directly to `gh secret set CWS_REFRESH_TOKEN` over standard input. It does not print or store the token locally. Never commit credentials or paste them into issues, pull requests, logs, or chat.
+`npm run cws:auth` opens the browser for OAuth authorization. Sign in with the Google developer account that owns, or has publisher access to, the target Chrome Web Store item; this may be different from the account that owns the Google Cloud project. After the loopback callback completes, the helper pipes the returned refresh token directly to `gh secret set CWS_REFRESH_TOKEN` over standard input. It does not print or store the token locally. Never commit credentials or paste them into issues, pull requests, logs, or chat.
 
 For routine releases, follow [Automated releases (maintainers)](./README.md#automated-releases-maintainers). The pushed `vX.Y.Z` tag triggers deterministic packaging, a draft GitHub Release, and Chrome Web Store submission; the GitHub Release becomes public only after the store API accepts the submission.
 
 ### Retry and review operations
 
-To retry a failed release, open **Actions → Release → Run workflow**, enter the existing `vX.Y.Z` tag, and run it. The workflow checks out that exact tag, rebuilds the deterministic ZIP, reuses the existing draft release, and replaces its ZIP asset. A failed run leaves the GitHub Release as a draft.
+To retry a failed release, open **Actions → Release → Run workflow**, enter the existing `vX.Y.Z` tag, and run it. The workflow checks out that exact tag, rebuilds the deterministic ZIP, creates or reuses a draft release, and replaces any same-named ZIP asset. A failure after draft creation leaves the GitHub Release as a draft; failures during version checks, tests, validation, or packaging can occur before any release exists.
 
 If the remote Chrome Web Store state is ambiguous, inspect the item in the Developer Dashboard before retrying. Never invent a replacement version or move the existing tag. Chrome Web Store review is asynchronous: monitor it manually in the Developer Dashboard and respond to review feedback there.
 
