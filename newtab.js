@@ -484,7 +484,11 @@ function renderHomeRecent() {
 
   // Update "View all" button on the section label
   el.homeRecentGrid.className = 'home-recent-list';
-  el.homeRecentGrid.innerHTML = recent.map(b => createRecentRow(b)).join('');
+  const recentGroups = [];
+  for (let i = 0; i < recent.length; i += 2) {
+    recentGroups.push(recent.slice(i, i + 2));
+  }
+  el.homeRecentGrid.innerHTML = recentGroups.map(createRecentGroup).join('');
   afterRenderRecent();
 
   // Manage "View all" button
@@ -506,6 +510,10 @@ function renderHomeRecent() {
   } else if (existing) {
     existing.remove();
   }
+}
+
+function createRecentGroup(bookmarks) {
+  return `<div class="home-recent-card">${bookmarks.map(createRecentRow).join('')}</div>`;
 }
 
 function createRecentRow(bookmark) {
