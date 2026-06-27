@@ -84,10 +84,60 @@ Key features:
 - Data sharing/sale: No user data is sold or shared for advertising or unrelated purposes.
 - Privacy policy URL: Publish `PRIVACY_POLICY.md` content to a public URL before submission and use that URL in the dashboard.
 
+## Automated Chrome Web Store Publishing
+
+### One-time prerequisites
+
+- Start with an item that is already published in the Chrome Web Store, has two-step verification enabled for its publisher account, and has a review-ready listing and privacy disclosures.
+- In Google Cloud, enable the Chrome Web Store API, configure the OAuth consent screen, and create a **Desktop app** OAuth client.
+- Find the extension's item ID in the Chrome Web Store Developer Dashboard or in its listing URL. Store that value as `CWS_ITEM_ID`; do not substitute an invented or example ID.
+- Rotate any client secret, refresh token, or other credential that has been exposed through an uncontrolled channel before configuring automation.
+
+Configure these GitHub Actions secrets, with these exact names:
+
+- `CWS_CLIENT_ID`
+- `CWS_CLIENT_SECRET`
+- `CWS_REFRESH_TOKEN`
+- `CWS_ITEM_ID`
+
+From PowerShell, let GitHub CLI prompt interactively for the three known values so they do not appear in shell history:
+
+```powershell
+gh secret set CWS_CLIENT_ID
+gh secret set CWS_CLIENT_SECRET
+gh secret set CWS_ITEM_ID
+```
+
+Then provide the OAuth client credentials to the local authorization helper without placing private values in the command line:
+
+```powershell
+$env:CWS_CLIENT_ID = Read-Host "OAuth client ID"
+$secureClientSecret = Read-Host "OAuth client secret" -AsSecureString
+$secretPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureClientSecret)
+try {
+  $env:CWS_CLIENT_SECRET = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($secretPointer)
+  npm run cws:auth
+} finally {
+  [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($secretPointer)
+  Remove-Item Env:CWS_CLIENT_ID -ErrorAction SilentlyContinue
+  Remove-Item Env:CWS_CLIENT_SECRET -ErrorAction SilentlyContinue
+}
+```
+
+`npm run cws:auth` opens the browser for OAuth authorization and pipes the returned refresh token directly to `gh secret set CWS_REFRESH_TOKEN` over standard input. It does not print or store the token locally. Never commit credentials or paste them into issues, pull requests, logs, or chat.
+
+For routine releases, follow [Automated releases (maintainers)](./README.md#automated-releases-maintainers). The pushed `vX.Y.Z` tag triggers deterministic packaging, a draft GitHub Release, and Chrome Web Store submission; the GitHub Release becomes public only after the store API accepts the submission.
+
+### Retry and review operations
+
+To retry a failed release, open **Actions → Release → Run workflow**, enter the existing `vX.Y.Z` tag, and run it. The workflow checks out that exact tag, rebuilds the deterministic ZIP, reuses the existing draft release, and replaces its ZIP asset. A failed run leaves the GitHub Release as a draft.
+
+If the remote Chrome Web Store state is ambiguous, inspect the item in the Developer Dashboard before retrying. Never invent a replacement version or move the existing tag. Chrome Web Store review is asynchronous: monitor it manually in the Developer Dashboard and respond to review feedback there.
+
 ## Release Package Checklist
 
 - Run `npm run validate`.
-- Run `npm run package` and upload the generated zip from `dist/`.
+- Run `npm run package` and inspect the generated zip in `dist/`; the automated tag workflow performs the upload and store submission.
 - Optional: run `npm run inspect:zip` to review the package contents.
 - Confirm the zip only includes `manifest.json`, `newtab.html`, `newtab.js`, `styles.css`, `popup.html`, `popup.js`, and required icons.
 - Confirm `_locales/en/messages.json` and `_locales/zh_CN/messages.json` are included in the zip.
