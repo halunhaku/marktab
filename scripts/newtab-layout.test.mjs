@@ -9,11 +9,13 @@ const [css, js] = await Promise.all([
 
 test('home layout uses the approved wide container and responsive search width', () => {
   assert.match(css, /\.home-container\s*\{[^}]*width:\s*min\(88vw,\s*1680px\)/s);
+  assert.doesNotMatch(css, /\.home-container\s*\{[^}]*1180px/s);
   assert.match(css, /\.home-search-card\s*\{[^}]*width:\s*clamp\(520px,\s*44vw,\s*760px\)/s);
 });
 
 test('pinned layout caps desktop rows at five cards', () => {
   assert.match(css, /\.home-pinned-grid\s*\{[^}]*grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(css, /\.home-pinned-grid:is\([^}]+\)\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/s);
   assert.match(css, /@media\s*\(max-width:\s*1199px\)[\s\S]*?\.home-pinned-grid[^{]*\{[^}]*repeat\(3,/s);
 });
 

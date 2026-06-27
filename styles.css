@@ -436,7 +436,7 @@ a {
 }
 
 .home-pinned-grid:is(.pinned-count-0, .pinned-count-1, .pinned-count-2, .pinned-count-3, .pinned-count-4) {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .home-card-grid > *,
@@ -1323,22 +1323,6 @@ a {
   display: block;
   width: 100%;
   text-align: center;
-}
-
-@media (min-width: 1440px) {
-  .home-container {
-    width: min(1180px, calc(100vw - 64px));
-  }
-}
-
-@media (min-width: 1920px) {
-  .home-view {
-    padding-top: clamp(64px, 7vh, 96px);
-  }
-
-  .home-container {
-    max-width: 1180px;
-  }
 }
 
 @media (min-width: 1600px) {
