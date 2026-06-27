@@ -4,7 +4,7 @@
   "private": true,
   "description": "A fast, clear, privacy-friendly bookmark new tab extension.",
   "scripts": {
-    "test": "node --test scripts/newtab-layout.test.mjs",
+    "test": "node --test scripts/newtab-layout.test.mjs scripts/package-release.test.mjs",
     "validate": "node scripts/validate-release.mjs",
     "package": "npm run validate && node scripts/package-release.mjs",
     "release:zip": "npm run package",

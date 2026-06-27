@@ -53,10 +53,18 @@ if (process.platform === 'win32') {
     Add-Type -AssemblyName System.IO.Compression.FileSystem;
     $zip = [IO.Compression.ZipFile]::Open('${psZipPath}', [IO.Compression.ZipArchiveMode]::Create);
     try {
+      $root = (Get-Location).Path;
       foreach ($file in @(${psFiles})) {
         $source = Join-Path (Get-Location) $file;
-        $entry = $file.Replace('\\\\', '/');
-        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $source, $entry) | Out-Null;
+        if ([IO.Directory]::Exists($source)) {
+          Get-ChildItem -LiteralPath $source -File -Recurse | ForEach-Object {
+            $entry = $_.FullName.Substring($root.Length + 1).Replace('\\', '/');
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $entry) | Out-Null;
+          }
+        } else {
+          $entry = $file.Replace('\\\\', '/');
+          [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $source, $entry) | Out-Null;
+        }
       }
     } finally {
       if ($zip) { $zip.Dispose(); }
