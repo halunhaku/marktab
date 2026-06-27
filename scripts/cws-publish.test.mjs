@@ -153,39 +153,74 @@ test('exchanges, uploads, waits, and publishes in order with safe logs and retur
     log: (message) => logs.push(message),
   });
 
+  const signal = calls[0][1].signal;
+  assert.ok(signal instanceof AbortSignal);
+  assert.equal(signal.aborted, false);
   assert.deepEqual(result, { status: ['OK'] });
   assert.deepEqual(calls, [
     ['exchangeRefreshToken', {
       clientId: completeEnv.CWS_CLIENT_ID,
       clientSecret: completeEnv.CWS_CLIENT_SECRET,
       refreshToken: completeEnv.CWS_REFRESH_TOKEN,
+      signal,
     }],
     ['uploadItem', {
       itemId: completeEnv.CWS_ITEM_ID,
       accessToken: 'access-token-value',
       zipBytes: expectedBytes,
+      signal,
     }],
     ['waitForUpload', {
       itemId: completeEnv.CWS_ITEM_ID,
       accessToken: 'access-token-value',
       initial: { uploadState: 'IN_PROGRESS' },
+      signal,
     }],
     ['publishItem', {
       itemId: completeEnv.CWS_ITEM_ID,
       accessToken: 'access-token-value',
+      signal,
     }],
   ]);
   assert.deepEqual(logs, [
     'Chrome Web Store authentication completed.',
     'Chrome Web Store upload started.',
     'Chrome Web Store upload completed.',
-    'Chrome Web Store publication completed.',
+    'Chrome Web Store public review submission accepted.',
   ]);
   const serializedLogs = JSON.stringify(logs);
   for (const secret of [...Object.values(completeEnv), 'access-token-value']) {
     assert.doesNotMatch(serializedLogs, new RegExp(secret));
   }
   assert.doesNotMatch(serializedLogs, /authorization|bearer|504b0304/i);
+});
+
+test('publishPackage enforces one overall deadline and aborts the active operation', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'marktab-cws-publish-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const artifactPath = path.join(directory, 'marktab.zip');
+  await writeFile(artifactPath, Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+  let observedSignal;
+  const startedAt = Date.now();
+
+  await assert.rejects(
+    publishPackage({
+      artifactPath,
+      env: completeEnv,
+      timeoutMs: 20,
+      api: {
+        async exchangeRefreshToken({ signal }) {
+          observedSignal = signal;
+          return new Promise(() => {});
+        },
+      },
+      log: () => {},
+    }),
+    /publication timed out/i,
+  );
+
+  assert.equal(observedSignal.aborted, true);
+  assert.ok(Date.now() - startedAt < 250);
 });
 
 test('direct CLI reports a safe error and exits with code 1', async () => {

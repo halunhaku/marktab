@@ -43,17 +43,33 @@ function defaultRunGh(command, args, options) {
   return spawn(command, args, options);
 }
 
-export function storeRefreshToken(token, { runGh = defaultRunGh } = {}) {
+export function storeRefreshToken(token, { runGh = defaultRunGh, signal } = {}) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const finish = (error) => {
       if (settled) return;
       settled = true;
+      signal?.removeEventListener('abort', abort);
       if (error) reject(error);
       else resolve();
     };
-
     let child;
+    const abort = () => {
+      const reason = signal?.reason instanceof Error
+        ? signal.reason
+        : new Error('OAuth authorization timed out.');
+      try {
+        child?.kill?.();
+      } finally {
+        finish(reason);
+      }
+    };
+
+    if (signal?.aborted) {
+      abort();
+      return;
+    }
+
     try {
       child = runGh('gh', ['secret', 'set', 'CWS_REFRESH_TOKEN'], {
         stdio: ['pipe', 'ignore', 'ignore'],
@@ -62,6 +78,12 @@ export function storeRefreshToken(token, { runGh = defaultRunGh } = {}) {
       });
     } catch {
       finish(new Error('GitHub CLI secret storage failed.'));
+      return;
+    }
+
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) {
+      abort();
       return;
     }
 
@@ -123,10 +145,33 @@ async function exchangeAuthorizationCode({
   code,
   redirectUri,
   fetchImpl,
+  signal,
 }) {
+  const withAbort = (operation) => new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener('abort', abort);
+      if (error) reject(error);
+      else resolve(value);
+    };
+    const abort = () => finish(
+      signal?.reason instanceof Error ? signal.reason : new Error('OAuth authorization timed out.'),
+    );
+    if (signal?.aborted) {
+      abort();
+      return;
+    }
+    signal?.addEventListener('abort', abort, { once: true });
+    Promise.resolve(operation).then(
+      (value) => finish(null, value),
+      (error) => finish(error),
+    );
+  });
   let response;
   try {
-    response = await fetchImpl(TOKEN_URL, {
+    response = await withAbort(fetchImpl(TOKEN_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -136,8 +181,10 @@ async function exchangeAuthorizationCode({
         redirect_uri: redirectUri,
         grant_type: 'authorization_code',
       }).toString(),
-    });
-  } catch {
+      signal,
+    }));
+  } catch (error) {
+    if (signal?.aborted) throw signal.reason;
     throw new Error('OAuth token exchange request failed.');
   }
 
@@ -145,8 +192,9 @@ async function exchangeAuthorizationCode({
 
   let data;
   try {
-    data = JSON.parse(await response.text());
-  } catch {
+    data = JSON.parse(await withAbort(response.text()));
+  } catch (error) {
+    if (signal?.aborted) throw signal.reason;
     throw new Error('OAuth token exchange failed: malformed JSON.');
   }
   if (!data?.refresh_token) throw new Error('OAuth token exchange failed: missing refresh_token.');
@@ -173,6 +221,7 @@ export async function runAuthorization({
   let resolveCallback;
   let rejectCallback;
   const sockets = new Set();
+  const controller = new AbortController();
   const callback = new Promise((resolve, reject) => {
     resolveCallback = resolve;
     rejectCallback = reject;
@@ -222,26 +271,32 @@ export async function runAuthorization({
     const redirectUri = `http://127.0.0.1:${address.port}/callback`;
     const authorizationUrl = buildAuthorizationUrl({ clientId, redirectUri, state });
     const timeout = new Promise((_, reject) => {
-      timer = setTimeout(() => reject(new Error('OAuth authorization timed out.')), timeoutMs);
+      timer = setTimeout(() => {
+        const error = new Error('OAuth authorization timed out.');
+        controller.abort(error);
+        reject(error);
+      }, timeoutMs);
     });
-
-    code = await Promise.race([
-      Promise.all([launch(authorizationUrl), callback]).then(([, callbackCode]) => callbackCode),
-      timeout,
-    ]);
-    refreshToken = await exchangeAuthorizationCode({
-      clientId,
-      clientSecret,
-      code,
-      redirectUri,
-      fetchImpl,
-    });
-    try {
-      await save(refreshToken);
-    } catch {
-      throw new Error('Unable to save Chrome Web Store credential as GitHub secret.');
-    }
-    console.log('Chrome Web Store refresh token saved as GitHub secret CWS_REFRESH_TOKEN.');
+    const authorization = (async () => {
+      code = await Promise.all([launch(authorizationUrl), callback])
+        .then(([, callbackCode]) => callbackCode);
+      refreshToken = await exchangeAuthorizationCode({
+        clientId,
+        clientSecret,
+        code,
+        redirectUri,
+        fetchImpl,
+        signal: controller.signal,
+      });
+      try {
+        await save(refreshToken, { signal: controller.signal });
+      } catch (error) {
+        if (controller.signal.aborted) throw controller.signal.reason;
+        throw new Error('Unable to save Chrome Web Store credential as GitHub secret.');
+      }
+      console.log('Chrome Web Store refresh token saved as GitHub secret CWS_REFRESH_TOKEN.');
+    })();
+    await Promise.race([authorization, timeout]);
   } catch (error) {
     throw new Error(redact(error, [clientId, clientSecret, state, code, refreshToken]));
   } finally {
