@@ -25,7 +25,8 @@ test('release workflow has only the intended triggers and repository-wide contro
   assert.match(workflow, /^        description: .*retry.*$/mi);
   assert.doesNotMatch(workflow, /pull_request/);
   assert.match(workflow, /^permissions:\n  contents: write$/m);
-  assert.match(workflow, /^concurrency:\n  group: chrome-web-store-release\n  cancel-in-progress: false$/m);
+  assert.match(workflow, /^concurrency:\n  group: chrome-web-store-release\n  queue: max\n  cancel-in-progress: false$/m);
+  assert.doesNotMatch(workflow, /^  cancel-in-progress: true$/m);
   assert.match(workflow, /^jobs:\n  release:\n    runs-on: ubuntu-latest$/m);
   assert.equal((workflow.match(/^  [a-zA-Z][\w-]*:\n    runs-on:/gm) ?? []).length, 1);
 });
