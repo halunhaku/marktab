@@ -71,7 +71,7 @@ test('uploadItem puts zip bytes at the encoded item URL with required headers', 
   assert.deepEqual(result, { uploadState: 'SUCCESS' });
   assert.equal(
     request[0],
-    'https://www.googleapis.com/upload/chromewebstore/v1.1/items/item%2Fid%20with%20space',
+    'https://www.googleapis.com/upload/chromewebstore/v1.1/items/item%2Fid%20with%20space?uploadType=media',
   );
   assert.equal(request[1].method, 'PUT');
   assert.equal(request[1].body, zipBytes);
@@ -226,6 +226,70 @@ test('publishItem posts the public default target as JSON', async () => {
   assert.equal(request[1].headers['x-goog-api-version'], '2');
   assert.equal(request[1].headers['content-type'], 'application/json');
   assert.deepEqual(JSON.parse(request[1].body), { target: 'default' });
+});
+
+test('publishItem rejects a response with missing application status', async () => {
+  await assert.rejects(
+    publishItem({
+      itemId: 'item',
+      accessToken: 'token',
+      fetchImpl: async () => jsonResponse({ statusDetail: 'status unavailable' }),
+    }),
+    /publish item.*missing.*status.*status unavailable/i,
+  );
+});
+
+test('publishItem rejects a response with malformed application status', async () => {
+  const accessToken = 'malformed-sensitive';
+  await assert.rejects(
+    publishItem({
+      itemId: 'item',
+      accessToken,
+      fetchImpl: async () => jsonResponse({
+        status: 'OK',
+        statusDetail: `Bad for ${accessToken}`,
+      }),
+    }),
+    (error) => {
+      assert.match(error.message, /publish item.*malformed.*status/i);
+      assert.match(error.message, /"status":"OK"/);
+      assert.match(error.message, /Bad for \*\*\*/);
+      assert.doesNotMatch(error.message, new RegExp(accessToken));
+      return true;
+    },
+  );
+});
+
+test('publishItem rejects a non-object response as malformed', async () => {
+  await assert.rejects(
+    publishItem({
+      itemId: 'item',
+      accessToken: 'token',
+      fetchImpl: async () => jsonResponse(null),
+    }),
+    /publish item.*malformed.*response/i,
+  );
+});
+
+test('publishItem rejects non-OK application status with redacted status details', async () => {
+  const accessToken = 'publish-sensitive';
+  await assert.rejects(
+    publishItem({
+      itemId: 'item',
+      accessToken,
+      fetchImpl: async () => jsonResponse({
+        status: ['NOT_AUTHORIZED'],
+        statusDetail: `Denied for ${accessToken}`,
+      }),
+    }),
+    (error) => {
+      assert.match(error.message, /publish item/i);
+      assert.match(error.message, /NOT_AUTHORIZED/);
+      assert.match(error.message, /Denied for \*\*\*/);
+      assert.doesNotMatch(error.message, new RegExp(accessToken));
+      return true;
+    },
+  );
 });
 
 test('operations reject malformed JSON with the action and HTTP status', async () => {
