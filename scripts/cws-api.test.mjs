@@ -263,6 +263,49 @@ test('server errors include action and status while redacting every known creden
   );
 });
 
+test('server errors redact credentials containing JSON-special characters', async () => {
+  const clientSecret = 'secret"tail';
+  await assert.rejects(
+    exchangeRefreshToken({
+      clientId: 'client',
+      clientSecret,
+      refreshToken: 'refresh',
+      fetchImpl: async () => jsonResponse(
+        { error: `invalid credential ${clientSecret}`, hint: 'rotate credentials' },
+        { status: 401 },
+      ),
+    }),
+    (error) => {
+      assert.match(error.message, /rotate credentials/);
+      assert.doesNotMatch(error.message, /secret\\"tail/);
+      assert.doesNotMatch(error.message, /secret"tail/);
+      return true;
+    },
+  );
+});
+
+test('server errors fully redact overlapping credentials without leaking a suffix', async () => {
+  const clientId = 'shared';
+  const clientSecret = 'shared-secret-tail';
+  await assert.rejects(
+    exchangeRefreshToken({
+      clientId,
+      clientSecret,
+      refreshToken: 'refresh',
+      fetchImpl: async () => jsonResponse(
+        { error: `invalid ${clientSecret}`, hint: 'check configuration' },
+        { status: 401 },
+      ),
+    }),
+    (error) => {
+      assert.match(error.message, /check configuration/);
+      assert.doesNotMatch(error.message, /shared/);
+      assert.doesNotMatch(error.message, /secret-tail/);
+      return true;
+    },
+  );
+});
+
 test('API server errors redact the access token when it is echoed', async () => {
   const accessToken = 'access-sensitive';
   await assert.rejects(

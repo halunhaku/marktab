@@ -2,12 +2,27 @@ const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const STORE_API_ROOT = 'https://www.googleapis.com/chromewebstore/v1.1/items';
 const STORE_UPLOAD_ROOT = 'https://www.googleapis.com/upload/chromewebstore/v1.1/items';
 
+function normalizedSecrets(secrets) {
+  return [...new Set(secrets.filter(Boolean).map(String))].sort(
+    (left, right) => right.length - left.length,
+  );
+}
+
 function redact(value, secrets) {
   let result = String(value);
-  for (const secret of secrets) {
-    if (secret) result = result.replaceAll(String(secret), '***');
-  }
+  for (const secret of normalizedSecrets(secrets)) result = result.replaceAll(secret, '***');
   return result;
+}
+
+function redactJson(value, secrets) {
+  if (typeof value === 'string') return redact(value, secrets);
+  if (Array.isArray(value)) return value.map((item) => redactJson(item, secrets));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [redact(key, secrets), redactJson(item, secrets)]),
+    );
+  }
+  return value;
 }
 
 async function requestJson({ action, url, init, fetchImpl, secrets = [] }) {
@@ -28,7 +43,7 @@ async function requestJson({ action, url, init, fetchImpl, secrets = [] }) {
 
   if (!response.ok) {
     throw new Error(
-      `${action} failed (HTTP ${response.status}): ${redact(JSON.stringify(data), secrets)}`,
+      `${action} failed (HTTP ${response.status}): ${JSON.stringify(redactJson(data, secrets))}`,
     );
   }
   return data;
