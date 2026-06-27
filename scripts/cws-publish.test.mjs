@@ -80,6 +80,63 @@ test('rejects an inaccessible artifact without calling the API or exposing secre
   assert.deepEqual(calls, []);
 });
 
+test('redacts every configured credential from an API failure before an access token exists', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'marktab-cws-publish-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const artifactPath = path.join(directory, 'marktab.zip');
+  await writeFile(artifactPath, Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+  const leakedMessage = `Token exchange rejected client ${completeEnv.CWS_CLIENT_ID}, secret ${completeEnv.CWS_CLIENT_SECRET}, refresh ${completeEnv.CWS_REFRESH_TOKEN}, item ${completeEnv.CWS_ITEM_ID}.`;
+
+  await assert.rejects(
+    publishPackage({
+      artifactPath,
+      env: completeEnv,
+      api: {
+        async exchangeRefreshToken() {
+          throw new Error(leakedMessage);
+        },
+      },
+    }),
+    (error) => {
+      assert.match(error.message, /Token exchange rejected client/);
+      for (const secret of Object.values(completeEnv)) assert.equal(error.message.includes(secret), false);
+      return true;
+    },
+  );
+});
+
+test('redacts the acquired access token and configured credentials from a later API failure', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'marktab-cws-publish-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const artifactPath = path.join(directory, 'marktab.zip');
+  await writeFile(artifactPath, Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+  const accessToken = 'acquired-access-token-value';
+  const leakedMessage = `Upload failed after authentication for ${completeEnv.CWS_CLIENT_ID}, ${completeEnv.CWS_CLIENT_SECRET}, ${completeEnv.CWS_REFRESH_TOKEN}, ${completeEnv.CWS_ITEM_ID}; Authorization: Bearer ${accessToken}.`;
+
+  await assert.rejects(
+    publishPackage({
+      artifactPath,
+      env: completeEnv,
+      api: {
+        async exchangeRefreshToken() {
+          return accessToken;
+        },
+        async uploadItem() {
+          throw new Error(leakedMessage);
+        },
+      },
+      log: () => {},
+    }),
+    (error) => {
+      assert.match(error.message, /Upload failed after authentication/);
+      for (const secret of [...Object.values(completeEnv), accessToken]) {
+        assert.equal(error.message.includes(secret), false);
+      }
+      return true;
+    },
+  );
+});
+
 test('exchanges, uploads, waits, and publishes in order with safe logs and returns the result', async (t) => {
   const directory = await mkdtemp(path.join(tmpdir(), 'marktab-cws-publish-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
