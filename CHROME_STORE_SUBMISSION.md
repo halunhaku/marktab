@@ -130,9 +130,13 @@ try {
 
 For routine releases, follow [Automated releases (maintainers)](./README.md#automated-releases-maintainers). The pushed `vX.Y.Z` tag triggers deterministic packaging, a draft GitHub Release, and Chrome Web Store submission; the GitHub Release becomes public only after the store API accepts the submission.
 
+The publisher currently uses the Chrome Web Store Publish API V1. Google has deprecated V1 and documents support only through October 15, 2026, so migrate this workflow to V2 before that date.
+
 ### Retry and review operations
 
 To retry a failed release, open **Actions → Release → Run workflow**, enter the existing `vX.Y.Z` tag, and run it. The workflow checks out that exact tag, rebuilds the deterministic ZIP, creates or reuses a draft release, and replaces any same-named ZIP asset. A failure after draft creation leaves the GitHub Release as a draft; failures during version checks, tests, validation, or packaging can occur before any release exists.
+
+If the final **Publish GitHub Release** step failed, first confirm in the Developer Dashboard that Chrome Web Store accepted the review submission. Then run the same tag again and enable `publish_github_release_only`. This recovery mode requires an existing draft, skips the Chrome Web Store upload and submission entirely, and retries only publishing the GitHub Release. Do not enable it when the store submission failed or remains ambiguous.
 
 If the remote Chrome Web Store state is ambiguous, inspect the item in the Developer Dashboard before retrying. Never invent a replacement version or move the existing tag. Chrome Web Store review is asynchronous: monitor it manually in the Developer Dashboard and respond to review feedback there.
 
