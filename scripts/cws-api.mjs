@@ -92,7 +92,7 @@ export async function exchangeRefreshToken({
 export function uploadItem({ itemId, accessToken, zipBytes, fetchImpl = fetch }) {
   return requestJson({
     action: 'Upload item',
-    url: itemUrl(STORE_UPLOAD_ROOT, itemId),
+    url: itemUrl(STORE_UPLOAD_ROOT, itemId, '?uploadType=media'),
     init: {
       method: 'PUT',
       headers: apiHeaders(accessToken, { 'content-type': 'application/zip' }),
@@ -131,6 +131,14 @@ function defaultSleep(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+function publishOutcomeError(reason, data, accessToken) {
+  const detail = redactJson(
+    { status: data?.status, statusDetail: data?.statusDetail },
+    [accessToken],
+  );
+  return new Error(`Publish item failed: ${reason} ${JSON.stringify(detail)}`);
+}
+
 export async function waitForUpload({
   itemId,
   accessToken,
@@ -152,8 +160,8 @@ export async function waitForUpload({
   throw new Error(`Upload timed out after ${maxAttempts} status checks`);
 }
 
-export function publishItem({ itemId, accessToken, fetchImpl = fetch }) {
-  return requestJson({
+export async function publishItem({ itemId, accessToken, fetchImpl = fetch }) {
+  const data = await requestJson({
     action: 'Publish item',
     url: itemUrl(STORE_API_ROOT, itemId, '/publish'),
     init: {
@@ -164,4 +172,22 @@ export function publishItem({ itemId, accessToken, fetchImpl = fetch }) {
     fetchImpl,
     secrets: [accessToken],
   });
+
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw publishOutcomeError('malformed response', data, accessToken);
+  }
+  if (!Object.hasOwn(data, 'status')) {
+    throw publishOutcomeError('missing application status', data, accessToken);
+  }
+  if (
+    !Array.isArray(data.status)
+    || data.status.length === 0
+    || data.status.some((status) => typeof status !== 'string')
+  ) {
+    throw publishOutcomeError('malformed application status', data, accessToken);
+  }
+  if (data.status.some((status) => status !== 'OK')) {
+    throw publishOutcomeError('application status', data, accessToken);
+  }
+  return data;
 }
