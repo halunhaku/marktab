@@ -90,7 +90,7 @@ Key features:
 
 - Start with an item that is already published in the Chrome Web Store, has two-step verification enabled for its publisher account, and has a review-ready listing and privacy disclosures.
 - In Google Cloud, enable the Chrome Web Store API, configure the OAuth consent screen, and create a **Desktop app** OAuth client. The helper uses that client with a temporary loopback callback on `127.0.0.1`.
-- If the OAuth consent app uses the **External** user type and remains in **Testing**, add the target item's owner email as a Test user before authorizing.
+- If the OAuth consent app uses the **External** user type and remains in **Testing**, add the same Google developer account that will perform authorization—the item owner or an account with publisher access—as a Test user before authorizing.
 - Google limits refresh tokens to seven days for External consent apps in Testing when the `chromewebstore` scope is requested. For durable CI, move the consent app to **In production** before generating the final `CWS_REFRESH_TOKEN`. If Testing is intentional, rerun `npm run cws:auth` and rotate the GitHub secret before each seven-day expiry.
 - Find the extension's item ID in the Chrome Web Store Developer Dashboard or in its listing URL. Store that value as `CWS_ITEM_ID`; do not substitute an invented or example ID.
 - Rotate any client secret, refresh token, or other credential that has been exposed through an uncontrolled channel before configuring automation.
