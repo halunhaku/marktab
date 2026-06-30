@@ -8,3 +8,4 @@ npm-debug.log*
 # Local-only generated assets
 *.tmp
 .wrangler/
+.worktrees/
