@@ -120,9 +120,7 @@ html {
 body {
   width: 100%;
   font-family: var(--sans);
-  background:
-    radial-gradient(circle at 50% 0%, rgba(47, 111, 78, 0.045), transparent 34rem),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
   font-size: 1rem;
   min-height: 100dvh;
@@ -263,7 +261,7 @@ a {
 .home-search-card {
   width: clamp(520px, 44vw, 760px);
   max-width: 100%;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
@@ -479,7 +477,7 @@ a {
 .home-recent-card {
   min-width: 0;
   overflow: hidden;
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
@@ -667,7 +665,7 @@ a {
   min-width: 0;
   min-height: 140px;
   padding: 20px;
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
@@ -679,7 +677,7 @@ a {
 }
 
 .home-card:hover {
-  background: color-mix(in srgb, var(--surface) 98%, transparent);
+  background: var(--surface);
   border-color: var(--green-border);
   box-shadow: var(--shadow);
   transform: translateY(-2px);
@@ -736,7 +734,7 @@ a {
   min-width: 0;
   width: 100%;
   padding: 18px 20px;
-  background: color-mix(in srgb, var(--surface) 92%, var(--green-soft));
+  background: var(--surface-soft);
   border: 1px solid var(--line);
   border-radius: var(--radius-card-lg);
   box-shadow: var(--shadow-sm);

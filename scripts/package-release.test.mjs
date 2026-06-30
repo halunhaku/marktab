@@ -9,8 +9,9 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const zipPath = path.join(root, 'dist', 'marktab-1.4.1.zip');
+const windowsOnlyTest = process.platform === 'win32' ? test : test.skip;
 
-test('Windows release package includes localized message files', async () => {
+windowsOnlyTest('Windows release package includes localized message files', async () => {
   await execFileAsync(process.execPath, ['scripts/package-release.mjs'], {
     cwd: root,
     env: { ...process.env, npm_package_version: '1.4.1' }
