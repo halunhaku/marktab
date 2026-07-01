@@ -1,4 +1,4 @@
-const FALLBACK_VERSION = '1.4.1';
+const FALLBACK_VERSION = '1.4.2';
 const GITHUB_REPO = 'https://github.com/halunhaku/marktab';
 const GITHUB_API_LATEST_RELEASE = 'https://api.github.com/repos/halunhaku/marktab/releases/latest';
 const FALLBACK_RELEASE_URL = `${GITHUB_REPO}/releases/tag/v${FALLBACK_VERSION}`;
