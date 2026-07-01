@@ -175,7 +175,27 @@ npm run package
 npm run inspect:zip
 ```
 
-生成的 zip 位于 `dist/marktab-1.4.1.zip`。上传前请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS、`_locales/` 和图标文件。Chrome Web Store 提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md)。
+生成的 zip 位于 `dist/marktab-1.4.1.zip`。请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS、`_locales/` 和图标文件。Chrome Web Store 提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md)。
+
+### Automated releases (maintainers)
+
+A pushed tag matching `vX.Y.Z` is the production release boundary. Before creating the tag, the version must already match in `package.json` and `manifest.json`; use the existing bump command to synchronize every version-bearing file.
+
+For example, release `1.4.2` from PowerShell with:
+
+```powershell
+npm run bump -- 1.4.2
+npm test
+npm run validate
+npm run package
+git add -- package.json manifest.json README.md CHROME_STORE_SUBMISSION.md popup.html cloudflare/marktab-home-worker.js
+git commit -m "release: v1.4.2"
+git tag v1.4.2
+git push origin HEAD
+git push origin v1.4.2
+```
+
+The tag workflow rebuilds the deterministic ZIP, creates a draft GitHub Release, and submits the public Chrome Web Store item for review. It publishes the GitHub Release only after the Chrome Web Store API accepts the submission. Store review remains asynchronous and must be monitored manually in the Chrome Web Store Developer Dashboard.
 
 ## Roadmap / 后续计划
 
