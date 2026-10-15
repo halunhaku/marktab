@@ -131,7 +131,12 @@ MV3, version `3.0.0`. Sources live in `src/**`; **nothing** in this repo ships a
 - Before you claim a change works, run: `npm run typecheck && npm test`.
 - **Before any release: `npm run release:check`** — that is `typecheck && test && build &&
   validate && package`, and it is the same sequence the release workflow runs. `npm run
-  validate` alone validates the *built* tree, so `npm run build` must have run first.
+  validate` alone validates the *built* tree, so `npm run build` must have run first. This
+  gate does not run the end-to-end suite (CI does): run `npm run test:e2e` yourself for
+  anything that touches a view, a shortcut, storage or the migration path.
+- **After any visual change: `npm run build && npm run screenshots`** and commit
+  `store-assets/`. The script drives the real build and deletes any image it did not
+  produce, so a stale screenshot cannot survive a recapture.
 - Add or update unit tests under `tests/unit/**` for domain behaviour (indexing, search
   ranking, URL/time utilities, settings migration). Accessibility is not a review step: `tests/e2e/a11y.spec.ts` runs `axe-core` over every surface in both themes and fails on any WCAG A/AA violation, so a token change that lowers contrast fails CI. Use `tests/e2e/**` (Playwright, real
   Chromium, unpacked `dist/extension`) only for behaviour that happy-dom cannot observe.

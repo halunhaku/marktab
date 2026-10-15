@@ -1,5 +1,14 @@
 import type { Page } from '@playwright/test';
-import { expect, test, MOD, readStored, seedBookmarks, DATA_KEY, SETTINGS_KEY } from './fixtures';
+import {
+  expect,
+  settleWorkerBoot,
+  test,
+  MOD,
+  readStored,
+  seedBookmarks,
+  DATA_KEY,
+  SETTINGS_KEY,
+} from './fixtures';
 
 /** Settings are preferences: they must survive a reload and never touch bookmarks. */
 function settings(page: Page) {
@@ -11,6 +20,9 @@ test.describe('settings', () => {
     newTab,
     worker,
   }) => {
+    // The worker writes its own defaults when it boots; let that land first, so
+    // the change below cannot be overwritten by a background writer.
+    await settleWorkerBoot(worker);
     await newTab.keyboard.press(`${MOD}+,`);
     await settings(newTab).getByRole('radio', { name: 'Dark' }).click();
 
@@ -28,6 +40,7 @@ test.describe('settings', () => {
   });
 
   test('switches density, motion and language', async ({ newTab, worker }) => {
+    await settleWorkerBoot(worker);
     await newTab.keyboard.press(`${MOD}+,`);
     await settings(newTab).getByRole('radio', { name: 'Compact' }).click();
     await settings(newTab).getByRole('radio', { name: 'Reduced' }).click();
@@ -53,7 +66,8 @@ test.describe('settings', () => {
       .toBe('zh/compact/reduced');
   });
 
-  test('collapses the rail and remembers it', async ({ newTab }) => {
+  test('collapses the rail and remembers it', async ({ newTab, worker }) => {
+    await settleWorkerBoot(worker);
     const collapse = newTab.getByRole('button', { name: 'Collapse navigation' });
     await collapse.click();
     const expand = newTab.getByRole('button', { name: 'Expand navigation' });
@@ -71,6 +85,7 @@ test.describe('settings', () => {
   });
 
   test('resets MarkTab state without touching browser bookmarks', async ({ newTab, worker }) => {
+    await settleWorkerBoot(worker);
     await seedBookmarks(worker, [{ title: 'GitHub', url: 'https://github.com/' }]);
     // Bookmarks live in folders, so open the browser's bar to reach the card.
     await expect(newTab.locator('[data-folder-id]').first()).toBeVisible();
