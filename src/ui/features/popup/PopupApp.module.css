@@ -1,0 +1,197 @@
+/*
+ * Toolbar popup panel.
+ *
+ * A popup window has no chrome of its own, so the panel is the whole surface:
+ * one column, hairline-separated sections, 360px wide. Chrome sizes the window
+ * to the content and caps the height at 600px, hence the explicit cap with an
+ * internal scroll region instead of relying on the page to scroll.
+ */
+.panel {
+  width: 360px;
+  max-height: 37.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  color: var(--text-1);
+}
+
+/* The popup window is sized by its content, so <body> must not stretch to the
+   viewport (base.css sets 100%) — otherwise the panel can be clipped away. */
+:global(.popup-body) {
+  height: auto;
+  min-height: 0;
+}
+
+/* ---- header ------------------------------------------------------------ */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+  color: var(--accent-strong);
+}
+
+.title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.version {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-3);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* ---- body -------------------------------------------------------------- */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.stats {
+  display: block;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.statValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-1);
+}
+
+.statLabel {
+  min-width: 0;
+  font-size: var(--text-2xs);
+  color: var(--text-3);
+  letter-spacing: var(--tracking-wide);
+}
+
+.error {
+  font-size: var(--text-xs);
+  color: var(--text-2);
+  text-wrap: pretty;
+}
+
+/* ---- bookmark action --------------------------------------------------- */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-1);
+}
+
+.pageRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pageTitle {
+  overflow: hidden;
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  color: var(--text-1);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pageHost {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status,
+.savedNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  color: var(--text-2);
+}
+
+.savedNote {
+  font-family: var(--font-mono);
+  color: var(--text-2);
+  word-break: break-word;
+}
+
+.statusSuccess {
+  color: var(--success);
+}
+
+.statusError {
+  color: var(--error);
+}
+
+/* ---- footer ------------------------------------------------------------ */
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--border-1);
+  background: var(--surface-2);
+}
+
+.footerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.privacy {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-2xs);
+  color: var(--text-3);
+}

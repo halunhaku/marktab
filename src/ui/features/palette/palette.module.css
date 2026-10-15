@@ -1,0 +1,253 @@
+/*
+ * Command palette.
+ *
+ * The palette is one of the two surfaces allowed to blur the page behind it (the
+ * rail is the other), so the scrim carries the blur budget and the panel itself
+ * stays opaque and cheap to repaint while a query is typed.
+ */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh var(--space-4) var(--space-6);
+  background: var(--overlay-scrim);
+  backdrop-filter: blur(var(--scrim-blur));
+  -webkit-backdrop-filter: blur(var(--scrim-blur));
+  animation: fade var(--dur-fast) var(--ease-out);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: min(640px, 100%);
+  max-height: min(72vh, 680px);
+  overflow: hidden;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-xl);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-3);
+  animation: rise var(--dur-base) var(--ease-out);
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--border-1);
+}
+
+.fieldIcon {
+  color: var(--text-3);
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--control-h);
+  border: none;
+  background: none;
+  font-size: var(--text-lg);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-1);
+}
+
+.input:focus {
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--text-3);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 21px;
+  padding: var(--space-2) var(--space-4) 0;
+}
+
+.count {
+  font-size: var(--text-xs);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.results {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--space-2) var(--space-2) var(--space-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Doubled selector: EmptyState ships its own padding, border and fill. */
+.idle.idle {
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  border: none;
+  background: none;
+}
+
+.group + .group {
+  margin-top: var(--space-2);
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.groupMeta {
+  margin-inline-start: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--control-h-lg);
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  cursor: default;
+  transition: background-color var(--dur-instant) var(--ease-out);
+}
+
+.row:hover {
+  background: var(--surface-hover);
+}
+
+/* Two cues for the selection: tinted fill plus a leading accent bar, so the
+   active row is unambiguous even on a low-contrast display. */
+.active,
+.active:hover {
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 0 var(--accent);
+}
+
+.rowIcon {
+  color: var(--text-3);
+}
+
+.active .rowIcon {
+  color: var(--accent-strong);
+}
+
+.title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mark {
+  background: none;
+  color: var(--accent-strong);
+  font-weight: var(--weight-semibold);
+}
+
+.trailing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+  min-width: 0;
+  font-size: var(--text-xs);
+  color: var(--text-3);
+}
+
+.path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.host {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.pin {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-1);
+  background: var(--surface-1);
+}
+
+.hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-3);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .root {
+    padding: 6vh var(--space-3) var(--space-4);
+  }
+
+  .panel {
+    max-height: min(80vh, 680px);
+  }
+
+  .path {
+    display: none;
+  }
+}

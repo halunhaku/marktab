@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "MarkTab",
+    "description": "Extension name shown in the browser and the Web Store."
+  },
+  "appDescription": {
+    "message": "A fast, private, keyboard-first bookmark new tab: search, organise and open your bookmarks in milliseconds.",
+    "description": "Extension description shown in the browser and the Web Store."
+  }
+}

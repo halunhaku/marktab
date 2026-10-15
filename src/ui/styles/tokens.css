@@ -1,0 +1,233 @@
+/*
+ * MarkTab design tokens — "Quiet Signal".
+ *
+ * Single source of truth for colour, type, space, radius, motion and layout.
+ * Every component reads these variables; no component invents its own values.
+ *
+ * Themes are resolved in three layers:
+ *   1. `:root`                 — light defaults, also used before hydration;
+ *   2. `[data-theme='dark']`   — resolved dark palette;
+ *   3. `[data-density]`/`[data-motion]` — non-colour preferences.
+ * `theme-boot.js` writes the cached attributes before first paint so an explicit
+ * dark choice never flashes white.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* ---- colour: neutral ------------------------------------------------ */
+  --canvas: #f5f6f9;
+  --canvas-deep: #eceef3;
+  --surface-1: rgb(255 255 255 / 88%);
+  --surface-2: #ffffff;
+  --surface-3: #eceef3;
+  --surface-hover: rgb(19 26 45 / 4%);
+  --surface-active: rgb(19 26 45 / 7%);
+  --overlay-scrim: rgb(20 24 33 / 32%);
+
+  --text-1: #14161b;
+  --text-2: #4b5260;
+  /* Muted tier. It is used at 11–12 px on `--surface-3`, so it has to clear
+     WCAG AA (4.5:1) on the lightest surface it can land on — 4.76:1 there, and
+     5.52:1 on `--surface-2`. Checked by `tests/e2e/a11y.spec.ts`. */
+  --text-3: #626976;
+  --text-inverse: #ffffff;
+
+  --border-1: rgb(19 26 45 / 9%);
+  --border-2: rgb(19 26 45 / 15%);
+  --border-strong: rgb(19 26 45 / 26%);
+
+  /* ---- colour: accent (single family, never configurable) -------------- */
+  --accent: #5b6cff;
+  /* `--accent-strong` is the accent *as text or icon* on a light surface or on
+     `--accent-soft`; `--accent-solid` is the accent *as a fill* behind
+     `--accent-contrast` text. Both are tuned to clear WCAG AA (4.5:1) in the two
+     places they are used — see `tests/e2e/a11y.spec.ts`, which fails otherwise. */
+  --accent-strong: #4150e4;
+  --accent-solid: #4150e4;
+  --accent-hover: #5f70ff;
+  --accent-soft: rgb(91 108 255 / 11%);
+  --accent-softer: rgb(91 108 255 / 6%);
+  --accent-border: rgb(91 108 255 / 34%);
+  --accent-contrast: #ffffff;
+  --accent-glow: rgb(91 108 255 / 18%);
+
+  /* ---- colour: status ------------------------------------------------- */
+  --success: #17805a;
+  --success-soft: rgb(23 128 90 / 12%);
+  --warning: #9a6212;
+  --warning-soft: rgb(154 98 18 / 13%);
+  --error: #c93b41;
+  --error-soft: rgb(201 59 65 / 12%);
+  --focus: #4356ff;
+
+  /* ---- elevation (cool-tinted, never pure black) ----------------------- */
+  --shadow-1: 0 1px 2px rgb(19 26 45 / 6%), 0 1px 1px rgb(19 26 45 / 4%);
+  --shadow-2: 0 2px 4px rgb(19 26 45 / 5%), 0 10px 22px -14px rgb(19 26 45 / 26%);
+  --shadow-3: 0 4px 10px rgb(19 26 45 / 7%), 0 24px 48px -22px rgb(19 26 45 / 34%);
+  --shadow-focus: 0 0 0 3px rgb(91 108 255 / 22%);
+
+  /* ---- typography ------------------------------------------------------ */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  --font-mono:
+    ui-monospace, 'SF Mono', SFMono-Regular, 'JetBrains Mono', 'Cascadia Mono', Menlo, Consolas,
+    monospace;
+
+  --text-2xs: 0.6875rem; /* 11px — badges, kbd */
+  --text-xs: 0.75rem; /* 12px — meta, captions */
+  --text-sm: 0.8125rem; /* 13px — dense rows, labels */
+  --text-md: 0.875rem; /* 14px — body */
+  --text-lg: 1rem; /* 16px — emphasised body, section titles */
+  --text-xl: 1.25rem; /* 20px — view titles */
+  --text-2xl: 1.625rem; /* 26px — page headings */
+  --text-clock: clamp(2.5rem, 6vw, 3.75rem);
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 680;
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.5;
+  --tracking-tight: -0.015em;
+  --tracking-tighter: -0.03em;
+  --tracking-wide: 0.02em;
+  --tracking-caps: 0.08em;
+
+  /* ---- space (4px base) ------------------------------------------------ */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ---- radius ---------------------------------------------------------- */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 15px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  /* ---- motion ---------------------------------------------------------- */
+  --dur-instant: 80ms;
+  --dur-fast: 130ms;
+  --dur-base: 190ms;
+  --dur-slow: 320ms;
+  --ease-out: cubic-bezier(0.16, 0.84, 0.44, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasis: cubic-bezier(0.34, 1.32, 0.5, 1);
+
+  /* ---- layout ---------------------------------------------------------- */
+  --rail-w: 252px;
+  --rail-w-rail: 68px;
+  --content-max: 1240px;
+  --content-pad: var(--space-8);
+  --toolbar-h: 56px;
+  --control-h: 34px;
+  --control-h-lg: 40px;
+  --row-h: 52px;
+  --grid-min: 236px;
+  --z-rail: 20;
+  --z-sticky: 30;
+  --z-menu: 60;
+  --z-overlay: 80;
+  --z-toast: 100;
+
+  --ring: 0 0 0 2px var(--surface-2), 0 0 0 4px var(--focus);
+}
+
+/* No blur anywhere except the palette scrim and the rail; those two are the only
+   surfaces that sit above live content, so they get the blur budget. */
+:root {
+  --rail-blur: 18px;
+  --scrim-blur: 6px;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --canvas: #0c0e12;
+  --canvas-deep: #080a0d;
+  --surface-1: rgb(26 29 36 / 84%);
+  --surface-2: #191c22;
+  --surface-3: #22262e;
+  --surface-hover: rgb(255 255 255 / 6%);
+  --surface-active: rgb(255 255 255 / 10%);
+  --overlay-scrim: rgb(4 6 9 / 56%);
+
+  --text-1: #edf0f5;
+  --text-2: #a8b0bd;
+  /* Muted tier, same AA rule as light, checked against the worst background it
+     lands on (the palette's active row, `--accent-soft` over a dark surface):
+     4.92:1 there, 5.76:1 on `--surface-3`, 6.48:1 on `--surface-2`. */
+  --text-3: #97a0b0;
+  --text-inverse: #0c0e12;
+
+  --border-1: rgb(255 255 255 / 8%);
+  --border-2: rgb(255 255 255 / 15%);
+  --border-strong: rgb(255 255 255 / 26%);
+
+  --accent: #7aa2ff;
+  --accent-strong: #93b4ff;
+  --accent-solid: #7aa2ff;
+  --accent-hover: #8cadff;
+  --accent-soft: rgb(122 162 255 / 16%);
+  --accent-softer: rgb(122 162 255 / 9%);
+  --accent-border: rgb(122 162 255 / 38%);
+  --accent-contrast: #0b0f1a;
+  --accent-glow: rgb(122 162 255 / 22%);
+
+  --success: #46c390;
+  --success-soft: rgb(70 195 144 / 15%);
+  --warning: #e0a852;
+  --warning-soft: rgb(224 168 82 / 15%);
+  --error: #ff7a80;
+  --error-soft: rgb(255 122 128 / 15%);
+  --focus: #8fadff;
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-2: 0 2px 6px rgb(0 0 0 / 38%), 0 12px 26px -16px rgb(0 0 0 / 70%);
+  --shadow-3: 0 6px 14px rgb(0 0 0 / 42%), 0 28px 56px -24px rgb(0 0 0 / 78%);
+  --shadow-focus: 0 0 0 3px rgb(122 162 255 / 26%);
+
+  --rail-blur: 22px;
+  --scrim-blur: 8px;
+}
+
+[data-density='compact'] {
+  --control-h: 30px;
+  --control-h-lg: 34px;
+  --row-h: 42px;
+  --grid-min: 204px;
+  --content-pad: var(--space-6);
+  --text-md: 0.8125rem;
+  --text-lg: 0.9375rem;
+}
+
+/* Reduced motion is a hard switch: every transition collapses to nothing so the
+   UI stays instant instead of merely faster. */
+[data-motion='reduced'] {
+  --dur-instant: 0ms;
+  --dur-fast: 0ms;
+  --dur-base: 0ms;
+  --dur-slow: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) {
+    --dur-instant: 0ms;
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

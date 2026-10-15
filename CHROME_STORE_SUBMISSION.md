@@ -1,37 +1,68 @@
-# MarkTab Release Notes
+# MarkTab — Chrome Web Store submission
 
-## Single Purpose
+Applies to **MarkTab 3.0.0** (`package.json` version, mirrored in `public/manifest.json`).
+Edge Add-ons has its own notes: [EDGE_STORE_SUBMISSION.md](./EDGE_STORE_SUBMISSION.md).
 
-MarkTab replaces the Chrome new tab page with a visual bookmark dashboard, making local browser bookmarks easier to browse, search, and organize by user-created folders.
+## Single purpose
 
-## Store Listing Draft
+MarkTab replaces the new tab page with a bookmark dashboard built from the browser's own
+bookmark tree, so a user can find and open a bookmark in one or two actions. It does not read
+page content, does not contact a server, and stores nothing outside the browser.
+
+## Store listing
 
 ### Name
 
 MarkTab
 
-### Short Description
+### Short description (zh)
 
 一个安静、快速、隐私友好的书签启动器。
 
-### Detailed Description
+### Short description (en)
 
-MarkTab 把你的 Chrome 书签变成一个优雅、高效的书签启动器。打开新标签页即可在 1-2 个动作内找到目标网站。
+A calm, fast, privacy-friendly bookmark launcher.
+
+### Detailed description (zh)
+
+MarkTab 把你的浏览器书签变成一个命令行风格的启动器。打开新标签页，按 `⌘K`，输入几个字母，
+结果就已经在下面了 —— 搜索、固定、最近访问和文件夹浏览共享同一个索引。
 
 主要功能：
 
-- **搜索优先** — Spotlight 风格搜索面板，输入即搜，结果按书签/文件夹/网页搜索分组展示
-- **按文件夹浏览** — 左侧文件夹导航 + 右侧书签网格卡片，支持文件夹内搜索过滤
-- **首页分层** — Pinned 主入口（大卡片）> Recent 辅助（紧凑列表）> Folders 分类（胶囊按钮）
-- **网页搜索** — 通过 Chrome Search API 使用浏览器默认搜索引擎，不自行选择或重定向
-- **置顶常用书签** — 任何书签均可置顶，首页 Pinned 区域展示
-- **隐藏/恢复分类** — 可在设置面板中切换文件夹可见性
-- **主题切换** — Light / Dark / System 三套主题 + 雾蓝（Mist Blue）单一强调色
-- **Favicon** — 使用 Chrome 内置 favicon 服务，加载失败自动回退到首字母
-- **弹出窗口** — 查看书签统计、打开新标签页、添加当前页面为书签
-- **键盘驱动** — `/` / `⌘K` 聚焦搜索，`↑↓` 导航，`Enter` 打开，`Esc` 关闭
-- **隐私优先** — 不向第三方发送书签标题、URL、域名或设置数据
-- **Manifest V3**，无框架依赖
+- **命令面板** — `⌘K` 打开一个输入框，同时搜索书签标题、域名、文件夹路径、网址、文件夹、应用操作和网页搜索
+- **模糊排序** — 每个词都必须命中；标题优先于域名，命中词首和词边界会加分；固定和最近访问带来额外权重
+- **固定常用书签** — 一键固定任意书签，固定列表可重新排序，数量上限可在设置中调整
+- **最近访问** — 记录通过 MarkTab 打开的书签（按网址去重，最多 200 条），失败可撤销
+- **文件夹浏览** — 左侧文件夹导航 + 文件夹视图（网格/列表、手动/标题/时间排序、文件夹内搜索）
+- **可逆的文件夹隐藏** — 隐藏只写入偏好设置，绝不修改浏览器书签，随时一键恢复
+- **外观三轴** — 主题（浅色/深色/跟随系统）、密度（舒适/紧凑）、动效（跟随系统/减弱/完整）相互独立
+- **双语界面** — 英文与简体中文，文案键位有类型检查保证一致
+- **导出 / 导入** — 只包含 MarkTab 自己的设置、固定与最近访问；不包含浏览器书签，也不改写书签树
+- **弹窗** — 书签统计、一键切换主题、收藏当前页面、打开新标签页、打开浏览器书签管理器
+- **键盘优先** — `⌘K` 打开面板，`↑↓` / `Home` / `End` 移动，`Enter` 打开，`Shift+Enter` 新标签页打开，`⌘Enter` 网页搜索，`Esc` 逐层关闭
+- **隐私优先** — 无账号、无服务器、无分析、无网络请求；权限固定为 5 项
+
+### Detailed description (en)
+
+MarkTab turns your browser bookmarks into a launcher. Open a new tab, press `⌘K`, type a few
+letters, and the result is already there — search, pins, recents and folder browsing share one
+index.
+
+Key features:
+
+- **Command palette** — `⌘K` opens one field that searches bookmark titles, hosts, folder paths, URLs, folders, app actions and the web
+- **Fuzzy ranking** — every word must match; titles outrank hosts, word-boundary and prefix hits score higher, and pins/recents add frecency weight
+- **Pinned bookmarks** — pin anything, reorder the list, cap how many appear on Home
+- **Recent history** — records bookmarks opened through MarkTab (deduplicated by URL, max 200), with undo
+- **Folder browsing** — rail navigation plus a folder view with grid/list, manual/title/recency sorting and in-folder search
+- **Reversible folder hiding** — hiding writes only to preferences; browser bookmarks are never modified, and one click restores
+- **Three appearance axes** — theme (light/dark/system), density (comfortable/compact) and motion (system/reduced/full), independent
+- **Bilingual UI** — English and Simplified Chinese, with typed key parity
+- **Export / import** — MarkTab's own settings, pins and recents only; never your bookmark tree
+- **Popup** — library stats, one-click theme switch, bookmark the current page, open the new tab page, open the browser bookmark manager
+- **Keyboard first** — `⌘K` palette, `↑↓`/`Home`/`End` to move, `Enter` to open, `Shift+Enter` in a new tab, `⌘Enter` for web search, `Esc` to peel one layer
+- **Privacy first** — no account, no server, no analytics, no network requests; exactly five permissions
 
 ### Category
 
@@ -39,72 +70,159 @@ Productivity
 
 ### Languages
 
-Chinese Simplified
-English
+Chinese Simplified, English
 
-### English Listing Draft
+### Screenshots
 
-Short description:
+Every image here is captured from the built extension with `npm run screenshots`
+(`scripts/capture-store-assets.mjs`), which loads `dist/extension` in Chromium with a
+representative library, drives the real interface, and removes any image it did not produce. Run
+it after `npm run build` and before uploading; upload the PNG, use the JPEG elsewhere.
 
-A calm, fast, privacy-friendly bookmark launcher.
-
-Detailed description:
-
-MarkTab turns your Chrome bookmarks into an elegant, efficient bookmark launcher. Open a new tab and find the site you need in one or two actions.
-
-Key features:
-
-- **Search first** — Spotlight-style search panel with grouped bookmark, folder, and web search results
-- **Folder browsing** — Sidebar folder navigation with bookmark grid cards and in-folder filtering
-- **Layered home page** — Pinned primary shortcuts, Recent quick access, and Folders for browsing
-- **Web search** — Uses the Chrome Search API with the browser's default search engine
-- **Pinned bookmarks** — Pin any bookmark and keep it on the home page
-- **Bilingual UI** — Supports English and Simplified Chinese through Chrome i18n
-- **Favicon support** — Uses Chrome's built-in favicon service with letter fallback
-- **Popup actions** — View bookmark stats, open a new tab, add the current page, or manage bookmarks
-- **Keyboard driven** — `/` / `Ctrl or Cmd + K` opens search, arrow keys navigate, `Enter` opens, `Esc` closes
-- **Privacy first** — Bookmark titles, URLs, domains, and settings are not sent to developer servers
-- **Manifest V3**, framework-free
-
-## Permission Justifications
-
-| Permission | Justification |
+| File | Size / role |
 | --- | --- |
-| `bookmarks` | Required to read the user's bookmark tree, display bookmarks on the new tab page, count bookmarks/folders, and create a bookmark when the user clicks “添加当前页面”. |
-| `favicon` | Required to display bookmark favicons through Chrome's built-in favicon service. |
-| `search` | Required only when the user actively submits a web search from the new tab page. It uses Chrome's default search provider through the Chrome Search API. |
-| `storage` | Required to save user preferences such as hidden folder IDs, pinned bookmark URLs, selected theme, recent visit records, and sidebar collapsed state. |
-| `activeTab` | Required only when the user opens the popup and clicks “添加当前页面”; it allows the extension to read the active tab title and URL for bookmark creation. |
+| `store-assets/newtab-screenshot-1280x800.png` / `.jpg` | 1280×800, home (light) |
+| `store-assets/newtab-dark-1280x800.png` / `.jpg` | 1280×800, home (dark) |
+| `store-assets/folder-screenshot-1280x800.png` / `.jpg` | 1280×800, folder view (light) |
+| `store-assets/folder-dark-1280x800.png` / `.jpg` | 1280×800, folder view (dark) |
+| `store-assets/palette-screenshot-1280x800.png` / `.jpg` | 1280×800, command palette (light) |
+| `store-assets/palette-dark-1280x800.png` / `.jpg` | 1280×800, command palette (dark) |
+| `store-assets/pinned-1280x800.png` / `.jpg` | 1280×800, pinned view |
+| `store-assets/recent-1280x800.png` / `.jpg` | 1280×800, recently opened view |
+| `store-assets/settings-1280x800.png` / `.jpg` | 1280×800, settings |
+| `store-assets/popup-screenshot-1280x800.png` / `.jpg` | 1280×800, toolbar popup |
+| `store-assets/small-promo-440x280.png` / `.jpg` | 440×280, small promo tile |
 
-## Privacy Field Answers
+## Permissions
 
-- Single purpose: Display and search local Chrome bookmarks on a replacement new tab page.
-- Remote code: No remote code is loaded or executed.
-- Data collection: The extension handles bookmark data locally to provide its core functionality. Bookmark data is not sent to developer servers.
-- Data sharing/sale: No user data is sold or shared for advertising or unrelated purposes.
-- Privacy policy URL: Publish `PRIVACY_POLICY.md` content to a public URL before submission and use that URL in the dashboard.
+Exactly five, and the release gate fails if the set changes
+(`scripts/validate-release.mjs` → `ALLOWED_PERMISSIONS`). All justifications name the code that
+uses the permission.
 
-## Automated Chrome Web Store Publishing
+| Permission | Justification | Where it is used |
+| --- | --- | --- |
+| `bookmarks` | Reads the user's bookmark tree to build the search index, render bookmarks, folders and counts, and creates/renames/moves/deletes a bookmark **only** in response to an explicit user action. | `src/core/platform/bookmarks.ts` (`createBookmark`, `renameBookmark`, `moveBookmark`, `removeBookmark`, `openBookmarkManager`), `src/core/bookmarks/store.ts` (`getTree` + the bookmark event listeners), `src/core/bookmarks/index.ts`. |
+| `favicon` | Displays a site icon for each bookmark, resolved by the browser from its own local favicon cache. No page is fetched and no host permission is needed. | `src/core/platform/favicon.ts` → `runtime.getURL('/_favicon/?pageUrl=…&size=…')`, consumed by `src/ui/components/Favicon.tsx`. |
+| `search` | Runs a web search with the browser's configured default search engine, only when the user submits a query from the palette. | `src/core/util/url.ts` (`SEARCH_ENGINES`, `buildSearchUrl`) and the `Mod+Enter` path in `src/ui/features/palette/CommandPalette.tsx`. |
+| `storage` | Persists the user's preferences and MarkTab's own data: appearance, language, density, motion, rail state, home visibility and counts, folder view/sort/hidden ids, search preferences, pinned bookmarks and recent visits. | `src/core/platform/storage.ts` with `SETTINGS_KEY` = `marktab:settings:v3` (`storage.sync`) and `DATA_KEY` = `marktab:data:v3` (`storage.local`). |
+| `activeTab` | Reads the active tab's title and URL **only** after the user clicks "Bookmark the current page" in the popup, so that action can create the bookmark. | `src/core/platform/bookmarks.ts` → `readActivePage()`, called from `src/ui/features/popup/PopupApp.tsx`. |
+
+Not requested, deliberately (ADR-010): no `host_permissions`, no `optional_permissions`, no
+content scripts, and no `tabs` permission — `tabs` would expose the URL of every open tab, which
+MarkTab does not need.
+
+## Privacy field answers
+
+- **Single purpose:** display, search and organise the user's local bookmarks on a replacement
+  new tab page.
+- **Remote code:** no remote code is loaded or executed. All HTML, CSS, JavaScript, locale data
+  and icons ship inside the package, and the built HTML contains no inline script, no inline
+  event handler and no remote asset reference.
+- **Data collection:** none. Bookmark data is read and rendered locally. Nothing is transmitted
+  to the developer.
+- **Data sharing / sale:** none, for any purpose, including advertising and creditworthiness.
+- **Network requests:** none. The release gate rejects `fetch(`, `XMLHttpRequest`, analytics and
+  telemetry identifiers in every shipped `.js` file.
+- **Privacy policy URL:** publish `PRIVACY_POLICY.md` at a public URL before submission and use
+  that URL in the dashboard.
+
+## Release package
+
+`npm run package` (`scripts/package-release.mjs`) produces **`dist/marktab-3.0.0.zip`**, and the
+ZIP contains exactly the contents of `dist/extension` — the same tree Playwright loads and the
+same tree `npm run validate` checks:
+
+```text
+manifest.json
+newtab.html
+popup.html
+background.js
+theme-boot.js
+assets/…    the per-entry bundles (newtab, popup) plus the shared chunks Vite emits,
+            each name carrying a content hash: *-<hash>.js and *-<hash>.css
+icons/icon16.png  icons/icon32.png  icons/icon48.png  icons/icon128.png
+_locales/en/messages.json  _locales/zh_CN/messages.json
+```
+
+At 3.0.0 that is 18 files totalling ~236 KiB (JS ~155 KiB, CSS ~56 KiB); `npm run validate`
+prints the exact numbers, and the set of hashed asset names changes with the sources, so never
+hand-edit a file list into the dashboard — always inspect the produced zip.
+
+Properties that matter for the store:
+
+- **Deterministic.** Entries are sorted and stamped with a fixed timestamp (`SOURCE_DATE_EPOCH`,
+  clamped to the ZIP epoch range), so two runs on the same sources are byte-identical and a
+  store diff is meaningful.
+- **Minimal.** No source maps, no TypeScript sources and no Markdown can reach the archive —
+  `validate-release.mjs` fails if any of those file types is present.
+- **Named for the version.** `dist/marktab-<version>.zip`, with stale `marktab-X.Y.Z.zip` files
+  removed first, so the upload path is unambiguous.
+- **Budgeted.** JavaScript ≤ 420 KiB, CSS ≤ 130 KiB, total payload ≤ 1.2 MiB.
+
+Do not include screenshots, store assets, source drafts or local caches in the ZIP; the script
+only ever zips `dist/extension`, so the way to keep them out is to keep them out of `dist/`.
+
+## Reviewer instructions (how to test)
+
+1. Unzip `marktab-3.0.0.zip` to a permanent folder.
+2. Open `chrome://extensions/`, enable **Developer mode**, click **Load unpacked**, and select
+   that folder (the one containing `manifest.json`).
+3. Open a **new tab** — MarkTab replaces the new tab page (there is no options page; all
+   settings live inside the new tab page). Clicking the toolbar icon opens the popup.
+4. Create a few bookmarks and folders in the normal bookmark manager first, then:
+   - **Palette:** press `Ctrl/Cmd+K`, type part of a bookmark title, press `Enter`. Verify the
+     result opens and appears under **Recent**.
+   - **Web search:** type a query and press `Ctrl/Cmd+Enter`. Verify the browser's default search
+     engine opens (the extension never redirects to a fixed engine of its own choosing unless
+     the user selects one in Settings → Search).
+   - **Availability without the permission:** verify no page-content access is requested. The
+     extension has no `tabs` or host permissions; nothing is injected into any page.
+   - **Bookmarking the current page:** open any site, click the extension icon, click
+     **Bookmark the current page** (the popup's add action), then reload the new tab page and
+     confirm the new bookmark appears. This is the only `activeTab` use.
+   - **Folder hiding is reversible:** open a folder, hide it from its context menu, then
+     Settings → Folders → unhide. Confirm the browser's own bookmark manager still shows the
+     folder and all its bookmarks.
+   - **Appearance:** Settings → Appearance → switch theme to Dark, density to Compact, motion to
+     Reduced; reload the new tab page and confirm the choice is applied before first paint (no
+     white flash) and that motion is gone.
+   - **Persistence:** reload and reopen the popup; confirm theme, hidden folders and pins
+     persisted.
+   - **Offline / network:** with DevTools → Network open, use the extension. There must be no
+     request to a developer-owned host (only the `/_favicon/` resolver served locally by the
+     browser).
+   - **Migration (optional):** an existing MarkTab 2.x install keeps working; its legacy storage
+     keys remain readable and are not deleted.
+
+There is no account, no sign-in, no server component and no test credential required.
+
+## Automated publishing (maintainers)
+
+The publisher uses the Chrome Web Store API V2; `CWS_PUBLISHER_ID` is required in every upload,
+status and publish request. A pushed `vX.Y.Z` tag triggers `.github/workflows/release.yml`:
+verify the tag against `package.json` + `public/manifest.json`, run tests, build, validate,
+package, create a **draft** GitHub release, upload, wait for the upload to succeed, submit for
+public review with `DEFAULT_PUBLISH`, then publish the draft only after Chrome **and** Edge
+accept their submissions.
 
 ### One-time prerequisites
 
-- Start with an item that is already published in the Chrome Web Store, has two-step verification enabled for its publisher account, and has a review-ready listing and privacy disclosures.
-- In Google Cloud, enable the Chrome Web Store API, configure the OAuth consent screen, and create a **Desktop app** OAuth client. The helper uses that client with a temporary loopback callback on `127.0.0.1`.
-- If the OAuth consent app uses the **External** user type and remains in **Testing**, add the same Google developer account that will perform authorization—the item owner or an account with publisher access—as a Test user before authorizing.
-- Google limits refresh tokens to seven days for External consent apps in Testing when the `chromewebstore` scope is requested. For durable CI, move the consent app to **In production** before generating the final `CWS_REFRESH_TOKEN`. If Testing is intentional, rerun `npm run cws:auth` and rotate the GitHub secret before each seven-day expiry.
-- Find the publisher ID in the Chrome Web Store Developer Dashboard under **Publisher → Settings**. Store that value as `CWS_PUBLISHER_ID`; V2 API URLs require it in the path.
-- Find the extension's item ID in the Chrome Web Store Developer Dashboard or in its listing URL. Store that value as `CWS_ITEM_ID`; do not substitute an invented or example ID.
-- Rotate any client secret, refresh token, or other credential that has been exposed through an uncontrolled channel before configuring automation.
+- An item that is already published, with the publisher account's two-step verification enabled
+  and a review-ready listing and privacy disclosure.
+- The Chrome Web Store API enabled in Google Cloud, an OAuth consent screen configured, and a
+  **Desktop app** OAuth client created (the helper uses a temporary loopback callback on
+  `127.0.0.1`).
+- If the consent app is **External** and still in **Testing**, add the Google account that will
+  authorize (item owner or publisher-access account) as a Test user.
+- Google limits refresh tokens to seven days for External consent apps in Testing when the
+  `chromewebstore` scope is requested. Move the consent app to **In production** before
+  generating the final `CWS_REFRESH_TOKEN`, or rotate the secret before each seven-day expiry.
+- `CWS_PUBLISHER_ID` — **Publisher → Settings** in the Developer Dashboard.
+- `CWS_ITEM_ID` — from the Dashboard or the item's listing URL. Never invent one.
+- Rotate any credential that may have been exposed through an uncontrolled channel.
 
-Configure these GitHub Actions secrets, with these exact names:
-
-- `CWS_CLIENT_ID`
-- `CWS_CLIENT_SECRET`
-- `CWS_REFRESH_TOKEN`
-- `CWS_PUBLISHER_ID`
-- `CWS_ITEM_ID`
-
-From PowerShell, let GitHub CLI prompt interactively for the known values so they do not appear in shell history:
+Repository secrets, with these exact names:
+`CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `CWS_PUBLISHER_ID`, `CWS_ITEM_ID`.
 
 ```powershell
 gh secret set CWS_CLIENT_ID
@@ -113,7 +231,9 @@ gh secret set CWS_PUBLISHER_ID
 gh secret set CWS_ITEM_ID
 ```
 
-Then provide the OAuth client credentials to the local authorization helper without placing private values in the command line:
+To mint the refresh token, provide the OAuth client credentials to the local helper without
+putting private values on the command line. Note this helper is a script, not an npm script —
+there is no `npm run cws:auth`:
 
 ```powershell
 $env:CWS_CLIENT_ID = Read-Host "OAuth client ID"
@@ -121,7 +241,7 @@ $secureClientSecret = Read-Host "OAuth client secret" -AsSecureString
 $secretPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureClientSecret)
 try {
   $env:CWS_CLIENT_SECRET = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($secretPointer)
-  npm run cws:auth
+  node scripts/cws-auth.mjs
 } finally {
   [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($secretPointer)
   Remove-Item Env:CWS_CLIENT_ID -ErrorAction SilentlyContinue
@@ -129,40 +249,34 @@ try {
 }
 ```
 
-`npm run cws:auth` opens the browser for OAuth authorization. Sign in with the Google developer account that owns, or has publisher access to, the target Chrome Web Store item; this may be different from the account that owns the Google Cloud project. After the loopback callback completes, the helper pipes the returned refresh token directly to `gh secret set CWS_REFRESH_TOKEN` over standard input. It does not print or store the token locally. Never commit credentials or paste them into issues, pull requests, logs, or chat.
+The helper opens the browser for OAuth authorization: sign in with the account that owns, or has
+publisher access to, the target item (this may differ from the Google Cloud project owner). After
+the loopback callback it pipes the refresh token straight into `gh secret set CWS_REFRESH_TOKEN`
+over stdin; it does not print or store the token. Never commit credentials or paste them into
+issues, pull requests, logs or chat.
 
-For routine releases, follow [Automated releases (maintainers)](./README.md#automated-releases-maintainers). The pushed `vX.Y.Z` tag triggers deterministic packaging, a draft GitHub Release, and Chrome Web Store plus Edge Add-ons submissions; the GitHub Release becomes public only after both store APIs accept their submissions.
+### Retry and recovery
 
-The publisher uses the Chrome Web Store API V2. Existing OAuth Desktop credentials and the `chromewebstore` refresh token remain valid; V2 additionally requires `CWS_PUBLISHER_ID` in every upload, status, and publish request. The workflow uploads a package, waits until the upload succeeds, then submits the item for public review with `DEFAULT_PUBLISH`.
+- **Retry a failed tag release:** **Actions → Release → Run workflow**, enter the existing
+  `vX.Y.Z` tag. The workflow checks out that exact tag, rebuilds the deterministic ZIP, reuses
+  the draft release and replaces the same-named asset.
+- **Only the final publish step failed:** confirm in **both** dashboards that Chrome and Edge
+  accepted their submissions, then re-run with `publish_github_release_only`. That mode requires
+  an existing draft and skips both store APIs entirely. Do not use it when a store submission
+  failed or is ambiguous.
+- **Edge upload still `InProgress`:** re-run with `resume_edge_upload_operation_id` set to the
+  returned operation id — it resumes polling, submits Edge after validation, and does not
+  resubmit Chrome.
 
-### Retry and review operations
+Never invent a replacement version and never move an existing tag. Chrome Web Store review is
+asynchronous; monitor it in the Developer Dashboard and respond to feedback there.
 
-To retry a failed release, open **Actions → Release → Run workflow**, enter the existing `vX.Y.Z` tag, and run it. The workflow checks out that exact tag, rebuilds the deterministic ZIP, creates or reuses a draft release, and replaces any same-named ZIP asset. A failure after draft creation leaves the GitHub Release as a draft; failures during version checks, tests, validation, or packaging can occur before any release exists.
+## Pre-submission checklist
 
-If the final **Publish GitHub Release** step failed, first confirm in both developer dashboards that Chrome Web Store and Edge Add-ons accepted their review submissions. Then run the same tag again and enable `publish_github_release_only`. This recovery mode requires an existing draft, skips both store uploads and submissions entirely, and retries only publishing the GitHub Release. Do not enable it when either store submission failed or remains ambiguous.
-
-If the remote Chrome Web Store state is ambiguous, inspect the item in the Developer Dashboard before retrying. Never invent a replacement version or move the existing tag. Chrome Web Store review is asynchronous: monitor it manually in the Developer Dashboard and respond to review feedback there.
-
-## Release Package Checklist
-
-- Run `npm run validate`.
-- Run `npm run package` and inspect the generated zip in `dist/`; the automated tag workflow performs the upload and store submission.
-- Optional: run `npm run inspect:zip` to review the package contents.
-- Confirm the zip only includes `manifest.json`, `newtab.html`, `newtab.js`, `styles.css`, `popup.html`, `popup.js`, and required icons.
-- Confirm `_locales/en/messages.json` and `_locales/zh_CN/messages.json` are included in the zip.
-- Do not include `.DS_Store`, icon generation helper pages, source drafts, store screenshots, or local caches.
-- Test by loading the unpacked extension from `chrome://extensions`.
-- Verify:
-  - Home page: search, Pinned/Recent/Folders sections render correctly
-  - Search panel: Spotlight overlay opens via click, `/`, and `⌘K`; results group by bookmarks/folders/web; keyboard navigation works
-  - Folder view: sidebar navigation, bookmark grid, inline search filtering
-  - Settings: theme switching and folder visibility toggles
-  - Popup: statistics, open new tab, add current page, manage bookmarks
-- Verify all settings persist after reload (theme, hidden folders, pinned bookmarks).
-- Verify "添加当前页面" only reads the active tab after the user clicks the popup action.
-- Run `npm run screenshots` to refresh store screenshots, then review the files in `store-assets/`.
-- Confirm listing claims match the extension behavior.
-
-## AI Maintenance Notes
-
-Future coding agents should follow [AGENTS.md](./AGENTS.md): keep the extension single-purpose, avoid remote executable code, keep permissions minimal, and update privacy/store documentation whenever data handling or permissions change.
+- [ ] `npm run bump -- 3.0.0` has run (version agrees across `package.json`, `public/manifest.json`, `README.md` and this file).
+- [ ] `npm run release:check` passes locally (typecheck → test → build → validate → package).
+- [ ] `dist/marktab-3.0.0.zip` contains only the files listed under **Release package** above.
+- [ ] The permissions table in `README.md`, `PRIVACY_POLICY.md`, `AGENTS.md` and this file still names exactly five permissions.
+- [ ] Screenshots recaptured from the 3.0.0 build (`store-assets/` is currently v2-era).
+- [ ] Listing claims match the extension's behaviour.
+- [ ] Manual test pass: new tab paint, palette search, pin/unpin, hidden-folder recovery, theme/density/motion, persistence, popup stats, "bookmark the current page", no network requests to developer hosts.

@@ -1,21 +1,43 @@
 {
   "name": "marktab",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "private": true,
-  "description": "A fast, clear, privacy-friendly bookmark new tab extension.",
+  "type": "module",
+  "description": "MarkTab 3 — a fast, private, keyboard-first bookmark new tab for Chrome and Edge.",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "test": "node --test scripts/newtab-layout.test.mjs scripts/package-release.test.mjs scripts/release-version.test.mjs scripts/cws-api.test.mjs scripts/cws-publish.test.mjs scripts/cws-auth.test.mjs scripts/edge-api.test.mjs scripts/edge-publish.test.mjs scripts/release-workflow.test.mjs",
+    "dev": "vite build --watch --mode development",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit && npm run test:scripts",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:scripts": "node --test scripts/*.test.mjs",
+    "test:e2e": "npm run build && playwright test",
     "validate": "node scripts/validate-release.mjs",
-    "package": "npm run validate && node scripts/package-release.mjs",
-    "release:zip": "npm run package",
-    "inspect:zip": "unzip -l dist/marktab-$npm_package_version.zip",
-    "bump": "node scripts/bump-version.mjs",
+    "package": "node scripts/package-release.mjs",
+    "release:check": "npm run typecheck && npm test && npm run build && npm run validate && npm run package",
     "screenshots": "node scripts/capture-store-assets.mjs",
     "cws:publish": "node scripts/cws-publish.mjs",
-    "cws:auth": "node scripts/cws-auth.mjs",
-    "edge:publish": "node scripts/edge-publish.mjs"
+    "edge:publish": "node scripts/edge-publish.mjs",
+    "bump": "node scripts/bump-version.mjs"
   },
-  "engines": {
-    "node": ">=18"
+  "dependencies": {
+    "@preact/signals": "^2.11.3",
+    "preact": "^11.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@preact/preset-vite": "^2.10.6",
+    "@testing-library/preact": "^3.2.4",
+    "@types/chrome": "^0.3.5",
+    "@types/node": "^26.6.5",
+    "axe-core": "^4.14.0",
+    "happy-dom": "^21.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.4"
   }
 }

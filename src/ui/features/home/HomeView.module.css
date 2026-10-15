@@ -1,0 +1,14 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--space-12);
+}
+
+.section {
+  margin-bottom: var(--space-8);
+}
+
+.muted {
+  font-size: var(--text-sm);
+  color: var(--text-3);
+}

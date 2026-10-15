@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "MarkTab",
+    "description": "浏览器与商店中显示的扩展名称。"
+  },
+  "appDescription": {
+    "message": "快速、私密、键盘优先的书签新标签页：毫秒级搜索、整理并打开你的书签。",
+    "description": "浏览器与商店中显示的扩展描述。"
+  }
+}

@@ -1,0 +1,79 @@
+.nav {
+  min-width: 0;
+  margin-bottom: var(--space-2);
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-3);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.crumb,
+.current {
+  display: block;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crumb {
+  padding: 1px var(--space-1);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  font: inherit;
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.crumb:hover {
+  background: var(--surface-hover);
+  color: var(--text-1);
+}
+
+.crumb:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.current {
+  color: var(--text-1);
+  font-weight: var(--weight-medium);
+}
+
+.separator,
+.gap {
+  flex: none;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+
+.gap {
+  padding-inline: var(--space-1);
+  letter-spacing: var(--tracking-wide);
+}
+
+@media (max-width: 768px) {
+  .crumb,
+  .current {
+    max-width: 9rem;
+  }
+}

@@ -1,0 +1,154 @@
+.button {
+  --_bg: transparent;
+  --_fg: var(--text-1);
+  --_border: transparent;
+  --_shadow: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--control-h);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--_border);
+  border-radius: var(--radius-md);
+  background: var(--_bg);
+  box-shadow: var(--_shadow);
+  color: var(--_fg);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+
+.button:disabled {
+  opacity: 0.48;
+}
+
+.label {
+  display: inline-block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.block {
+  width: 100%;
+}
+
+.iconOnly {
+  padding-inline: 0;
+  width: var(--control-h);
+  flex: 0 0 auto;
+}
+
+/* ---- variants -------------------------------------------------------- */
+
+.primary {
+  /* Filled with `--accent-solid`, not `--accent`: the label is real text and has
+     to clear 4.5:1 against its own background in both themes. */
+  --_bg: var(--accent-solid);
+  --_fg: var(--accent-contrast);
+  --_border: transparent;
+  --_shadow: 0 1px 2px rgb(19 26 45 / 14%);
+}
+
+.primary:hover:not(:disabled) {
+  --_bg: var(--accent-hover);
+}
+
+.primary:active:not(:disabled) {
+  --_bg: var(--accent-strong);
+}
+
+.secondary {
+  --_bg: var(--surface-2);
+  --_border: var(--border-2);
+  --_shadow: var(--shadow-1);
+}
+
+.secondary:hover:not(:disabled) {
+  --_bg: var(--surface-2);
+  --_border: var(--border-strong);
+}
+
+.ghost:hover:not(:disabled) {
+  --_bg: var(--surface-hover);
+}
+
+.ghost[data-active='true'] {
+  --_bg: var(--accent-soft);
+  --_fg: var(--accent-strong);
+}
+
+.danger {
+  --_bg: var(--surface-2);
+  --_fg: var(--error);
+  --_border: var(--border-2);
+}
+
+.danger:hover:not(:disabled) {
+  --_bg: var(--error-soft);
+  --_border: var(--error);
+}
+
+.link {
+  height: auto;
+  padding-inline: var(--space-1);
+  color: var(--accent-strong);
+  font-weight: var(--weight-medium);
+}
+
+.link:hover:not(:disabled) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---- sizes ----------------------------------------------------------- */
+
+.sm {
+  height: calc(var(--control-h) - 4px);
+  padding-inline: var(--space-2);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-sm);
+}
+
+.sm.iconOnly {
+  width: calc(var(--control-h) - 4px);
+}
+
+.lg {
+  height: var(--control-h-lg);
+  padding-inline: var(--space-4);
+  font-size: var(--text-md);
+}
+
+.lg.iconOnly {
+  width: var(--control-h-lg);
+}
+
+.spinner {
+  animation: spin 720ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.6s;
+  }
+}

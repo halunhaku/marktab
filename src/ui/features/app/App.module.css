@@ -1,0 +1,176 @@
+/*
+ * Application shell.
+ *
+ * Two areas, and only two: the navigation rail and the content column. The rail
+ * is the single always-visible navigation surface (see `docs/design-principles.md`
+ * and ADR-006/007); every other layer — palette, menus, dialogs, toasts — is
+ * hosted here as an overlay so the shell itself stays static and cheap to paint.
+ *
+ * Above 1200px the rail is a column that collapses to icons. At and below 1200px
+ * it becomes an overlay drawer over the content, and at 768px and below the
+ * content padding tightens. The JS breakpoint (`useMediaQuery`) and these media
+ * queries must stay in sync.
+ */
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  grid-template-areas: 'rail content';
+  /* A definite height is what makes the content column scroll internally instead
+     of growing the document; `100%` cannot resolve here because the mount point
+     has no height of its own. */
+  height: 100dvh;
+  min-height: 0;
+}
+
+.railCollapsed {
+  grid-template-columns: var(--rail-w-rail) minmax(0, 1fr);
+}
+
+.railSlot {
+  grid-area: rail;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* The rail fills its slot; it brings its own internals. */
+.railSlot > * {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.content {
+  grid-area: content;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: var(--space-6);
+}
+
+.inner {
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: var(--content-pad);
+}
+
+/* ---- rail footer ------------------------------------------------------ */
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+}
+
+.footerStats {
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--space-4);
+  min-width: 0;
+  color: var(--text-3);
+  font-size: var(--text-2xs);
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.statValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-2);
+}
+
+.statLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- skip link -------------------------------------------------------- */
+
+.skip {
+  position: fixed;
+  inset-block-start: var(--space-3);
+  inset-inline-start: var(--space-3);
+  z-index: var(--z-toast);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-2);
+  font-size: var(--text-sm);
+  transform: translateY(-250%);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.skip:focus-visible {
+  transform: none;
+}
+
+/* ---- drawer (<= 1200px) ----------------------------------------------- */
+
+.scrim,
+.drawerToggle {
+  display: none;
+}
+
+@media (max-width: 1200px) {
+  .shell,
+  .railCollapsed {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'content';
+  }
+
+  .railSlot {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: var(--rail-w);
+    z-index: var(--z-rail);
+    transform: translateX(-102%);
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .drawerOpen .railSlot {
+    transform: none;
+    box-shadow: var(--shadow-3);
+  }
+
+  .drawerOpen .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-rail) - 1);
+    background: var(--overlay-scrim);
+    backdrop-filter: blur(var(--scrim-blur));
+    -webkit-backdrop-filter: blur(var(--scrim-blur));
+  }
+
+  .drawerToggle {
+    display: inline-flex;
+    position: fixed;
+    inset-block-start: var(--space-4);
+    inset-inline-start: var(--space-4);
+    z-index: var(--z-sticky);
+    box-shadow: var(--shadow-2);
+  }
+
+  /* The drawer owns the screen while it is open; the toggle would float on top. */
+  .drawerOpen .drawerToggle {
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 768px) {
+  .inner {
+    padding: var(--space-5) var(--space-4) var(--space-8);
+  }
+}

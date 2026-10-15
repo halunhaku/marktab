@@ -1,0 +1,112 @@
+.card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  min-height: 88px;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.card:hover {
+  border-color: var(--border-2);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-2);
+}
+
+.card:focus-within {
+  border-color: var(--accent-border);
+}
+
+.main {
+  display: flex;
+  gap: var(--space-3);
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  align-items: flex-start;
+}
+
+.main:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.icon {
+  display: flex;
+  padding-top: 1px;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+
+.host {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-3);
+}
+
+.actions {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.card:hover .actions,
+.card:focus-within .actions {
+  opacity: 1;
+}
+
+/* A pinned card keeps its pin button visible: the state is worth seeing at rest. */
+.pinActive {
+  opacity: 1;
+  color: var(--accent-strong);
+}
+
+.card:hover .pinActive,
+.card:focus-within .pinActive {
+  opacity: 1;
+}
+
+.pinned {
+  border-color: var(--accent-border);
+  background: linear-gradient(180deg, var(--accent-softer), transparent 68%), var(--surface-1);
+}
+
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
+}

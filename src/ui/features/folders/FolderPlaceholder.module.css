@@ -1,0 +1,17 @@
+/*
+ * Placeholder states for the folder view: loading, error, empty, no match,
+ * unknown folder. They all live in the same surface so the page never shifts
+ * horizontally when the state changes.
+ */
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--grid-min), 1fr));
+  gap: var(--space-3);
+}

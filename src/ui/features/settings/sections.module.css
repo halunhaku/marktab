@@ -1,0 +1,185 @@
+/* Shared pieces used inside the settings cards. */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+
+.subhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-1);
+}
+
+.count {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-regular);
+  color: var(--text-3);
+}
+
+.muted {
+  font-size: var(--text-sm);
+  color: var(--text-3);
+}
+
+.note {
+  max-width: 68ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Persistence failures: the only place MarkTab tells the user something did not
+   save. Warning tone, never error red — the data is intact, the write is not. */
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+/* ---- hidden folders ---------------------------------------------------- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.listRow + .listRow {
+  border-top: 1px solid var(--border-1);
+}
+
+.listCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.listTitle {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  color: var(--text-1);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listMeta {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listMore {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-2);
+}
+
+/* ---- export confirmation ---------------------------------------------- */
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 1em;
+  font-size: var(--text-xs);
+  color: var(--text-2);
+}
+
+.statusIcon {
+  color: var(--success);
+}
+
+.fileName {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-3);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+/* ---- shortcuts table --------------------------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table tr + tr > * {
+  border-top: 1px solid var(--border-1);
+}
+
+.table th {
+  padding: var(--space-2) var(--space-4) var(--space-2) 0;
+  font-weight: var(--weight-regular);
+  color: var(--text-2);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.table td {
+  padding: var(--space-2) 0;
+  text-align: end;
+  vertical-align: middle;
+}
+
+.keys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.chord {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sep {
+  font-size: var(--text-xs);
+  color: var(--text-3);
+}
+
+.version {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-2);
+}

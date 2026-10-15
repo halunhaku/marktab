@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const workflowPath = fileURLToPath(new URL('../.github/workflows/release.yml', import.meta.url));
+const ciPath = fileURLToPath(new URL('../.github/workflows/ci.yml', import.meta.url));
 const chromeGuidePath = fileURLToPath(new URL('../CHROME_STORE_SUBMISSION.md', import.meta.url));
 const edgeGuidePath = fileURLToPath(new URL('../EDGE_STORE_SUBMISSION.md', import.meta.url));
+const packageJsonPath = fileURLToPath(new URL('../package.json', import.meta.url));
 const readWorkflow = () => readFile(workflowPath, 'utf8');
 
 function positionOf(source, token) {
@@ -31,13 +33,15 @@ test('release workflow validates an exact tag and checks it out', async () => {
   assert.match(workflow, /REQUESTED_TAG: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.tag \|\| github\.ref_name \}\}/);
   assert.match(workflow, /\^v\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$/);
   assert.match(workflow, /ref: refs\/tags\/\$\{\{ steps\.release\.outputs\.tag \}\}/);
-  assert.match(workflow, /node-version: 20/);
+  assert.match(workflow, /node-version: 22/);
+  assert.match(workflow, /run: npm ci/);
 });
 
-test('release order is package, Chrome, Edge, then GitHub publication', async () => {
+test('release order is install, test, build, validate, package, stores, then GitHub publication', async () => {
   const workflow = await readWorkflow();
   const tokens = [
-    'node scripts/release-version.mjs "$TAG"', 'npm test', 'npm run validate', 'npm run package',
+    'node scripts/release-version.mjs "$TAG"', 'npm test', 'npm run build', 'npm run validate',
+    'npm run package',
     'gh release create "$TAG" --verify-tag --draft',
     'gh release upload "$TAG" "dist/marktab-$VERSION.zip" --clobber',
     'npm run cws:publish -- "dist/marktab-$VERSION.zip"',
@@ -67,7 +71,7 @@ test('store secrets are confined to their respective steps', async () => {
 
 test('recovery skips both stores and keeps failed releases as drafts', async () => {
   const workflow = await readWorkflow();
-  for (const step of ['Check out release tag', 'Verify release version', 'Run tests', 'Validate extension', 'Package extension', 'Prepare draft GitHub Release', 'Publish to Chrome Web Store', 'Publish to Microsoft Edge Add-ons']) {
+  for (const step of ['Check out release tag', 'Verify release version', 'Run tests', 'Build extension', 'Validate extension', 'Package extension', 'Prepare draft GitHub Release', 'Publish to Chrome Web Store', 'Publish to Microsoft Edge Add-ons']) {
     assert.match(workflow, new RegExp(`- name: ${step}\\n        if: steps\\.release\\.outputs\\.recovery != 'true' && steps\\.release\\.outputs\\.edge_recovery != 'true'`));
   }
   assert.match(workflow, /- name: Resume Microsoft Edge Add-ons upload\n        if: steps\.release\.outputs\.edge_recovery == 'true'/);
@@ -88,9 +92,29 @@ test('store guides document safe recovery', async () => {
   }
 });
 
-test('npm test includes Edge and workflow contracts', async () => {
-  const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
-  for (const testPath of ['scripts/newtab-layout.test.mjs', 'scripts/package-release.test.mjs', 'scripts/release-version.test.mjs', 'scripts/cws-api.test.mjs', 'scripts/cws-publish.test.mjs', 'scripts/cws-auth.test.mjs', 'scripts/edge-api.test.mjs', 'scripts/edge-publish.test.mjs', 'scripts/release-workflow.test.mjs']) {
-    assert.match(packageJson.scripts.test, new RegExp(testPath.replaceAll('.', '\\.')));
+test('CI runs typecheck, tests, build, validation and the end-to-end suite', async () => {
+  const ci = await readFile(ciPath, 'utf8');
+  for (const command of ['npm ci', 'npm run typecheck', 'npm test', 'npm run build', 'npm run validate']) {
+    assert.match(ci, new RegExp(`run: ${command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
   }
+  assert.match(ci, /npx playwright install --with-deps chromium/);
+  assert.match(ci, /npx playwright test/);
+  assert.match(ci, /MARKTAB_E2E_CHANNEL: chromium/);
+});
+
+test('npm scripts cover the full local verification path', async () => {
+  const pkg = JSON.parse(await readFile(packageJsonPath, 'utf8'));
+  const scripts = pkg.scripts;
+  for (const name of ['dev', 'build', 'typecheck', 'test', 'test:unit', 'test:scripts', 'test:e2e', 'validate', 'package']) {
+    assert.equal(typeof scripts[name], 'string', `package.json is missing the ${name} script.`);
+  }
+  assert.match(scripts.test, /test:unit/);
+  assert.match(scripts.test, /test:scripts/);
+  assert.match(scripts['test:scripts'], /node --test scripts\/\*\.test\.mjs/);
+  assert.match(scripts['test:e2e'], /playwright test/);
+  assert.equal(scripts.package, 'node scripts/package-release.mjs');
+});
+
+test('retired v2 layout test is gone', async () => {
+  await assert.rejects(access(fileURLToPath(new URL('./newtab-layout.test.mjs', import.meta.url))));
 });

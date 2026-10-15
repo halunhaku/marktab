@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -16,53 +16,64 @@ async function createVersionRoot(t, packageVersion, manifestVersion) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'marktab-release-version-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(path.join(root, 'package.json'), JSON.stringify({ version: packageVersion }));
-  await writeFile(path.join(root, 'manifest.json'), JSON.stringify({ version: manifestVersion }));
+  await mkdir(path.join(root, 'public'), { recursive: true });
+  await writeFile(
+    path.join(root, 'public', 'manifest.json'),
+    JSON.stringify({ version: manifestVersion })
+  );
   return root;
 }
 
 test('returns the release version when tag, package, and manifest match', async (t) => {
-  const root = await createVersionRoot(t, '1.4.1', '1.4.1');
+  const root = await createVersionRoot(t, '3.0.0', '3.0.0');
 
-  assert.equal(await validateReleaseVersion({ root, tag: 'v1.4.1' }), '1.4.1');
+  assert.equal(await validateReleaseVersion({ root, tag: 'v3.0.0' }), '3.0.0');
 });
 
 test('rejects malformed release tags', async (t) => {
-  const root = await createVersionRoot(t, '1.4.1', '1.4.1');
+  const root = await createVersionRoot(t, '3.0.0', '3.0.0');
 
   await assert.rejects(
-    validateReleaseVersion({ root, tag: '1.4.1' }),
+    validateReleaseVersion({ root, tag: '3.0.0' }),
     new Error('Tag must match vX.Y.Z.')
   );
 });
 
 test('reports all versions when release versions differ', async (t) => {
-  const root = await createVersionRoot(t, '1.4.0', '1.4.1');
+  const root = await createVersionRoot(t, '3.0.0', '3.0.1');
 
   await assert.rejects(
-    validateReleaseVersion({ root, tag: 'v1.4.2' }),
-    new Error('Version mismatch: tag=1.4.2 package=1.4.0 manifest=1.4.1')
+    validateReleaseVersion({ root, tag: 'v3.0.2' }),
+    new Error('Version mismatch: tag=3.0.2 package=3.0.0 manifest=3.0.1')
   );
 });
 
+test('fails when the shipped manifest is missing', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'marktab-release-version-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(path.join(root, 'package.json'), JSON.stringify({ version: '3.0.0' }));
+
+  await assert.rejects(validateReleaseVersion({ root, tag: 'v3.0.0' }), /ENOENT/);
+});
+
 test('CLI prints a matching release version', async (t) => {
-  const root = await createVersionRoot(t, '1.4.1', '1.4.1');
-  const { stdout, stderr } = await execFileAsync(process.execPath, [scriptPath, 'v1.4.1'], {
+  const root = await createVersionRoot(t, '3.0.0', '3.0.0');
+  const { stdout, stderr } = await execFileAsync(process.execPath, [scriptPath, 'v3.0.0'], {
     cwd: root
   });
 
-  assert.equal(stdout, '1.4.1\n');
+  assert.equal(stdout, '3.0.0\n');
   assert.equal(stderr, '');
 });
 
 test('CLI prints validation errors and exits with code 1', async (t) => {
-  const root = await createVersionRoot(t, '1.4.1', '1.4.1');
+  const root = await createVersionRoot(t, '3.0.0', '3.0.0');
 
   await assert.rejects(
-    execFileAsync(process.execPath, [scriptPath, 'release-1.4.1'], { cwd: root }),
-    (error) => {
+    execFileAsync(process.execPath, [scriptPath, 'v4.0.0'], { cwd: root }),
+    error => {
       assert.equal(error.code, 1);
-      assert.equal(error.stdout, '');
-      assert.equal(error.stderr, 'Tag must match vX.Y.Z.\n');
+      assert.match(error.stderr, /Version mismatch: tag=4\.0\.0 package=3\.0\.0 manifest=3\.0\.0/);
       return true;
     }
   );

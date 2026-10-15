@@ -73,7 +73,12 @@ jobs:
         if: steps.release.outputs.recovery != 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        run: npm ci
 
       - name: Verify release version
         if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
@@ -84,6 +89,10 @@ jobs:
       - name: Run tests
         if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
         run: npm test
+
+      - name: Build extension
+        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        run: npm run build
 
       - name: Validate extension
         if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'

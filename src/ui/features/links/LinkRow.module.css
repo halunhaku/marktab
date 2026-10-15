@@ -1,0 +1,100 @@
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  height: var(--row-h);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-md);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.row:hover {
+  background: var(--surface-hover);
+}
+
+.row:focus-within {
+  background: var(--surface-hover);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
+.main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.main:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}
+
+.copy {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-md);
+  color: var(--text-1);
+}
+
+.path {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  color: var(--text-3);
+}
+
+.host,
+.opened {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-3);
+}
+
+.opened {
+  min-width: 4.5rem;
+  text-align: end;
+}
+
+.actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.row:hover .actions,
+.row:focus-within .actions {
+  opacity: 1;
+}
+
+.pinActive {
+  opacity: 1;
+  color: var(--accent-strong);
+}
+
+.pinned .title {
+  font-weight: var(--weight-medium);
+}
+
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
+}

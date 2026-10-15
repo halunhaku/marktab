@@ -1,8 +1,17 @@
 import { spawn } from 'node:child_process';
-import { copyFile, mkdir, mkdtemp, readdir, rm, utimes } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readdir, rm, stat, utimes } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
+
+/**
+ * Packages the built extension into `dist/marktab-<version>.zip`.
+ *
+ * The archive contains exactly what `dist/extension` holds — the same tree that was
+ * loaded and tested — with sorted entries and a fixed timestamp so two runs on the
+ * same sources produce byte-identical archives (stores diff uploads, and a stable
+ * hash makes "did the right build get published" answerable).
+ */
 
 const root = process.cwd();
 const version = process.env.npm_package_version || JSON.parse(
@@ -14,24 +23,12 @@ if (!version) {
   process.exit(1);
 }
 
-const packageFiles = [
-  'manifest.json',
-  'newtab.html',
-  'newtab.js',
-  'styles.css',
-  'popup.html',
-  'popup.js',
-  'icons/icon16.png',
-  'icons/icon32.png',
-  'icons/icon48.png',
-  'icons/icon128.png',
-  '_locales'
-];
-
+const extensionDir = path.join(root, 'dist', 'extension');
 const distDir = path.resolve(root, 'dist');
 const zipPath = path.join(distDir, `marktab-${version}.zip`);
-// ZIP timestamps cannot represent dates before 1980. A fixed default makes
-// local release retries reproducible even when SOURCE_DATE_EPOCH is not set.
+
+// ZIP timestamps cannot represent dates before 1980. A fixed default makes local
+// release retries reproducible even when SOURCE_DATE_EPOCH is not set.
 const defaultArchiveEpoch = Date.UTC(1980, 0, 1) / 1000;
 const maximumArchiveEpoch = Date.UTC(2107, 11, 31, 23, 59, 58) / 1000;
 
@@ -66,26 +63,38 @@ function run(command, args, options = {}) {
 }
 
 async function collectFiles(relativePath) {
-  const sourcePath = path.join(root, relativePath);
-  const entries = await readdir(sourcePath, { withFileTypes: true }).catch(error => {
-    if (error.code === 'ENOTDIR') return null;
+  const sourcePath = path.join(extensionDir, ...relativePath.split('/'));
+  const info = await stat(sourcePath).catch(error => {
+    if (error.code === 'ENOENT') return null;
     throw error;
   });
+  if (info === null) return [];
+  if (info.isFile()) return [relativePath];
 
-  if (entries === null) return [relativePath.replaceAll(path.sep, '/')];
-
+  const entries = await readdir(sourcePath, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
-    const childPath = path.join(relativePath, entry.name);
-    if (entry.isDirectory()) files.push(...await collectFiles(childPath));
-    else if (entry.isFile()) files.push(childPath.replaceAll(path.sep, '/'));
+    // Archive paths are relative to the extension root: joining the top-level
+    // call (`collectFiles('')`) with a slash would produce `/manifest.json`, which
+    // `zip` then looks for on the filesystem instead of inside the staging tree.
+    const childPath = relativePath === '' ? entry.name : `${relativePath}/${entry.name}`;
+    if (entry.isDirectory()) files.push(...(await collectFiles(childPath)));
+    else if (entry.isFile()) files.push(childPath);
   }
   return files;
 }
 
-const archiveEntries = (await Promise.all(packageFiles.map(collectFiles)))
-  .flat()
-  .sort();
+const info = await stat(extensionDir).catch(() => null);
+if (!info?.isDirectory()) {
+  console.error('dist/extension is missing. Run `npm run build` before packaging.');
+  process.exit(1);
+}
+
+const archiveEntries = (await collectFiles('')).sort();
+if (archiveEntries.length === 0) {
+  console.error('dist/extension is empty; refusing to package an empty extension.');
+  process.exit(1);
+}
 
 await mkdir(distDir, { recursive: true });
 for (const file of await readdir(distDir)) {
@@ -109,7 +118,7 @@ if (process.platform === 'win32') {
       [IO.Compression.ZipArchiveMode]::Create
     );
     try {
-      $root = (Get-Location).Path;
+      $root = $env:MARKTAB_PACKAGE_SOURCE;
       foreach ($item in $items) {
         $sourcePath = [IO.Path]::GetFullPath((Join-Path $root $item.source));
         $entry = $zip.CreateEntry($item.entry, [IO.Compression.CompressionLevel]::Optimal);
@@ -136,7 +145,8 @@ if (process.platform === 'win32') {
       ...process.env,
       MARKTAB_PACKAGE_DESTINATION: zipPath,
       MARKTAB_PACKAGE_ENTRIES: entriesJson,
-      MARKTAB_PACKAGE_TIMESTAMP: archiveDate.toISOString()
+      MARKTAB_PACKAGE_TIMESTAMP: archiveDate.toISOString(),
+      MARKTAB_PACKAGE_SOURCE: extensionDir
     }
   });
 } else {
@@ -145,7 +155,7 @@ if (process.platform === 'win32') {
     for (const entry of archiveEntries) {
       const stagedPath = path.join(stagingDir, ...entry.split('/'));
       await mkdir(path.dirname(stagedPath), { recursive: true });
-      await copyFile(path.join(root, ...entry.split('/')), stagedPath);
+      await copyFile(path.join(extensionDir, ...entry.split('/')), stagedPath);
       await utimes(stagedPath, archiveDate, archiveDate);
     }
     await run('zip', ['-X', zipPath, ...archiveEntries], {
@@ -157,4 +167,4 @@ if (process.platform === 'win32') {
   }
 }
 
-console.log(`Created ${path.relative(root, zipPath)}`);
+console.log(`Created ${path.relative(root, zipPath)} with ${archiveEntries.length} files.`);

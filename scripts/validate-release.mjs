@@ -1,246 +1,260 @@
-import { readFile, access } from 'node:fs/promises';
+import { readFile, access, readdir, stat } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import path from 'node:path';
 
-const root = process.cwd();
+/**
+ * Pre-release validation for MarkTab 3.
+ *
+ * Runs against the *built* extension in `dist/extension` (run `npm run build`
+ * first) plus the repository documentation. Everything checked here is a store
+ * requirement, a privacy claim we make in our own copy, or a performance budget we
+ * committed to — nothing is checked "just because".
+ */
 
-const requiredFiles = [
+const root = process.cwd();
+const extensionDir = path.join(root, 'dist', 'extension');
+
+const REQUIRED_RUNTIME_FILES = [
   'manifest.json',
   'newtab.html',
-  'newtab.js',
-  'styles.css',
   'popup.html',
-  'popup.js',
+  'background.js',
+  'theme-boot.js',
   'icons/icon16.png',
   'icons/icon32.png',
   'icons/icon48.png',
   'icons/icon128.png',
   '_locales/en/messages.json',
   '_locales/zh_CN/messages.json',
-  'README.md',
-  'PRIVACY_POLICY.md',
-  'CHROME_STORE_SUBMISSION.md'
 ];
 
-const packageFiles = [
-  'manifest.json',
-  'newtab.html',
-  'newtab.js',
-  'styles.css',
-  'popup.html',
-  'popup.js',
-  'icons/icon16.png',
-  'icons/icon32.png',
-  'icons/icon48.png',
-  'icons/icon128.png',
-  '_locales'
-];
+const ALLOWED_PERMISSIONS = ['activeTab', 'bookmarks', 'favicon', 'search', 'storage'];
+const REQUIRED_ICON_SIZES = ['16', '32', '48', '128'];
 
-const allowedPermissions = ['activeTab', 'bookmarks', 'favicon', 'search', 'storage'];
-const requiredIconSizes = ['16', '32', '48', '128'];
-const htmlFiles = ['newtab.html', 'popup.html'];
-const jsFiles = ['newtab.js', 'popup.js'];
-const docFiles = ['README.md', 'PRIVACY_POLICY.md', 'CHROME_STORE_SUBMISSION.md'];
-const migrationChecks = [
-  {
-    file: 'newtab.js',
-    forbidden: [
-      { pattern: /\bACCENTS\b/, message: 'newtab.js should not keep the removed ACCENTS registry.' },
-      { pattern: /--accent-primary|--accent-rgb/, message: 'newtab.js should not inject dynamic accent CSS variables.' },
-      { pattern: /\baccent\s*:/, message: 'newtab.js DEFAULTS should not keep the removed accent setting.' },
-      { pattern: /settings\.accent/, message: 'newtab.js should not read or write settings.accent after accent removal.' }
-    ]
-  },
-  {
-    file: 'styles.css',
-    forbidden: [
-      { pattern: /--bg-page|--font-display|--shadow-card|--shadow-elevated|--shadow-panel|--green-dark|--green-soft|--green-border/, message: 'styles.css contains old MarkTab visual tokens.' },
-      { pattern: /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\.(?:0[1-9]|[1-9])\s*\)/, message: 'styles.css contains pure black alpha shadows or overlays.' }
-    ]
-  },
-  {
-    file: 'cloudflare/marktab-home-worker.js',
-    forbidden: [
-      { pattern: /--font-display|--radius-sm|--radius-md|--radius-lg/, message: 'cloudflare/marktab-home-worker.js contains old visual tokens.' },
-      { pattern: /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\.(?:0[1-9]|[1-9])\s*\)/, message: 'cloudflare/marktab-home-worker.js contains pure black alpha shadows or overlays.' }
-    ]
-  }
+/** Budgets: a new tab page must stay small, and every byte is a cold start. */
+const BUDGETS = {
+  javascript: 420 * 1024,
+  css: 130 * 1024,
+  total: 1.2 * 1024 * 1024,
+};
+
+/** Strings that would contradict the privacy policy if they shipped. */
+const FORBIDDEN_SCRIPT_PATTERNS = [
+  { pattern: /\beval\s*\(/, message: 'uses eval(); MV3 forbids remote/dynamic code.' },
+  { pattern: /new\s+Function\s*\(/, message: 'uses new Function().' },
+  { pattern: /document\.write\s*\(/, message: 'uses document.write().' },
+  { pattern: /XMLHttpRequest/, message: 'uses XMLHttpRequest; MarkTab makes no network requests of its own.' },
+  { pattern: /\bfetch\s*\(/, message: 'calls fetch(); MarkTab must never contact a server.' },
+  { pattern: /google-analytics|googletagmanager|sentry|mixpanel|posthog|amplitude/i, message: 'contains analytics/telemetry code.' },
+  { pattern: /sourceMappingURL/, message: 'references a source map; production builds ship without maps.' },
 ];
 
 const errors = [];
 const warnings = [];
 
-async function exists(file) {
+async function exists(target) {
   try {
-    await access(path.join(root, file), constants.F_OK);
+    await access(target, constants.F_OK);
     return true;
   } catch {
     return false;
   }
 }
 
-async function readText(file) {
-  return readFile(path.join(root, file), 'utf8');
+async function readText(target) {
+  return readFile(target, 'utf8');
 }
 
-function sameSet(actual, expected) {
-  return actual.length === expected.length && actual.every((item, index) => item === expected[index]);
+async function readJson(target) {
+  return JSON.parse(await readText(target));
 }
 
-for (const file of requiredFiles) {
-  if (!(await exists(file))) {
-    errors.push(`Missing required file: ${file}`);
+async function walk(dir, prefix = '') {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) files.push(...(await walk(path.join(dir, entry.name), relative)));
+    else files.push(relative);
   }
+  return files;
+}
+
+if (!(await exists(extensionDir))) {
+  console.error('Release validation failed:');
+  console.error('- dist/extension is missing. Run `npm run build` before validating.');
+  process.exit(1);
+}
+
+const files = await walk(extensionDir);
+const fileSet = new Set(files);
+
+for (const required of REQUIRED_RUNTIME_FILES) {
+  if (!fileSet.has(required)) errors.push(`Missing runtime file in dist/extension: ${required}`);
+}
+
+for (const file of files) {
+  if (file.endsWith('.map')) errors.push(`Source map shipped: ${file}`);
+  if (file.endsWith('.ts') || file.endsWith('.tsx')) errors.push(`TypeScript source shipped: ${file}`);
+  if (file.endsWith('.md')) errors.push(`Documentation shipped in the extension bundle: ${file}`);
 }
 
 let manifest;
 try {
-  manifest = JSON.parse(await readText('manifest.json'));
+  manifest = await readJson(path.join(extensionDir, 'manifest.json'));
 } catch (error) {
   errors.push(`manifest.json is not valid JSON: ${error.message}`);
 }
 
-let pkg;
-try {
-  pkg = JSON.parse(await readText('package.json'));
-} catch (error) {
-  errors.push(`package.json is not valid JSON: ${error.message}`);
-}
+const pkg = await readJson(path.join(root, 'package.json'));
+const sourceManifest = await readJson(path.join(root, 'public', 'manifest.json'));
 
 if (manifest) {
-  if (manifest.manifest_version !== 3) {
-    errors.push('manifest_version must stay at 3.');
-  }
-
-  if (pkg && manifest.version !== pkg.version) {
+  if (manifest.manifest_version !== 3) errors.push('manifest_version must be 3.');
+  if (manifest.version !== pkg.version) {
     errors.push(`manifest version (${manifest.version}) must match package version (${pkg.version}).`);
   }
-
-  const permissions = [...(manifest.permissions || [])].sort();
-  if (!sameSet(permissions, allowedPermissions)) {
-    errors.push(`Permissions changed. Expected ${allowedPermissions.join(', ')}; found ${permissions.join(', ') || 'none'}.`);
+  if (sourceManifest.version !== pkg.version) {
+    errors.push(`public/manifest.json version (${sourceManifest.version}) must match package version (${pkg.version}).`);
   }
 
-  if (manifest.host_permissions?.length) {
-    errors.push('host_permissions should stay empty unless a feature explicitly requires them.');
+  const permissions = [...(manifest.permissions ?? [])].sort();
+  const expected = [...ALLOWED_PERMISSIONS].sort();
+  if (permissions.length !== expected.length || permissions.some((value, index) => value !== expected[index])) {
+    errors.push(
+      `Permissions must stay exactly [${expected.join(', ')}]; found [${permissions.join(', ') || 'none'}].`,
+    );
   }
 
-  for (const size of requiredIconSizes) {
-    const iconPath = manifest.icons?.[size];
-    if (!iconPath) {
-      errors.push(`Missing manifest icon size ${size}.`);
-    } else if (!(await exists(iconPath))) {
-      errors.push(`Manifest icon does not exist: ${iconPath}`);
-    }
+  if ((manifest.host_permissions ?? []).length > 0) {
+    errors.push('host_permissions must stay empty: MarkTab reads no page content.');
+  }
+  if ((manifest.optional_permissions ?? []).length > 0) {
+    errors.push('optional_permissions must stay empty.');
+  }
+  if ((manifest.content_scripts ?? []).length > 0) {
+    errors.push('MarkTab must not inject content scripts.');
+  }
+
+  const csp = manifest.content_security_policy?.extension_pages;
+  if (csp && /unsafe-eval|unsafe-inline|http:/i.test(csp)) {
+    errors.push(`content_security_policy.extension_pages is too permissive: ${csp}`);
   }
 
   if (manifest.chrome_url_overrides?.newtab !== 'newtab.html') {
-    errors.push('chrome_url_overrides.newtab must point to newtab.html.');
+    errors.push('chrome_url_overrides.newtab must be newtab.html.');
   }
-
   if (manifest.action?.default_popup !== 'popup.html') {
-    errors.push('action.default_popup must point to popup.html.');
+    errors.push('action.default_popup must be popup.html.');
   }
-
+  if (manifest.background?.service_worker !== 'background.js') {
+    errors.push('background.service_worker must be background.js.');
+  }
+  if (manifest.background?.type !== 'module') {
+    errors.push('background.type must be module.');
+  }
   if (manifest.default_locale !== 'en') {
-    errors.push('manifest.default_locale must be en when localized __MSG_...__ fields are used.');
+    errors.push('default_locale must be en when localized __MSG_...__ fields are used.');
+  }
+  if (manifest.name !== '__MSG_appName__' || manifest.description !== '__MSG_appDescription__') {
+    errors.push('name and description must use the localized __MSG_...__ placeholders.');
   }
 
-  if (manifest.name !== '__MSG_appName__') {
-    errors.push('manifest.name must use the localized appName message.');
-  }
-
-  if (manifest.description !== '__MSG_appDescription__') {
-    errors.push('manifest.description must use the localized appDescription message.');
+  for (const size of REQUIRED_ICON_SIZES) {
+    const iconPath = manifest.icons?.[size];
+    if (!iconPath) errors.push(`Missing manifest icon size ${size}.`);
+    else if (!fileSet.has(iconPath)) errors.push(`Manifest icon missing from build: ${iconPath}`);
   }
 }
 
 for (const localeFile of ['_locales/en/messages.json', '_locales/zh_CN/messages.json']) {
   try {
-    const messages = JSON.parse(await readText(localeFile));
-    for (const key of ['appName', 'appDescription', 'searchBookmarksAndFolders', 'openMarktabNewTab']) {
-      if (!messages[key]?.message) {
-        errors.push(`${localeFile} is missing message key: ${key}`);
-      }
+    const messages = await readJson(path.join(extensionDir, localeFile));
+    for (const key of ['appName', 'appDescription']) {
+      if (!messages[key]?.message) errors.push(`${localeFile} is missing message key: ${key}`);
     }
   } catch (error) {
     errors.push(`${localeFile} is not valid JSON: ${error.message}`);
   }
 }
 
-for (const file of htmlFiles) {
-  const html = await readText(file);
-  if (/<script\b(?![^>]*\bsrc=)[^>]*>/i.test(html)) {
-    errors.push(`${file} contains an inline script block.`);
-  }
-  if (/<script\b[^>]*\bsrc=["']https?:\/\//i.test(html)) {
-    errors.push(`${file} loads a remote script.`);
-  }
-  if (/\son[a-z]+\s*=/i.test(html)) {
-    errors.push(`${file} contains an inline event handler.`);
+/* ---- HTML ------------------------------------------------------------- */
+
+for (const file of files.filter((name) => name.endsWith('.html'))) {
+  const html = await readText(path.join(extensionDir, file));
+  if (/<script\b(?![^>]*\bsrc=)[^>]*>/i.test(html)) errors.push(`${file} contains an inline script block.`);
+  if (/<script\b[^>]*\bsrc=["']https?:\/\//i.test(html)) errors.push(`${file} loads a remote script.`);
+  if (/\son[a-z]+\s*=/i.test(html)) errors.push(`${file} contains an inline event handler.`);
+  if (/javascript:/i.test(html)) errors.push(`${file} contains a javascript: URL.`);
+  if (/<link\b[^>]*\bhref=["']https?:\/\//i.test(html)) errors.push(`${file} loads a remote stylesheet.`);
+  if (!/\btype=["']module["']/.test(html)) errors.push(`${file} does not load its bundle as a module.`);
+}
+
+/* ---- JS/CSS ----------------------------------------------------------- */
+
+let jsBytes = 0;
+let cssBytes = 0;
+
+for (const file of files) {
+  const target = path.join(extensionDir, file);
+  const info = await stat(target);
+  if (file.endsWith('.js')) jsBytes += info.size;
+  if (file.endsWith('.css')) cssBytes += info.size;
+  if (!file.endsWith('.js')) continue;
+  const source = await readText(target);
+  for (const { pattern, message } of FORBIDDEN_SCRIPT_PATTERNS) {
+    if (pattern.test(source)) errors.push(`dist/extension/${file} ${message}`);
   }
 }
 
-for (const file of jsFiles) {
-  const js = await readText(file);
-  if (/document\.write\s*\(/.test(js)) {
-    errors.push(`${file} uses document.write.`);
-  }
-  if (/eval\s*\(|new Function\s*\(/.test(js)) {
-    errors.push(`${file} uses dynamic code execution.`);
-  }
+const totalBytes = (
+  await Promise.all(files.map(async (file) => (await stat(path.join(extensionDir, file))).size))
+).reduce((sum, size) => sum + size, 0);
+
+if (jsBytes > BUDGETS.javascript) {
+  errors.push(`JavaScript budget exceeded: ${kb(jsBytes)} > ${kb(BUDGETS.javascript)}.`);
+}
+if (cssBytes > BUDGETS.css) {
+  errors.push(`CSS budget exceeded: ${kb(cssBytes)} > ${kb(BUDGETS.css)}.`);
+}
+if (totalBytes > BUDGETS.total) {
+  errors.push(`Total payload budget exceeded: ${kb(totalBytes)} > ${kb(BUDGETS.total)}.`);
 }
 
+function kb(bytes) {
+  return `${(bytes / 1024).toFixed(1)} KiB`;
+}
+
+/* ---- documentation ---------------------------------------------------- */
+
+const docFiles = ['README.md', 'PRIVACY_POLICY.md', 'CHROME_STORE_SUBMISSION.md'];
 for (const file of docFiles) {
-  const text = await readText(file);
-  for (const permission of allowedPermissions) {
-    if (!text.includes(permission)) {
-      warnings.push(`${file} does not mention ${permission}.`);
-    }
+  if (!(await exists(path.join(root, file)))) {
+    errors.push(`Missing required document: ${file}`);
+    continue;
+  }
+  const text = await readText(path.join(root, file));
+  for (const permission of ALLOWED_PERMISSIONS) {
+    if (!text.includes(permission)) warnings.push(`${file} does not mention the ${permission} permission.`);
   }
 }
 
-for (const { file, forbidden } of migrationChecks) {
-  const text = await readText(file);
-  for (const { pattern, message } of forbidden) {
-    if (pattern.test(text)) {
-      errors.push(message);
-    }
+if (await exists(path.join(root, 'PRIVACY_POLICY.md'))) {
+  const privacy = await readText(path.join(root, 'PRIVACY_POLICY.md'));
+  if (/\b(analytics|telemetry|tracking)\b/i.test(privacy) && !/no (analytics|telemetry|tracking)/i.test(privacy)) {
+    warnings.push('PRIVACY_POLICY.md mentions analytics without stating that MarkTab has none.');
   }
-}
-
-const styles = await readText('styles.css');
-const backdropMatches = [...styles.matchAll(/(?:-webkit-)?backdrop-filter\s*:/g)];
-const searchBackdropIsValid = /\.search-panel-overlay\s*\{[\s\S]*?backdrop-filter\s*:\s*blur\(4px\)[\s\S]*?-webkit-backdrop-filter\s*:\s*blur\(4px\)/.test(styles);
-const sidebarBackdropIsValid = /\.home-sidebar-panel\s*\{[\s\S]*?backdrop-filter\s*:\s*blur\(24px\)[\s\S]*?-webkit-backdrop-filter\s*:\s*blur\(24px\)/.test(styles);
-if (backdropMatches.length !== 4 || !searchBackdropIsValid || !sidebarBackdropIsValid) {
-  errors.push('styles.css should only keep backdrop-filter on the search overlay and fixed home sidebar.');
-}
-
-const storeSubmission = await readText('CHROME_STORE_SUBMISSION.md');
-if (/accent color|theme,\s*accent/i.test(storeSubmission)) {
-  errors.push('CHROME_STORE_SUBMISSION.md still describes the removed accent color setting.');
-}
-
-const packageList = packageFiles.join(' ');
-const packageScriptText = await readText('scripts/package-release.mjs');
-const packageScriptHasFiles = packageFiles.every(file => packageScriptText.includes(`'${file}'`));
-if (pkg?.scripts?.package && !pkg.scripts.package.includes(packageList) && !packageScriptHasFiles) {
-  warnings.push('Package script does not appear to include the expected runtime file list.');
 }
 
 if (errors.length) {
   console.error('Release validation failed:');
-  for (const error of errors) {
-    console.error(`- ${error}`);
-  }
+  for (const error of errors) console.error(`- ${error}`);
   process.exit(1);
 }
 
 console.log('Release validation passed.');
+console.log(`Runtime payload: ${kb(totalBytes)} total (js ${kb(jsBytes)}, css ${kb(cssBytes)}) across ${files.length} files.`);
 if (warnings.length) {
   console.log('Warnings:');
-  for (const warning of warnings) {
-    console.log(`- ${warning}`);
-  }
+  for (const warning of warnings) console.log(`- ${warning}`);
 }
