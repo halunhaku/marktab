@@ -123,6 +123,7 @@
   --dur-fast: 130ms;
   --dur-base: 190ms;
   --dur-slow: 320ms;
+  --dur-tick: 1000ms;
   --ease-out: cubic-bezier(0.16, 0.84, 0.44, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-emphasis: cubic-bezier(0.34, 1.32, 0.5, 1);
@@ -221,6 +222,7 @@
   --dur-fast: 0ms;
   --dur-base: 0ms;
   --dur-slow: 0ms;
+  --dur-tick: 0ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -229,5 +231,6 @@
     --dur-fast: 0ms;
     --dur-base: 0ms;
     --dur-slow: 0ms;
+    --dur-tick: 0ms;
   }
 }

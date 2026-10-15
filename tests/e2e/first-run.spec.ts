@@ -85,6 +85,53 @@ test.describe('first run', () => {
     expect(shape?.coveredAtTop, `topmost element at the plate's top edge is ${shape?.topmostTag}`).toBe(true);
   });
 
+  test('advances the day halo every second while the clock is shown', async ({ newTab }) => {
+    // The thick arc encodes the whole day, so one minute is 0.23 px of the 116 px
+    // dial: a minute-aligned arc is indistinguishable from a frozen graphic. Both
+    // arcs are redrawn with the clock instead. Four samples over ~3.3 s separate a
+    // per-second redraw (four different offsets) from a per-minute one — minute
+    // boundaries are 60 s apart, so the slower cadence could move at most once in
+    // the window, which is what keeps this deterministic rather than timing-based.
+    const dial = newTab.getByRole('group', { name: 'Current local time' });
+    await expect(dial).toBeVisible();
+    // A ring says nothing to a screen reader: both facts have to be in words.
+    await expect(dial).toContainText('% of the day has passed');
+    await expect(dial).toContainText('% of the minute has passed');
+
+    const dayArc = dial.locator('circle').nth(1);
+    const minuteRing = dial.locator('circle').nth(2);
+    const days: number[] = [];
+    const minutes: number[] = [];
+    for (let sample = 0; sample < 4; sample += 1) {
+      days.push(Number(await dayArc.getAttribute('stroke-dashoffset')));
+      minutes.push(Number(await minuteRing.getAttribute('stroke-dashoffset')));
+      if (sample < 3) await newTab.waitForTimeout(1100);
+    }
+
+    expect(new Set(days).size, `day offsets ${days.join(', ')}`).toBeGreaterThanOrEqual(3);
+    // The minute ring is the dial's motion cue, so it has to be the faster one:
+    // one lap a minute, 4.6 px of a 116 px dial every second.
+    expect(new Set(minutes).size, `minute offsets ${minutes.join(', ')}`).toBeGreaterThanOrEqual(3);
+
+    // And each arc still means what it says: both fill from the start of their
+    // period, so the offset is the part of the circle that is left. Read the two
+    // offsets together with the clock they were drawn from, or the assertion would
+    // measure the sampling loop's own three seconds of drift.
+    const at = await dial.evaluate((element) => {
+      const [, dayArcCircle, minuteRingCircle] = [...element.querySelectorAll('circle')];
+      return {
+        day: Number(dayArcCircle?.getAttribute('stroke-dashoffset')),
+        minute: Number(minuteRingCircle?.getAttribute('stroke-dashoffset')),
+        stamp: Date.now(),
+      };
+    });
+    const clock = new Date(at.stamp);
+    const secondsIntoDay = clock.getHours() * 3600 + clock.getMinutes() * 60 + clock.getSeconds();
+    expect(Math.abs(at.day - 339.29 * (1 - secondsIntoDay / 86_400))).toBeLessThan(1);
+    // One tick of slack: the arc was drawn at the top of the second, at most 1 s ago.
+    expect(Math.abs(at.minute - 364.42 * (1 - clock.getSeconds() / 60))).toBeLessThan(7);
+  });
+
   test('states emptiness instead of drawing an empty grid', async ({ newTab }) => {
     await expect(newTab.getByText('Pin what you use every day')).toBeVisible();
     await expect(newTab.getByText('Nothing opened yet').first()).toBeVisible();

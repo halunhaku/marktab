@@ -5,6 +5,7 @@ import { Icon } from '@/ui/components/Icon';
 import { Kbd } from '@/ui/components/Kbd';
 import { Skeleton } from '@/ui/components/Skeleton';
 import { cx } from '@/ui/components/cx';
+import { ClockDial } from './ClockDial';
 import styles from './Hero.module.css';
 
 export interface HeroProps {
@@ -12,8 +13,6 @@ export interface HeroProps {
   tagline: string;
   date: string;
   time: string;
-  /** 0…1 position of the current time inside the day; drives the halo arc. */
-  dayProgress: number;
   showClock: boolean;
   clockLabel: string;
   searchLabel: string;
@@ -26,16 +25,16 @@ export interface HeroProps {
  * Home hero.
  *
  * One idea per element: who/what on the left, when on the right, and the single
- * most valuable action (search) as the only large control on the surface. The arc
- * behind the clock encodes the progress of the day, so the one large graphic
- * carries a fact instead of being decoration.
+ * most valuable action (search) as the only large control on the surface. The dial
+ * is its own component (`ClockDial`), because it redraws the day's arc every
+ * second and this hero must not: the one large graphic carries a fact instead of
+ * being decoration.
  */
 export function Hero({
   greeting,
   tagline,
   date,
   time,
-  dayProgress,
   showClock,
   clockLabel,
   searchLabel,
@@ -43,7 +42,6 @@ export function Hero({
   onSearch,
   class: className,
 }: HeroProps): JSX.Element {
-  const progress = Math.min(1, Math.max(0, dayProgress));
   return (
     <section class={cx(styles.hero, className)} aria-labelledby="home-greeting">
       <div class={styles.copy}>
@@ -55,19 +53,8 @@ export function Hero({
       </div>
 
       {showClock ? (
-        <div class={styles.clock} role="group" aria-label={clockLabel}>
-          <svg class={styles.arc} viewBox="0 0 120 120" aria-hidden="true">
-            <circle class={styles.arcTrack} cx="60" cy="60" r="54" />
-            <circle
-              class={styles.arcValue}
-              cx="60"
-              cy="60"
-              r="54"
-              stroke-dasharray="339.29"
-              stroke-dashoffset={339.29 * (1 - progress)}
-            />
-          </svg>
-          <span class={styles.time}>{time}</span>
+        <div class={styles.clockSlot}>
+          <ClockDial time={time} label={clockLabel} />
         </div>
       ) : null}
 

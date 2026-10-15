@@ -193,16 +193,24 @@ A 4 px base scale; use the token, never a raw pixel value.
 | `--dur-fast` | `130ms` |
 | `--dur-base` | `190ms` |
 | `--dur-slow` | `320ms` |
+| `--dur-tick` | `1000ms` |
 | `--ease-out` | `cubic-bezier(0.16, 0.84, 0.44, 1)` |
 | `--ease-in-out` | `cubic-bezier(0.4, 0, 0.2, 1)` |
 | `--ease-emphasis` | `cubic-bezier(0.34, 1.32, 0.5, 1)` |
 
 `motion` is an independent axis with three settings — `system`, `reduced`, `full`:
 
-- `[data-motion='reduced']` zeroes all four durations; transitions collapse to nothing rather
+- `[data-motion='reduced']` zeroes every duration; transitions collapse to nothing rather
   than merely getting faster.
 - `@media (prefers-reduced-motion: reduce)` applies the same zeroing to `:root:not([data-motion=
   'full'])`, so an explicit "full" choice is honoured while the OS default is respected.
+
+The home clock dial (`ClockDial.module.css`) is the one place where a duration follows the data
+rather than an interaction, and its two arcs differ on purpose. Both are redrawn every second from
+the current time: the day arc eases over exactly `--dur-tick` — one tick — because at 0.23 px per
+minute a shorter duration would turn a creep into a visible step, and the minute ring snaps in
+`--dur-fast` because that is the one motion the dial is meant to show. Every other transition stays
+at or below `--dur-slow`.
 
 Motion never gates input: no transition may delay a keystroke response (principle 13).
 

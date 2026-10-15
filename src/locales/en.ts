@@ -18,6 +18,8 @@ export const en = {
   'a11y.results': 'Search results',
   'a11y.search': 'Search bookmarks',
   'a11y.clock': 'Current local time',
+  'a11y.clockDay': '{percent}% of the day has passed',
+  'a11y.clockMinute': '{percent}% of the minute has passed',
 
   'search.placeholder': 'Search bookmarks, folders, or type a URL',
   'search.hint.open': 'open',

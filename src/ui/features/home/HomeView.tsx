@@ -18,7 +18,6 @@ import { onboardingDismissed } from '@/ui/state/onboarding';
 import { FolderTileGrid } from './FolderTile';
 import { HomeEmpty, HomeSkeleton, Hero } from './Hero';
 import { Onboarding } from './Onboarding';
-import { dayProgress } from './daylight';
 import styles from './HomeView.module.css';
 
 /** Pinned and recent rows stay one row tall; the full views handle volume. */
@@ -55,7 +54,6 @@ export function HomeView(): JSX.Element {
         tagline={t('app.tagline')}
         date={reading.date}
         time={reading.time}
-        dayProgress={dayProgress(now)}
         showClock={home.showClock}
         clockLabel={t('a11y.clock')}
         searchLabel={t('search.placeholder')}

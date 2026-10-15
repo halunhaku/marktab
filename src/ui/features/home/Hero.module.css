@@ -41,43 +41,11 @@
   color: var(--text-2);
 }
 
-.clock {
+/* The dial's box in the hero grid; the dial itself owns its contents. */
+.clockSlot {
   grid-area: clock;
-  position: relative;
-  display: grid;
-  place-items: center;
   width: 116px;
   height: 116px;
-}
-
-.arc {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.arcTrack {
-  fill: none;
-  stroke: var(--border-1);
-  stroke-width: 3;
-}
-
-.arcValue {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 3;
-  stroke-linecap: round;
-  transition: stroke-dashoffset var(--dur-slow) var(--ease-out);
-}
-
-.time {
-  font-family: var(--font-mono);
-  font-size: var(--text-xl);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-tight);
-  color: var(--text-1);
 }
 
 .search {
@@ -147,13 +115,9 @@
     padding: var(--space-5);
   }
 
-  .clock {
+  .clockSlot {
     justify-self: start;
     width: 88px;
     height: 88px;
-  }
-
-  .time {
-    font-size: var(--text-lg);
   }
 }

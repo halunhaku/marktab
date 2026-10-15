@@ -1,0 +1,60 @@
+/* Size and placement belong to the hero's grid — see `.clockSlot` in
+   `Hero.module.css`; this file owns everything inside the dial. */
+.dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.arc {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* A dash starts at 3 o'clock; midnight has to sit at the top. */
+  transform: rotate(-90deg);
+}
+
+.arcTrack {
+  fill: none;
+  stroke: var(--border-1);
+  stroke-width: 3;
+}
+
+.arcValue {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  /* The day arc is data you read, not motion you watch: easing it over exactly one
+     tick (`--dur-tick`) keeps the tip creeping with the clock instead of stepping
+     once a second. */
+  transition: stroke-dashoffset var(--dur-tick) linear;
+}
+
+/* The minute ring is the dial's motion cue — one lap a minute, 4.6 px per second —
+   so it snaps in `--dur-fast` and stays crisp, where the day arc's creep would
+   smear it. Outside the day arc, clear of the time label. */
+.arcMinute {
+  fill: none;
+  stroke: var(--accent-border);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--dur-fast) linear;
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-1);
+}
+
+@media (max-width: 768px) {
+  .time {
+    font-size: var(--text-lg);
+  }
+}

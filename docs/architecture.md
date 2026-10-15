@@ -64,7 +64,7 @@ Runtime dependencies are exactly `preact` and `@preact/signals`; everything else
 | Area | Responsibility |
 | --- | --- |
 | `features/app/` | `App.tsx` owns hydration, subscriptions, the global key map (ADR-014 — the palette owns its own combobox keys separately), the route switch and the overlay hosts. `Rail.tsx` renders navigation + folder tree + footer stats; `DialogHost.tsx` renders whatever dialog the overlay store requests. |
-| `features/home/` | `HomeView`, `Hero` (greeting + clock), `FolderTile`, `Onboarding` (first-run card), `daylight.ts` (`dayProgress(date)` → the 0…1 fraction that drives the home halo). |
+| `features/home/` | `HomeView`, `Hero` (greeting + search), `ClockDial` (the time, the day's arc and the minute ring, redrawn every second), `FolderTile`, `Onboarding` (first-run card), `clockProgress.ts` (`dayProgress`/`minuteProgress` → the 0…1 fractions that drive the dial). |
 | `features/folders/` | `FolderView`, `FolderToolbar` (view/sort segmented controls + filter field), `FolderBreadcrumb`, `FolderChips`, `FolderPlaceholder`. |
 | `features/library/` | `PinnedView` (includes the ordering controls Home omits) and `RecentView`. |
 | `features/links/` | `LinkRow` / `LinkCard` / `LinkList` / `LinkGrid` render the uniform `LinkItem`; `RenameDialog`, `MoveDialog` and `DeleteDialog` are its mutations; `open.ts` records the visit *before* navigating (a page that navigates away cancels pending writes) and supplies the shared `<a href>` anchor props, so middle-click, ⌘/Ctrl-click and the native context menu keep working. |

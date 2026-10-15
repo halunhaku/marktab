@@ -20,6 +20,8 @@ export const zh: MessageDict = {
   'a11y.results': '搜索结果',
   'a11y.search': '搜索书签',
   'a11y.clock': '当前本地时间',
+  'a11y.clockDay': '今天已过去 {percent}%',
+  'a11y.clockMinute': '本分钟已过去 {percent}%',
 
   'search.placeholder': '搜索书签、文件夹，或输入网址',
   'search.hint.open': '打开',
