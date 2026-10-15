@@ -17,6 +17,38 @@ test.describe('first run', () => {
     await expect(newTab.getByRole('main')).toBeVisible();
   });
 
+  test('keeps the home folder tiles unobstructed', async ({ newTab }) => {
+    // The tile draws a decorative "stack" plate behind its label. When that plate
+    // is positioned as a *child* of the button it paints above the button's static
+    // text and veils it — colours still measure correct, but the label renders
+    // almost invisible. Asserting paint order at the label catches that class of
+    // bug, which a token-level contrast audit cannot see.
+    const tile = newTab.locator('[data-folder-id]').first();
+    await expect(tile).toBeVisible();
+    // On a 900 px viewport this row sits below the fold.
+    await tile.scrollIntoViewIfNeeded();
+
+    const painted = await tile.evaluate((element) => {
+      const button = element.querySelector('button');
+      const label = button
+        ? [...button.querySelectorAll('span')].find(
+            (span) => (span.textContent?.trim().length ?? 0) > 1 && !/items?$/.test(span.textContent?.trim() ?? ''),
+          )
+        : null;
+      if (!label) return null;
+      const rect = label.getBoundingClientRect();
+      const topmost = document.elementsFromPoint(rect.left + 4, rect.top + rect.height / 2)[0] ?? null;
+      return {
+        label: label.textContent,
+        unobstructed: topmost !== null && (topmost === label || label.contains(topmost)),
+        topmostTag: topmost?.tagName ?? null,
+      };
+    });
+
+    expect(painted?.label).toBeTruthy();
+    expect(painted?.unobstructed, `topmost element at "${painted?.label}" is ${painted?.topmostTag}`).toBe(true);
+  });
+
   test('states emptiness instead of drawing an empty grid', async ({ newTab }) => {
     await expect(newTab.getByText('Pin what you use every day')).toBeVisible();
     await expect(newTab.getByText('Nothing opened yet').first()).toBeVisible();

@@ -27,8 +27,11 @@ export function FolderTile({ card, onSelect, onMenu }: FolderTileProps): JSX.Ele
       onContextMenu={onMenu}
       data-folder-id={card.folder.id}
     >
+      {/* The plate is a sibling *behind* the button, not a child of it: as a
+          positioned child it would paint over the tile's own text (which is
+          static, so it loses the paint-order tie) and veil the label. */}
+      <span class={styles.plate} aria-hidden="true" />
       <button type="button" class={styles.button} onClick={onSelect} title={card.folder.path}>
-        <span class={styles.plate} aria-hidden="true" />
         <span class={styles.head}>
           <Icon name="folder" size={16} class={styles.icon} />
           <span class={styles.title}>{card.folder.title}</span>

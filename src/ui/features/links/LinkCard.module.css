@@ -95,15 +95,18 @@
   opacity: 1;
 }
 
-/* A pinned card keeps its pin button visible: the state is worth seeing at rest. */
-.pinActive {
+/* A pinned card keeps its controls visible at rest: the state is worth seeing
+   without hovering. The cluster as a whole has to be revealed — an `opacity: 1`
+   on the button alone cannot rise above its parent's `opacity: 0`. */
+/* A pinned card keeps its controls visible at rest: the state is worth seeing
+   without hovering. The cluster as a whole has to be revealed — an `opacity: 1`
+   on the button alone cannot rise above its parent's `opacity: 0`. */
+.pinned .actions {
   opacity: 1;
-  color: var(--accent-strong);
 }
 
-.card:hover .pinActive,
-.card:focus-within .pinActive {
-  opacity: 1;
+.pinActive {
+  color: var(--accent-strong);
 }
 
 .pinned {

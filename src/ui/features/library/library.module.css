@@ -40,7 +40,6 @@
 /* ---- pinned ordering -------------------------------------------------- */
 
 .pinnedSlot {
-  position: relative;
   display: flex;
   flex-direction: column;
 }
@@ -49,15 +48,15 @@
   flex: 1 1 auto;
 }
 
+/* The manual position, as a label above the card. It used to be a badge
+   absolutely positioned in the card's top-left corner, which is exactly where the
+   card's favicon sits — the number and the icon rendered on top of each other. */
 .order {
-  position: absolute;
-  top: var(--space-3);
-  left: var(--space-3);
-  z-index: 1;
+  padding-inline: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
   color: var(--text-3);
-  opacity: 0.6;
 }
 
 .reorder {
@@ -67,6 +66,3 @@
   padding: var(--space-1) 0 0;
 }
 
-.spacer {
-  flex: 1 1 auto;
-}

@@ -7,9 +7,7 @@ import { CardGrid } from '@/ui/components/CardGrid';
 import { EmptyState } from '@/ui/components/EmptyState';
 import { IconButton } from '@/ui/components/Button';
 import { SectionHeader } from '@/ui/components/SectionHeader';
-import { buildLinkMenu } from '@/ui/actions/links';
 import { itemCountLabel } from '@/ui/format';
-import { openMenuAt } from '@/ui/state/overlay';
 import { openPalette } from '@/ui/state/router';
 import { LinkCard } from '@/ui/features/links/LinkCard';
 import styles from './library.module.css';
@@ -60,42 +58,18 @@ export function PinnedView(): JSX.Element {
                 <IconButton
                   size="sm"
                   icon="chevronLeft"
-                  label={t('item.moveEarlier')}
+                  // The control is a sibling of the card, so its name has to carry
+                  // the item: "Move up" alone does not say which bookmark moves.
+                  label={`${item.title}: ${t('item.moveEarlier')}`}
                   disabled={index === 0}
                   onClick={() => movePinnedTo(index, index - 1)}
                 />
                 <IconButton
                   size="sm"
                   icon="chevronRight"
-                  label={t('item.moveLater')}
+                  label={`${item.title}: ${t('item.moveLater')}`}
                   disabled={index === items.length - 1}
                   onClick={() => movePinnedTo(index, index + 1)}
-                />
-                <span class={styles.spacer} />
-                <IconButton
-                  size="sm"
-                  icon="moreVertical"
-                  label={t('item.more')}
-                  onClick={(event) => {
-                    const extras = [
-                      {
-                        id: 'move-earlier',
-                        label: t('item.moveEarlier'),
-                        icon: 'chevronLeft' as const,
-                        newGroup: true,
-                        disabled: index === 0,
-                        onSelect: () => movePinnedTo(index, index - 1),
-                      },
-                      {
-                        id: 'move-later',
-                        label: t('item.moveLater'),
-                        icon: 'chevronRight' as const,
-                        disabled: index === items.length - 1,
-                        onSelect: () => movePinnedTo(index, index + 1),
-                      },
-                    ];
-                    openMenuAt(event.currentTarget, [...buildLinkMenu(item), ...extras], item.title, 'end');
-                  }}
                 />
               </div>
             </div>

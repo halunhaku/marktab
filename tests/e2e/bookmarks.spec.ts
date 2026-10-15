@@ -155,6 +155,100 @@ test.describe('bookmark data', () => {
     ).toBeVisible();
   });
 
+  test('keeps a pinned card’s controls visible at rest', async ({ newTab, worker }) => {
+    // `pinActive { opacity: 1 }` cannot beat its parent cluster's `opacity: 0`, so
+    // the "a pinned card shows its state without hovering" rule lives on `.pinned`.
+    await seedBookmarks(worker, LIBRARY);
+    await rail(newTab).getByRole('button', { name: 'Dev' }).click();
+
+    const clusterOpacity = (url: string): Promise<string | null> =>
+      newTab.locator(`[data-url="${url}"]`).evaluate((element) => {
+        const pin = element.querySelector('button[aria-label="Pin"], button[aria-label="Unpin"]');
+        return pin?.parentElement ? getComputedStyle(pin.parentElement).opacity : null;
+      });
+
+    // `:hover` and `:focus-within` also reveal the cluster, so the pointer and
+    // the focus have to be off the card for this to test the at-rest state.
+    const settle = async (): Promise<void> => {
+      await newTab.mouse.move(1270, 760);
+      await newTab.evaluate(() => {
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+      });
+    };
+
+    // The cluster fades over `--dur-fast`, so poll rather than sampling the
+    // first frame of the transition.
+    await settle();
+    await expect.poll(() => clusterOpacity('https://github.com/')).toBe('0');
+    await newTab.locator('[data-url="https://github.com/"]').getByRole('button', { name: 'Pin' }).click();
+    await expect(newTab.getByText('Pinned to MarkTab')).toBeVisible();
+    await settle();
+    await expect.poll(() => clusterOpacity('https://github.com/')).toBe('1');
+  });
+
+  test('reorders pinned bookmarks and labels their order', async ({ newTab, worker }) => {
+    await seedBookmarks(worker, LIBRARY);
+    await rail(newTab).getByRole('button', { name: 'Dev' }).click();
+    await newTab.locator('[data-url="https://github.com/"]').getByRole('button', { name: 'Pin' }).click();
+    await newTab
+      .locator('[data-url="https://developer.mozilla.org/"]')
+      .getByRole('button', { name: 'Pin' })
+      .click();
+
+    await rail(newTab).getByRole('button', { name: 'Pinned' }).click();
+    const cards = newTab.locator('main [data-url]');
+    await expect(cards).toHaveCount(2);
+    await expect(cards.nth(0)).toHaveAttribute('data-url', 'https://github.com/');
+
+    // The position label sits above its card and never overprints the card's
+    // favicon: the badge must not intersect the icon, and the icon must be the
+    // topmost thing at its own centre.
+    const labels = await newTab.evaluate(() => {
+      const badges = [...document.querySelectorAll('main span')].filter((span) =>
+        /^\d\d$/.test(span.textContent ?? ''),
+      );
+      return badges.map((badge) => {
+        const slot = badge.parentElement;
+        const card = slot?.querySelector('[data-url]');
+        const icon = card?.querySelector('span');
+        const badgeRect = badge.getBoundingClientRect();
+        const cardRect = card?.getBoundingClientRect();
+        const iconRect = icon?.getBoundingClientRect();
+        const overlapsIcon = iconRect
+          ? !(
+              badgeRect.right <= iconRect.left ||
+              badgeRect.left >= iconRect.right ||
+              badgeRect.bottom <= iconRect.top ||
+              badgeRect.top >= iconRect.bottom
+            )
+          : true;
+        const topmost =
+          iconRect && iconRect.width > 0
+            ? (document.elementsFromPoint(iconRect.left + iconRect.width / 2, iconRect.top + iconRect.height / 2)[0] ??
+              null)
+            : null;
+        return {
+          text: badge.textContent,
+          aboveCard: cardRect ? badgeRect.bottom <= cardRect.top + 0.5 : false,
+          overlapsIcon,
+          iconOnTop: icon !== null && icon !== undefined && topmost !== null && (topmost === icon || icon.contains(topmost)),
+        };
+      });
+    });
+    expect(labels.map((entry) => entry.text)).toEqual(['01', '02']);
+    expect(
+      labels.every((entry) => entry.aboveCard && !entry.overlapsIcon && entry.iconOnTop),
+      JSON.stringify(labels),
+    ).toBe(true);
+
+    // Moving the first pin down swaps the order, in the view and in storage.
+    await newTab.getByRole('button', { name: 'Move down' }).first().click();
+    await expect(cards.nth(0)).toHaveAttribute('data-url', 'https://developer.mozilla.org/');
+    await expect
+      .poll(async () => (await readStored<{ pins: { url: string }[] }>(worker, 'local', DATA_KEY))?.pins.map((pin) => pin.url))
+      .toEqual(['https://developer.mozilla.org/', 'https://github.com/']);
+  });
+
   test('deletes a bookmark and restores it through the toast undo', async ({ newTab, worker }) => {
     await seedBookmarks(worker, LIBRARY);
     await rail(newTab).getByRole('button', { name: 'Dev' }).click();
