@@ -316,9 +316,10 @@ first, refuses to package an empty or missing `dist/extension`, and uses PowerSh
 runs tests/build/validate/package, creates a **draft** GitHub release with the zip attached,
 submits to the Chrome Web Store (`npm run cws:publish`) and Edge Add-ons
 (`npm run edge:publish`), and only publishes the draft after both API calls succeed. Recovery
-modes: `publish_github_release_only` (both stores already accepted) and
-`resume_edge_upload_operation_id` (an Edge upload is still `InProgress`) — neither re-uploads to
-Chrome (ADR-011). `.github/workflows/ci.yml` runs typecheck/test/build/validate on Node 22 plus
+modes: `publish_github_release_only` (both stores already accepted),
+`resume_edge_upload_operation_id` (an Edge upload is still `InProgress`) and
+`skip_chrome_web_store` (Chrome accepted the version, Edge did not) — none of them offers Chrome
+the same version twice (ADR-011). `.github/workflows/ci.yml` runs typecheck/test/build/validate on Node 22 plus
 a Playwright job that installs Chromium with `MARKTAB_E2E_CHANNEL=chromium`.
 
 ## 11. Testing strategy

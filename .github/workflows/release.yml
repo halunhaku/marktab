@@ -19,6 +19,11 @@ on:
         description: Resume an existing Edge upload operation without resubmitting Chrome
         required: false
         type: string
+      skip_chrome_web_store:
+        description: Submit to Edge Add-ons without resubmitting Chrome (Chrome already accepted this version)
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -39,6 +44,7 @@ jobs:
           REQUESTED_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           RECOVERY_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_github_release_only || false }}
           EDGE_UPLOAD_OPERATION_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.resume_edge_upload_operation_id || '' }}
+          SKIP_CHROME_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_chrome_web_store || false }}
         run: |
           if [[ ! "$REQUESTED_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Release tag must match vX.Y.Z." >&2
@@ -55,7 +61,16 @@ jobs:
             echo "Choose either GitHub-only recovery or Edge upload recovery, not both." >&2
             exit 1
           fi
+          if [[ "$SKIP_CHROME_REQUESTED" == "true" && "$RECOVERY_REQUESTED" == "true" ]]; then
+            echo "Choose either GitHub-only recovery or an Edge-only submission, not both." >&2
+            exit 1
+          fi
+          if [[ "$SKIP_CHROME_REQUESTED" == "true" && -n "$EDGE_UPLOAD_OPERATION_ID" ]]; then
+            echo "Choose either Edge upload recovery or an Edge-only submission, not both." >&2
+            exit 1
+          fi
           echo "edge_recovery=$([[ -n "$EDGE_UPLOAD_OPERATION_ID" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "skip_chrome=$SKIP_CHROME_REQUESTED" >> "$GITHUB_OUTPUT"
           echo "edge_upload_operation_id=$EDGE_UPLOAD_OPERATION_ID" >> "$GITHUB_OUTPUT"
 
       - name: Check out release tag
@@ -121,7 +136,7 @@ jobs:
           gh release upload "$TAG" "dist/marktab-$VERSION.zip" --clobber
 
       - name: Publish to Chrome Web Store
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true' && steps.release.outputs.skip_chrome != 'true'
         env:
           VERSION: ${{ steps.release.outputs.version }}
           CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
@@ -187,5 +202,6 @@ jobs:
             echo "The draft remains unpublished if draft creation completed."
             echo "Inspect the failed step and both store dashboards before retrying the existing tag."
             echo "If Edge returned an InProgress operation ID, resume that operation instead of resubmitting Chrome."
+            echo "If Chrome already accepted this version, re-run with skip_chrome_web_store to submit Edge only."
             echo "Recovery mode skips both store submissions and must only be used after both dashboards confirm acceptance."
           } >> "$GITHUB_STEP_SUMMARY"

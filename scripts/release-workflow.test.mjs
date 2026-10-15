@@ -22,6 +22,7 @@ test('release workflow has intended triggers and controls', async () => {
   assert.match(workflow, /^on:\n  push:\n    tags:\n      - 'v\*'\n  workflow_dispatch:/m);
   assert.match(workflow, /publish_github_release_only:\n        description: .*Chrome.*Edge.*\n        required: false/);
   assert.match(workflow, /resume_edge_upload_operation_id:\n        description: .*Edge.*without resubmitting Chrome\n        required: false/);
+  assert.match(workflow, /skip_chrome_web_store:\n        description: .*Edge.*without resubmitting Chrome.*\n        required: false/);
   assert.doesNotMatch(workflow, /pull_request/);
   assert.match(workflow, /^permissions:\n  contents: write$/m);
   assert.match(workflow, /^concurrency:\n  group: browser-store-release\n  queue: max\n  cancel-in-progress: false$/m);
@@ -83,11 +84,26 @@ test('recovery skips both stores and keeps failed releases as drafts', async () 
   assert.match(workflow, /timeout 60s gh release edit/);
 });
 
+test('an Edge-only run skips Chrome and still submits to Edge', async () => {
+  const workflow = await readWorkflow();
+  // Chrome accepted the version and Edge did not — a rotated Edge API key, say. The
+  // retry has to reach Edge without offering Chrome the same version twice, and the
+  // three recovery modes must stay mutually exclusive so no dispatch can mean two
+  // things at once.
+  assert.match(workflow, /- name: Publish to Chrome Web Store\n        if: steps\.release\.outputs\.recovery != 'true' && steps\.release\.outputs\.edge_recovery != 'true' && steps\.release\.outputs\.skip_chrome != 'true'/);
+  assert.match(workflow, /- name: Publish to Microsoft Edge Add-ons\n        if: steps\.release\.outputs\.recovery != 'true' && steps\.release\.outputs\.edge_recovery != 'true'\n/);
+  assert.match(workflow, /skip_chrome=\$SKIP_CHROME_REQUESTED/);
+  assert.match(workflow, /Choose either GitHub-only recovery or an Edge-only submission, not both\./);
+  assert.match(workflow, /Choose either Edge upload recovery or an Edge-only submission, not both\./);
+  assert.match(workflow, /re-run with skip_chrome_web_store to submit Edge only/i);
+});
+
 test('store guides document safe recovery', async () => {
   const chrome = await readFile(chromeGuidePath, 'utf8');
   const edge = await readFile(edgeGuidePath, 'utf8');
   for (const guide of [chrome, edge]) {
     assert.match(guide, /publish_github_release_only/);
+    assert.match(guide, /skip_chrome_web_store/);
     assert.match(guide, /both.*store/i);
   }
 });

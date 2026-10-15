@@ -101,8 +101,14 @@ draft until both stores accept.
 ## Retry and recovery
 
 Run **Actions → Release → Run workflow** with the existing tag to retry a failed submission.
-Check both dashboards first: if Chrome accepted but Edge failed, a full retry can attempt the
-Chrome submission again.
+Check both dashboards first: a full retry offers the same version to Chrome again, which Chrome
+rejects once it has that version.
+
+If Chrome accepted the version and Edge did not — a rotated API key, say, which fails the upload
+with `HTTP 401` before any operation exists — re-run from `main` with the existing tag and
+`skip_chrome_web_store` enabled. That run builds, validates and packages as usual, skips only the
+Chrome step, and then uploads and submits to Edge. Refresh `EDGE_CLIENT_ID` / `EDGE_API_KEY` from
+Partner Center → **Publish API** first, or the upload fails the same way.
 
 If Edge accepted the upload with `HTTP 202` but the workflow stopped while its operation was
 still `InProgress`, run the workflow from `main` with the existing tag and set

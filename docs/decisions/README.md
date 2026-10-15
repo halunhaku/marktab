@@ -224,9 +224,9 @@ step that v3 requires. `npm run validate` and `npm run package` run against
 (`SOURCE_DATE_EPOCH`, sorted entries) so a store diff is meaningful.
 
 **Consequences.** A failure at any store step leaves the GitHub release as a draft;
-recovering means re-running the tag with `publish_github_release_only` (or
-`resume_edge_upload_operation_id` for an in-progress Edge upload) instead of
-re-uploading to Chrome. No path exists that publishes a GitHub release for a build the
+recovering means re-running the tag with `publish_github_release_only`,
+`resume_edge_upload_operation_id` (an in-progress Edge upload) or `skip_chrome_web_store`
+(Chrome already holds the version and Edge does not) instead of re-uploading to Chrome. No path exists that publishes a GitHub release for a build the
 stores have not accepted.
 
 ---

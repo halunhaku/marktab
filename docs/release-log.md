@@ -90,9 +90,18 @@
 ## v3.0.0 — rebuild
 
 - Date: 2026-10-15
-- Status: prepared on `next-gen`. The `v3.0.0` tag has not been pushed from this repository
-  state, so no GitHub Release, Chrome Web Store submission or Edge Add-ons submission is
-  recorded for it yet; store review is asynchronous and must be confirmed in both dashboards.
+- Status: released from `main` (`e72c774`, fast-forwarded from `next-gen`) with the `v3.0.0`
+  tag. The `Release` run created the draft GitHub Release with `marktab-3.0.0.zip`
+  (92 020 bytes, sha256 `7b55cda1…b9b0a89`, identical to the locally packaged artifact), the
+  Chrome Web Store accepted the public review submission, and the Edge Add-ons upload failed
+  with `HTTP 401` before any operation existed — so the Edge submission is still missing and the
+  GitHub Release is still a draft. Store review is asynchronous and must be confirmed in both
+  dashboards.
+- Recovery: the Edge retry needs refreshed `EDGE_CLIENT_ID` / `EDGE_API_KEY` from Partner Center
+  and `workflow_dispatch` with `skip_chrome_web_store`, which skips the Chrome step without
+  offering it the same version twice. The mode was added for this failure (`skip_chrome_web_store`
+  in `.github/workflows/release.yml`); `publish_github_release_only` remains the last step, once
+  both dashboards confirm acceptance.
 - Validation: the gate is `npm run release:check` (`typecheck` → `test` (unit + scripts) →
   `build` → `validate` → `package`). On this tree `npm run typecheck`, `npm test`,
   `npm run build` and `npm run validate` pass; `npm run validate` reports an 18-file payload of

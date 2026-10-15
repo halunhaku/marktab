@@ -252,8 +252,10 @@ builds, validates, packages `dist/marktab-3.0.0.zip` from `dist/extension` (sort
 a fixed timestamp, so the archive is reproducible and a store diff is meaningful), creates a
 **draft** GitHub release, submits to the Chrome Web Store and Edge Add-ons, and only then
 publishes the draft. A failure at the store step leaves the draft unpublished; recover with
-`workflow_dispatch` using `publish_github_release_only` or `resume_edge_upload_operation_id`
-instead of re-uploading to Chrome (ADR-011).
+`workflow_dispatch` using `publish_github_release_only` (both stores already accepted),
+`resume_edge_upload_operation_id` (an Edge upload is still `InProgress`) or
+`skip_chrome_web_store` (Chrome accepted the version, Edge did not) instead of re-uploading to
+Chrome (ADR-011).
 
 Repository secrets: `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `CWS_ITEM_ID`,
 `CWS_PUBLISHER_ID`, `EDGE_PRODUCT_ID`, `EDGE_CLIENT_ID`, `EDGE_API_KEY`. Store review is

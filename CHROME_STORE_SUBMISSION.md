@@ -267,6 +267,9 @@ issues, pull requests, logs or chat.
 - **Edge upload still `InProgress`:** re-run with `resume_edge_upload_operation_id` set to the
   returned operation id — it resumes polling, submits Edge after validation, and does not
   resubmit Chrome.
+- **Chrome accepted, Edge did not:** re-run with `skip_chrome_web_store`. The run repeats
+  test/build/validate/package and the draft upload, skips the Chrome step only, and submits to
+  Edge; refresh the Edge credentials first when the failure was an `HTTP 401`.
 
 Never invent a replacement version and never move an existing tag. Chrome Web Store review is
 asynchronous; monitor it in the Developer Dashboard and respond to feedback there.
