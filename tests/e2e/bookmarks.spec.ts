@@ -177,6 +177,61 @@ test.describe('bookmark data', () => {
     expect(await storedBookmarkCount(worker, 'https://github.com/')).toBe(1);
   });
 
+  test('keeps a very long title clear of the card controls', async ({ newTab, worker }) => {
+    // A 200-character title is ordinary in a real library. The card's pin and
+    // "more" buttons are absolutely positioned in its top-right corner, so the
+    // copy block has to reserve that corner — otherwise the first line slides
+    // under the buttons — and the list row has to reserve it in flow, or a long
+    // title would push the buttons out of the row.
+    const longTitle = `Long title ${'with many words '.repeat(12)}that keeps going`;
+    await seedBookmarks(worker, [{ title: 'Layout', children: [{ title: longTitle, url: 'https://long.example/' }] }]);
+    await rail(newTab).getByRole('button', { name: 'Layout' }).click();
+
+    const card = newTab.locator('[data-url="https://long.example/"]');
+    await expect(card).toBeVisible();
+    await card.hover();
+    const pin = card.getByRole('button', { name: 'Pin' });
+    await expect(pin).toBeVisible();
+
+    const geometry = await card.evaluate((element) => {
+      const button = element.querySelector('button[aria-label="Pin"], button[aria-label="Unpin"]');
+      const title = [...element.querySelectorAll('span')].find((span) =>
+        span.textContent?.startsWith('Long title with many words'),
+      );
+      const box = element.getBoundingClientRect();
+      const pinBox = button?.getBoundingClientRect();
+      let textBox: DOMRect | null = null;
+      if (title?.firstChild) {
+        const range = document.createRange();
+        range.selectNodeContents(title);
+        textBox = range.getBoundingClientRect();
+      }
+      return {
+        pinInsideCard: pinBox ? pinBox.right <= box.right + 0.5 : false,
+        textClearOfControls: textBox && pinBox ? textBox.right <= pinBox.left : false,
+      };
+    });
+
+    expect(geometry.pinInsideCard).toBe(true);
+    expect(geometry.textClearOfControls).toBe(true);
+
+    // The same title in list view must not push the controls out of the row.
+    await newTab.getByRole('radio', { name: 'List view' }).click();
+    await expect(card).toBeVisible();
+    await card.hover();
+    const rowGeometry = await card.evaluate((element) => {
+      const button = element.querySelector('button[aria-label="Pin"], button[aria-label="Unpin"]');
+      const box = element.getBoundingClientRect();
+      const pinBox = button?.getBoundingClientRect();
+      return {
+        pinInsideRow: pinBox ? pinBox.right <= box.right + 0.5 : false,
+        rowOverflows: element.scrollWidth > element.clientWidth + 1,
+      };
+    });
+    expect(rowGeometry.pinInsideRow).toBe(true);
+    expect(rowGeometry.rowOverflows).toBe(false);
+  });
+
   test('hides a folder from the rail and brings it back from settings', async ({ newTab, worker }) => {
     await seedBookmarks(worker, LIBRARY);
     await rail(newTab).getByRole('button', { name: 'Dev' }).click();

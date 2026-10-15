@@ -50,6 +50,12 @@
   gap: 3px;
   min-width: 0;
   flex: 1 1 auto;
+  /* The card's controls are absolutely positioned in the top-right corner (two
+     `--control-h` targets plus the corner offset and a little air), so the copy
+     block reserves that corner instead of letting a long title run underneath
+     them. Reserving it for both lines rather than only the first is the simplest
+     rule that never collides, and it keeps the two lines flush. */
+  padding-inline-end: calc(var(--control-h) * 2 + var(--space-4));
 }
 
 .title {
