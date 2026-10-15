@@ -49,6 +49,42 @@ test.describe('first run', () => {
     expect(painted?.unobstructed, `topmost element at "${painted?.label}" is ${painted?.topmostTag}`).toBe(true);
   });
 
+  test('shows the folder tile plate as one card behind, not a second frame', async ({ newTab }) => {
+    // The plate is the tile's only decoration, and it must be a *one-sided* offset:
+    // the button is opaque, so a plate tucked under its top, left and right edges
+    // and peeking below reads as a card behind the card. An equal offset above
+    // *and* below — sharing the button's 1px border and its radius — instead reads
+    // as a second, concentric frame ("two boxes stacked"). Paint order is asserted
+    // at the plate's own top edge, which the button has to cover.
+    const tile = newTab.locator('[data-folder-id]').first();
+    await expect(tile).toBeVisible();
+    await tile.scrollIntoViewIfNeeded();
+
+    const shape = await tile.evaluate((element) => {
+      const plate = element.querySelector(':scope > span');
+      const button = element.querySelector('button');
+      if (!plate || !button) return null;
+      const p = plate.getBoundingClientRect();
+      const b = button.getBoundingClientRect();
+      const topmost = document.elementsFromPoint((p.left + p.right) / 2, p.top + 1)[0] ?? null;
+      return {
+        aboveButtonTop: +(p.top - b.top).toFixed(2),
+        peeksBelow: +(p.bottom - b.bottom).toFixed(2),
+        insetLeft: +(p.left - b.left).toFixed(2),
+        insetRight: +(b.right - p.right).toFixed(2),
+        coveredAtTop: topmost === button,
+        topmostTag: topmost?.tagName ?? null,
+      };
+    });
+
+    expect(shape).not.toBeNull();
+    expect(shape?.peeksBelow, 'the plate must show below the button').toBeGreaterThan(0);
+    expect(shape?.aboveButtonTop, 'the plate must not reach above the button').toBeGreaterThanOrEqual(0);
+    expect(shape?.insetLeft, "the plate must stay clear of the button's left edge").toBeGreaterThan(0);
+    expect(shape?.insetRight, "the plate must stay clear of the button's right edge").toBeGreaterThan(0);
+    expect(shape?.coveredAtTop, `topmost element at the plate's top edge is ${shape?.topmostTag}`).toBe(true);
+  });
+
   test('states emptiness instead of drawing an empty grid', async ({ newTab }) => {
     await expect(newTab.getByText('Pin what you use every day')).toBeVisible();
     await expect(newTab.getByText('Nothing opened yet').first()).toBeVisible();

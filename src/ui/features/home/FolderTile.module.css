@@ -6,16 +6,22 @@
 
 .tile {
   position: relative;
-  padding-top: 4px;
+  /* Room for the plate's bottom edge, the only part of it that shows: `bottom: 0`
+     on the plate resolves against this padding box, so the 4px lands exactly
+     under the button instead of on the grid gap. */
+  padding-bottom: 4px;
 }
 
-/* The offset plate behind the tile reads as "this contains more". It is a
-   sibling painted before the button (`z-index: 0` vs `1`) rather than a child of
-   it: an absolutely positioned child paints above the button's static content and
-   would veil the label it is supposed to sit behind. */
+/* The plate is the card behind the card: it sits 8px in on three sides, where the
+   opaque button covers it, and peeks 4px below. The offset must be one-sided — an
+   equal 4px above *and* below, sharing the button's 1px `--border-1` and its
+   `--radius-lg`, reads as a second concentric frame ("two boxes stacked") instead
+   of a stack. It is a sibling painted before the button (`z-index: 0` vs `1`)
+   rather than a child of it: an absolutely positioned child paints above the
+   button's static content and would veil the label it is supposed to sit behind. */
 .plate {
   position: absolute;
-  inset: 0 6px -4px 6px;
+  inset: 8px 8px 0 8px;
   z-index: 0;
   border: 1px solid var(--border-1);
   border-radius: var(--radius-lg);

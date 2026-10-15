@@ -14,8 +14,9 @@ export interface FolderTileProps {
 /**
  * Folder entry point on the home surface.
  *
- * Folder depth is conveyed by the offset "stack" plate behind the tile, the same
- * way the count is stated in words underneath — no invented iconography.
+ * Folder depth is conveyed by the plate behind the tile — the card behind the
+ * card, its bottom edge showing — the same way the count is stated in words
+ * underneath; no invented iconography.
  */
 export function FolderTile({ card, onSelect, onMenu }: FolderTileProps): JSX.Element {
   // The real recursive total: a tile that said "99 items" for a 3 000-item folder
@@ -27,9 +28,11 @@ export function FolderTile({ card, onSelect, onMenu }: FolderTileProps): JSX.Ele
       onContextMenu={onMenu}
       data-folder-id={card.folder.id}
     >
-      {/* The plate is a sibling *behind* the button, not a child of it: as a
-          positioned child it would paint over the tile's own text (which is
-          static, so it loses the paint-order tie) and veil the label. */}
+      {/* The plate peeks 4px below the button and is tucked under it on the other
+          three sides, so the tile reads as one card behind another. It is a
+          sibling *behind* the button, not a child of it: as a positioned child it
+          would paint over the tile's own text (which is static, so it loses the
+          paint-order tie) and veil the label. */}
       <span class={styles.plate} aria-hidden="true" />
       <button type="button" class={styles.button} onClick={onSelect} title={card.folder.path}>
         <span class={styles.head}>
