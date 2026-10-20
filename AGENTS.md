@@ -154,6 +154,11 @@ MV3, version `3.0.0`. Sources live in `src/**`; **nothing** in this repo ships a
 
 ## Release scope
 
+- `cloudflare/marktab-home-worker.js` is the hosted landing page, outside the extension. Its
+  preview images come from `store-assets/` and are checked by
+  `scripts/landing-screenshots.test.mjs`; when `npm run screenshots` renames or drops a file, keep
+  that map and the test in step. Changing the worker does nothing until it is deployed, and the
+  test cannot see the deployed copy.
 - **The Chrome Web Store is the only store MarkTab publishes to.** Do not add a second store
   publisher, a second set of store credentials or a second branch in `release.yml`: the
   Microsoft Edge Add-ons pipeline was deliberately removed, and

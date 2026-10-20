@@ -288,6 +288,9 @@ representative library, drives the interface with the same keys a user would pre
 any file it did not produce — so a stale image cannot survive a recapture. Run it after any
 visual change and before a submission; no README previews are embedded.
 
-`cloudflare/marktab-home-worker.js` (+ `wrangler.jsonc`) is a similarly legacy artefact: a
-standalone hosted landing page for the project, not part of the extension bundle, not built,
-not tested and not shipped.
+`cloudflare/marktab-home-worker.js` (+ `wrangler.jsonc`) is a legacy artefact: a standalone
+hosted landing page for the project, not part of the extension bundle, not built and not shipped.
+Its only guard is `scripts/landing-screenshots.test.mjs`, which runs in `npm run test:scripts`
+and fails when a preview image the page links to no longer exists in `store-assets/`, or when the
+page starts quoting the retired Edge store again. Deploy it with `wrangler deploy` after
+changing it: the test proves the links are right, not that the live Worker was updated.

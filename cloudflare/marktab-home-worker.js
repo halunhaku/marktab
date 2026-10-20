@@ -7,17 +7,22 @@ const PRIVACY_URL = `${GITHUB_REPO}/blob/main/PRIVACY_POLICY.md`;
 const LICENSE_URL = `${GITHUB_REPO}#license`;
 // The tracked screenshot set lives in `store-assets/` (captured by `npm run screenshots`
 // from the real build), so point at the files that exist rather than a README-only folder.
+// `scripts/landing-screenshots.test.mjs` fails if one of these assets disappears; follow the
+// SCREENSHOT_ASSETS marker so that test can read the list without evaluating this file.
+const SCREENSHOT_ASSETS = {
+  home: 'newtab-screenshot-1280x800.jpg',
+  popup: 'popup-screenshot-1280x800.jpg',
+  pinned: 'pinned-1280x800.jpg',
+  recent: 'recent-1280x800.jpg',
+  spotlight: 'palette-screenshot-1280x800.jpg',
+  folder: 'folder-screenshot-1280x800.jpg',
+  settings: 'settings-1280x800.jpg'
+};
 const SCREENSHOT_BASE = 'https://raw.githubusercontent.com/halunhaku/marktab/main/store-assets';
 
-const screenshots = {
-  home: `${SCREENSHOT_BASE}/newtab-screenshot-1280x800.jpg`,
-  popup: `${SCREENSHOT_BASE}/popup-screenshot-1280x800.jpg`,
-  pinned: `${SCREENSHOT_BASE}/pinned-1280x800.jpg`,
-  recent: `${SCREENSHOT_BASE}/recent-1280x800.jpg`,
-  spotlight: `${SCREENSHOT_BASE}/palette-screenshot-1280x800.jpg`,
-  folder: `${SCREENSHOT_BASE}/folder-screenshot-1280x800.jpg`,
-  settings: `${SCREENSHOT_BASE}/settings-1280x800.jpg`
-};
+const screenshots = Object.fromEntries(
+  Object.entries(SCREENSHOT_ASSETS).map(([name, file]) => [name, `${SCREENSHOT_BASE}/${file}`])
+);
 
 const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="18" fill="#5b6cff"/>
