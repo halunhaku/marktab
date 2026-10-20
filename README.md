@@ -5,14 +5,13 @@
 <h1 align="center">MarkTab</h1>
 
 <p align="center">
-  A fast, private, keyboard-first bookmark new tab for Chrome and Edge.<br>
+  A fast, private, keyboard-first bookmark new tab for Chrome.<br>
   <em>书签，一次按键就位</em>
 </p>
 
 <p align="center">
   <code>Manifest V3</code>
   · <code>Chrome 114+</code>
-  · <code>Edge Compatible</code>
   · <code>Preact 11</code>
   · <code>v3.0.0</code>
 </p>
@@ -82,7 +81,7 @@ npm run build
 
 The build emits the whole extension to `dist/extension`. Then:
 
-1. Open `chrome://extensions/` (Chrome) or `edge://extensions/` (Edge).
+1. Open `chrome://extensions/`.
 2. Turn on **Developer mode**.
 3. Click **Load unpacked**.
 4. Select the `dist/extension` folder — not the repository root, which contains TypeScript
@@ -121,7 +120,6 @@ are files, not a served app.
 | `npm run release:check` | `typecheck && test && build && validate && package` — the full local gate. |
 | `npm run screenshots` | `node scripts/capture-store-assets.mjs` — recaptures `store-assets/` from the built extension. |
 | `npm run cws:publish -- <zip>` | Uploads the zip to the Chrome Web Store (credentials from env). |
-| `npm run edge:publish -- <zip>` | Uploads the zip to Microsoft Edge Add-ons (credentials from env). |
 | `npm run bump -- 3.0.0` | Writes the new version into `package.json`, `public/manifest.json`, `README.md`, `CHROME_STORE_SUBMISSION.md` and `cloudflare/marktab-home-worker.js`. |
 
 `npm run build` must run before `npm run validate`, `npm run package` or `npm run test:e2e`:
@@ -250,17 +248,21 @@ git tag v3.0.0 && git push origin HEAD && git push origin v3.0.0
 `.github/workflows/release.yml` then checks out the tag, verifies the version, runs tests,
 builds, validates, packages `dist/marktab-3.0.0.zip` from `dist/extension` (sorted entries and
 a fixed timestamp, so the archive is reproducible and a store diff is meaningful), creates a
-**draft** GitHub release, submits to the Chrome Web Store and Edge Add-ons, and only then
-publishes the draft. A failure at the store step leaves the draft unpublished; recover with
-`workflow_dispatch` using `publish_github_release_only` (both stores already accepted),
-`resume_edge_upload_operation_id` (an Edge upload is still `InProgress`) or
-`skip_chrome_web_store` (Chrome accepted the version, Edge did not) instead of re-uploading to
+**draft** GitHub release, submits to the Chrome Web Store, and only then publishes the draft. A
+failure at the store step leaves the draft unpublished; recover with `workflow_dispatch` using
+`publish_github_release_only` (Chrome already accepted the submission) instead of re-uploading to
 Chrome (ADR-011).
 
+**Chrome only.** MarkTab publishes to the Chrome Web Store and nowhere else. The Microsoft Edge
+Add-ons pipeline (the `edge:publish` script, its API client, the `EDGE_*` secrets and the
+`release.yml` Edge steps and recovery inputs) was removed; the Edge listing itself still has to
+be withdrawn by hand in Partner Center, as
+[CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md#microsoft-edge--publishing-retired)
+describes.
+
 Repository secrets: `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `CWS_ITEM_ID`,
-`CWS_PUBLISHER_ID`, `EDGE_PRODUCT_ID`, `EDGE_CLIENT_ID`, `EDGE_API_KEY`. Store review is
-asynchronous and must be monitored in both dashboards. Per-release notes:
-[docs/release-log.md](./docs/release-log.md).
+`CWS_PUBLISHER_ID`. Store review is asynchronous and must be monitored in the Developer Dashboard.
+Per-release notes: [docs/release-log.md](./docs/release-log.md).
 
 ## Documentation map
 
@@ -272,7 +274,6 @@ asynchronous and must be monitored in both dashboards. Per-release notes:
 | [docs/decisions/README.md](./docs/decisions/README.md) | ADR-001 … ADR-018 for the v3 rebuild: framework, layering, visual rules, storage, permissions, shell/breakpoints, key map, tests and search. |
 | [AGENTS.md](./AGENTS.md) | Rules for contributors and coding agents. |
 | [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md) | Chrome Web Store listing, permission justifications and reviewer test script. |
-| [EDGE_STORE_SUBMISSION.md](./EDGE_STORE_SUBMISSION.md) | Edge Add-ons API, secrets and recovery modes. |
 | [PRIVACY_POLICY.md](./PRIVACY_POLICY.md) | The privacy policy (zh + en). |
 | [docs/release-log.md](./docs/release-log.md) | Release history, including the 3.0.0 rebuild. |
 | [docs/superpowers/](./docs/superpowers/) | **Historical.** v2-era specs and plans, kept only as a record of how the rewrite was planned; they describe neither the current code nor the current process. |

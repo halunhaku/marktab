@@ -314,20 +314,21 @@ first, refuses to package an empty or missing `dist/extension`, and uses PowerSh
 
 `release.yml` verifies the tag against both version sources (`scripts/release-version.mjs`),
 runs tests/build/validate/package, creates a **draft** GitHub release with the zip attached,
-submits to the Chrome Web Store (`npm run cws:publish`) and Edge Add-ons
-(`npm run edge:publish`), and only publishes the draft after both API calls succeed. Recovery
-modes: `publish_github_release_only` (both stores already accepted),
-`resume_edge_upload_operation_id` (an Edge upload is still `InProgress`) and
-`skip_chrome_web_store` (Chrome accepted the version, Edge did not) — none of them offers Chrome
-the same version twice (ADR-011). `.github/workflows/ci.yml` runs typecheck/test/build/validate on Node 22 plus
-a Playwright job that installs Chromium with `MARKTAB_E2E_CHANNEL=chromium`.
+submits to the Chrome Web Store (`npm run cws:publish`), and only publishes the draft after that
+API call succeeds. Recovery mode: `publish_github_release_only` (Chrome already accepted the
+submission) — it never offers Chrome the same version twice (ADR-011). The Chrome Web Store is
+the only store in the pipeline: the Edge Add-ons publisher and its two recovery inputs were
+retired, and `CHROME_STORE_SUBMISSION.md#microsoft-edge--publishing-retired` records why and what
+a human still has to do in Partner Center. `.github/workflows/ci.yml` runs
+typecheck/test/build/validate on Node 22 plus a Playwright job that installs Chromium with
+`MARKTAB_E2E_CHANNEL=chromium`.
 
 ## 11. Testing strategy
 
 | Layer | Runner | Scope |
 | --- | --- | --- |
 | Domain units | Vitest + happy-dom (`tests/unit/**`, `npm run test:unit`) | `buildIndex` (tree → index), `searchIndex` ranking, `fuzzy`/`url`/`time`/`timing` primitives. Fast, no browser. `tests/unit/helpers/fakes.ts` provides `chrome.*` fakes. |
-| Release tooling | `node --test scripts/*.test.mjs` (`npm run test:scripts`) | Packaging determinism, version agreement, the workflow contract, and the CWS/Edge API clients. |
+| Release tooling | `node --test scripts/*.test.mjs` (`npm run test:scripts`) | Packaging determinism, version agreement, the workflow contract, and the Chrome Web Store API client. |
 | Accessibility | `tests/e2e/a11y.spec.ts` runs `axe-core` inside every surface (home, folder, palette, pinned, recent, settings, popup) in both themes against the WCAG 2.0/2.1/2.2 A+AA rule sets. axe is injected with `page.addInitScript` because the extension's own CSP forbids inline scripts. It is the check that forced `--text-3`, `--accent-strong` and the primary button fill to their current values. |
 | End to end | Playwright Chromium against the unpacked `dist/extension` (`tests/e2e/**`, `npm run test:e2e` = build + `playwright test`) | The three facts happy-dom cannot prove: the unpacked build loads in real Chromium, the MV3 worker registers at `/background.js`, and the new tab page paints its shell with the resolved appearance on `<html>`. `tests/e2e/fixtures.ts` seeds bookmarks, clears state and reads/writes extension storage from inside the worker, including planting legacy v1/v2 profiles. |
 

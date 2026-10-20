@@ -212,22 +212,23 @@ contradicts the privacy claim on the store listing.
 
 **Status:** accepted (2026-10)
 
-**Context.** Releases publish to two stores with human review on both sides. v2 had a
-draft-based flow that could leave a half-published release if one store rejected the
-upload.
+**Context.** A release is published to a store with human review on the other side. v2 had a
+draft-based flow that could leave a half-published release if the store rejected the upload.
 
-**Decision.** Keep the v2 flow's shape — tag → verify version → test → **build** →
-validate → package → create/refresh a draft GitHub release → publish to Chrome →
-publish to Edge → only then flip the GitHub release out of draft — and add the build
-step that v3 requires. `npm run validate` and `npm run package` run against
-`dist/extension`, the exact tree that was built, and the zip is reproducible
-(`SOURCE_DATE_EPOCH`, sorted entries) so a store diff is meaningful.
+**Decision.** Keep the v2 flow's shape — tag → verify version → test → **build** → validate →
+package → create/refresh a draft GitHub release → publish to the Chrome Web Store → only then
+flip the GitHub release out of draft — and add the build step that v3 requires. `npm run
+validate` and `npm run package` run against `dist/extension`, the exact tree that was built, and
+the zip is reproducible (`SOURCE_DATE_EPOCH`, sorted entries) so a store diff is meaningful.
+The Chrome Web Store is the only store in the pipeline: the Edge Add-ons publisher, its API
+client, its secrets and its two recovery inputs were removed from the repository, because a
+second store doubled the failure surface for a product that only needs one listing
+(`CHROME_STORE_SUBMISSION.md#microsoft-edge--publishing-retired`).
 
-**Consequences.** A failure at any store step leaves the GitHub release as a draft;
-recovering means re-running the tag with `publish_github_release_only`,
-`resume_edge_upload_operation_id` (an in-progress Edge upload) or `skip_chrome_web_store`
-(Chrome already holds the version and Edge does not) instead of re-uploading to Chrome. No path exists that publishes a GitHub release for a build the
-stores have not accepted.
+**Consequences.** A failure at the store step leaves the GitHub release as a draft; recovering
+means re-running the tag with `publish_github_release_only` (Chrome already accepted the
+submission) instead of re-uploading to Chrome. No path exists that publishes a GitHub release
+for a build the store has not accepted.
 
 ---
 
@@ -477,7 +478,7 @@ those three against fakes.
   `chrome` global and clears `localStorage` after every test. There are no UI component
   tests — the UI is exercised in a browser instead of in a DOM emulator.
 - `npm run test:scripts` → `node --test scripts/*.test.mjs` covers the release tooling
-  itself (version bump, packaging, the CWS and Edge clients, the workflow shape), so a
+  itself (version bump, packaging, the Chrome Web Store client, the workflow shape), so a
   broken release script fails before a tag exists.
 - `npm run test:e2e` → `npm run build && playwright test`. `playwright.config.ts` points
   at `tests/e2e` and is pinned to `workers: 1` / `fullyParallel: false` because extension

@@ -1,7 +1,8 @@
 # MarkTab — Chrome Web Store submission
 
 Applies to **MarkTab 3.0.0** (`package.json` version, mirrored in `public/manifest.json`).
-Edge Add-ons has its own notes: [EDGE_STORE_SUBMISSION.md](./EDGE_STORE_SUBMISSION.md).
+The Chrome Web Store is the only store this extension ships to; see
+[Microsoft Edge — publishing retired](#microsoft-edge--publishing-retired).
 
 ## Single purpose
 
@@ -202,8 +203,7 @@ The publisher uses the Chrome Web Store API V2; `CWS_PUBLISHER_ID` is required i
 status and publish request. A pushed `vX.Y.Z` tag triggers `.github/workflows/release.yml`:
 verify the tag against `package.json` + `public/manifest.json`, run tests, build, validate,
 package, create a **draft** GitHub release, upload, wait for the upload to succeed, submit for
-public review with `DEFAULT_PUBLISH`, then publish the draft only after Chrome **and** Edge
-accept their submissions.
+public review with `DEFAULT_PUBLISH`, then publish the draft once Chrome accepts the submission.
 
 ### One-time prerequisites
 
@@ -260,19 +260,44 @@ issues, pull requests, logs or chat.
 - **Retry a failed tag release:** **Actions → Release → Run workflow**, enter the existing
   `vX.Y.Z` tag. The workflow checks out that exact tag, rebuilds the deterministic ZIP, reuses
   the draft release and replaces the same-named asset.
-- **Only the final publish step failed:** confirm in **both** dashboards that Chrome and Edge
-  accepted their submissions, then re-run with `publish_github_release_only`. That mode requires
-  an existing draft and skips both store APIs entirely. Do not use it when a store submission
+- **Only the final publish step failed:** confirm in the Chrome Web Store Developer Dashboard
+  that the submission was accepted, then re-run with `publish_github_release_only`. That mode
+  requires an existing draft and skips the store API entirely. Do not use it when the submission
   failed or is ambiguous.
-- **Edge upload still `InProgress`:** re-run with `resume_edge_upload_operation_id` set to the
-  returned operation id — it resumes polling, submits Edge after validation, and does not
-  resubmit Chrome.
-- **Chrome accepted, Edge did not:** re-run with `skip_chrome_web_store`. The run repeats
-  test/build/validate/package and the draft upload, skips the Chrome step only, and submits to
-  Edge; refresh the Edge credentials first when the failure was an `HTTP 401`.
 
 Never invent a replacement version and never move an existing tag. Chrome Web Store review is
 asynchronous; monitor it in the Developer Dashboard and respond to feedback there.
+
+## Microsoft Edge — publishing retired
+
+MarkTab published to the Microsoft Edge Add-ons store from v2.0.6 to v3.0.0. **The listing was
+unpublished on 2026-10-20.** The store operations for it are complete; no further Edge work is
+scheduled, and the Chrome Web Store is the only store this extension ships to.
+
+Nothing of the Edge path is left in the repository: the Edge publisher (`scripts/edge-publish.mjs`),
+its API client (`scripts/edge-api.mjs`), their tests, the guide they came with
+(`EDGE_STORE_SUBMISSION.md`), the Edge npm script, the `EDGE_*` repository secrets the release
+workflow read, and the two Edge-only recovery inputs `workflow_dispatch` used to offer are all
+gone. `release.yml` publishes to the Chrome Web Store only, and
+`scripts/release-workflow.test.mjs` fails if any of those inputs come back.
+
+How the withdrawal behaves, per Microsoft's own documentation
+([Status for submitted extensions](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/submission-states)):
+
+- **Unpublish** — the action taken here — changes the item's state to *Unavailable in store →
+  Unpublished from store*. It is no longer available to new users at
+  `edge.microsoft.com/addons`, while users who already installed it keep their copy.
+- **Hidden** (the `Visibility` setting on the *Availability* page) is **not** a withdrawal: it
+  only removes the item from search results and browsing, and leaves it on the store, still
+  receiving updates. Do not use it as a substitute.
+- Partner Center offers no "delete the item permanently" step and no dedicated *discontinued*
+  field, so the unpublished item stays in the dashboard as an archive. Nothing else needs to be
+  done there.
+
+Existing Edge installs keep working (the 3.0.0 package is unaffected) but stop receiving updates,
+because nothing is published there any more. The `EDGE_PRODUCT_ID`, `EDGE_CLIENT_ID` and
+`EDGE_API_KEY` repository secrets were deleted from GitHub → **Settings → Secrets and variables
+→ Actions** on the same day.
 
 ## Pre-submission checklist
 

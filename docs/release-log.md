@@ -147,8 +147,47 @@
     `eval(`, `new Function(`, `document.write(` or an analytics identifier.
   - **Documentation rebuilt for v3**: new [docs/architecture.md](./architecture.md); rewritten
     `README.md`, `AGENTS.md`, `DESIGN_SYSTEM.md`, `PRIVACY_POLICY.md`,
-    `CHROME_STORE_SUBMISSION.md` and `EDGE_STORE_SUBMISSION.md`; the v2-era
+    `CHROME_STORE_SUBMISSION.md` and the now-retired Edge guide; the v2-era
     [docs/superpowers/](./superpowers/) specs and plans are kept as historical records.
   - **Screenshots:** `store-assets/` was recaptured from the 3.0.0 build by
     `npm run screenshots`; the inventory and the recapture rule are in
     [CHROME_STORE_SUBMISSION.md](../CHROME_STORE_SUBMISSION.md#screenshots).
+
+## 2026-10-20 — Edge publishing retired (no release cut)
+
+- Date: 2026-10-20
+- Status: repository change only; no tag, no version bump, no store submission. Chrome Web Store
+  publishing is unchanged.
+- What changed (Chrome Web Store is now the only store):
+  - Deleted `scripts/edge-publish.mjs`, `scripts/edge-api.mjs` and their tests, and the
+    `EDGE_STORE_SUBMISSION.md` guide.
+  - Removed `npm run edge:publish` from `package.json`, along with the Edge description.
+  - `.github/workflows/release.yml` no longer has the Edge submission step, the Edge upload
+    resume step, or the two Edge-only `workflow_dispatch` recovery inputs. The remaining
+    recovery mode is `publish_github_release_only`.
+  - `scripts/release-workflow.test.mjs` now asserts the Edge path stays gone (missing scripts,
+    missing npm script, no `EDGE_*` secrets or Edge inputs in the workflow) instead of asserting
+    its behaviour.
+  - Docs follow the code: `README.md`, `AGENTS.md` (new *Release scope* rule),
+    `PRIVACY_POLICY.md`, `CHROME_STORE_SUBMISSION.md` (new *Microsoft Edge — publishing retired*
+    section), `docs/architecture.md`, ADR-011, the landing-page worker and the screenshot-script
+    comment now describe a Chrome-only product.
+- Why: the 3.0.0 Edge upload failed with `HTTP 401`, needed refreshed Partner Center credentials
+  and two extra recovery modes in `release.yml`, and doubled the release's failure surface for no
+  product benefit. The extension is MV3 and still installs in Chromium-based browsers, but it
+  ships to one store.
+- Historical entries below are left as written; the v2/v3.0.0 notes that describe Edge uploads
+  record what happened at the time.
+- **Manual steps completed (2026-10-20), by the maintainer:**
+  1. MarkTab was **unpublished** from the Microsoft Edge Add-ons store via Partner Center, so the
+     item's state is *Unavailable in store → Unpublished from store*: not downloadable by new
+     users, existing installs keep working but receive no further updates. No permanent deletion
+     was offered or needed; the item stays in the dashboard as an archive.
+  2. The `EDGE_PRODUCT_ID`, `EDGE_CLIENT_ID` and `EDGE_API_KEY` repository secrets were deleted
+     from GitHub → Settings → Secrets and variables → Actions.
+  - Background, and why *Hidden* was not used: Microsoft documents *Hidden* as a visibility
+    setting that leaves the extension on the store, searchable by direct URL and still updatable,
+    while *Unpublish* is the only state that withdraws it
+    ([submission states](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/submission-states)).
+    The operational notes live in
+    [CHROME_STORE_SUBMISSION.md](../CHROME_STORE_SUBMISSION.md#microsoft-edge--publishing-retired).

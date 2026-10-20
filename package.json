@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "private": true,
   "type": "module",
-  "description": "MarkTab 3 — a fast, private, keyboard-first bookmark new tab for Chrome and Edge.",
+  "description": "MarkTab 3 — a fast, private, keyboard-first bookmark new tab for Chrome.",
   "engines": {
     "node": ">=20"
   },
@@ -21,7 +21,6 @@
     "release:check": "npm run typecheck && npm test && npm run build && npm run validate && npm run package",
     "screenshots": "node scripts/capture-store-assets.mjs",
     "cws:publish": "node scripts/cws-publish.mjs",
-    "edge:publish": "node scripts/edge-publish.mjs",
     "bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {

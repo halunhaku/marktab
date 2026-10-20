@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url';
 const workflowPath = fileURLToPath(new URL('../.github/workflows/release.yml', import.meta.url));
 const ciPath = fileURLToPath(new URL('../.github/workflows/ci.yml', import.meta.url));
 const chromeGuidePath = fileURLToPath(new URL('../CHROME_STORE_SUBMISSION.md', import.meta.url));
-const edgeGuidePath = fileURLToPath(new URL('../EDGE_STORE_SUBMISSION.md', import.meta.url));
 const packageJsonPath = fileURLToPath(new URL('../package.json', import.meta.url));
 const readWorkflow = () => readFile(workflowPath, 'utf8');
 
@@ -20,9 +19,9 @@ test('release workflow has intended triggers and controls', async () => {
   const workflow = await readWorkflow();
   assert.match(workflow, /^name: Release$/m);
   assert.match(workflow, /^on:\n  push:\n    tags:\n      - 'v\*'\n  workflow_dispatch:/m);
-  assert.match(workflow, /publish_github_release_only:\n        description: .*Chrome.*Edge.*\n        required: false/);
-  assert.match(workflow, /resume_edge_upload_operation_id:\n        description: .*Edge.*without resubmitting Chrome\n        required: false/);
-  assert.match(workflow, /skip_chrome_web_store:\n        description: .*Edge.*without resubmitting Chrome.*\n        required: false/);
+  assert.match(workflow, /publish_github_release_only:\n        description: .*Chrome.*\n        required: false/);
+  assert.doesNotMatch(workflow, /resume_edge_upload_operation_id|skip_chrome_web_store/);
+  assert.doesNotMatch(workflow, /\bEdge\b|EDGE_/);
   assert.doesNotMatch(workflow, /pull_request/);
   assert.match(workflow, /^permissions:\n  contents: write$/m);
   assert.match(workflow, /^concurrency:\n  group: browser-store-release\n  queue: max\n  cancel-in-progress: false$/m);
@@ -38,7 +37,7 @@ test('release workflow validates an exact tag and checks it out', async () => {
   assert.match(workflow, /run: npm ci/);
 });
 
-test('release order is install, test, build, validate, package, stores, then GitHub publication', async () => {
+test('release order is install, test, build, validate, package, Chrome Web Store, then GitHub publication', async () => {
   const workflow = await readWorkflow();
   const tokens = [
     'node scripts/release-version.mjs "$TAG"', 'npm test', 'npm run build', 'npm run validate',
@@ -46,66 +45,40 @@ test('release order is install, test, build, validate, package, stores, then Git
     'gh release create "$TAG" --verify-tag --draft',
     'gh release upload "$TAG" "dist/marktab-$VERSION.zip" --clobber',
     'npm run cws:publish -- "dist/marktab-$VERSION.zip"',
-    'npm run edge:publish -- "dist/marktab-$VERSION.zip"',
     'gh release edit "$TAG" --draft=false',
   ];
   const positions = tokens.map((token) => positionOf(workflow, token));
   assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
 });
 
-test('store secrets are confined to their respective steps', async () => {
+test('Chrome Web Store secrets are confined to the publish step', async () => {
   const workflow = await readWorkflow();
   const chromeStart = positionOf(workflow, '- name: Publish to Chrome Web Store');
-  const edgeStart = positionOf(workflow, '- name: Publish to Microsoft Edge Add-ons');
   const githubStart = positionOf(workflow, '- name: Publish GitHub Release');
-  const chromeStep = workflow.slice(chromeStart, edgeStart);
-  const edgeStep = workflow.slice(edgeStart, githubStart);
+  const chromeStep = workflow.slice(chromeStart, githubStart);
   for (const name of ['CWS_CLIENT_ID', 'CWS_CLIENT_SECRET', 'CWS_REFRESH_TOKEN', 'CWS_PUBLISHER_ID', 'CWS_ITEM_ID']) {
     assert.equal((workflow.match(new RegExp(`\\$\\{\\{ secrets\\.${name} \\}\\}`, 'g')) ?? []).length, 1);
     assert.match(chromeStep, new RegExp(`${name}: \\$\\{\\{ secrets\\.${name} \\}\\}`));
   }
-  for (const name of ['EDGE_PRODUCT_ID', 'EDGE_CLIENT_ID', 'EDGE_API_KEY']) {
-    assert.equal((workflow.match(new RegExp(`\\$\\{\\{ secrets\\.${name} \\}\\}`, 'g')) ?? []).length, 2);
-    assert.match(edgeStep, new RegExp(`${name}: \\$\\{\\{ secrets\\.${name} \\}\\}`));
-  }
 });
 
-test('recovery skips both stores and keeps failed releases as drafts', async () => {
+test('recovery skips the store and keeps failed releases as drafts', async () => {
   const workflow = await readWorkflow();
-  for (const step of ['Check out release tag', 'Verify release version', 'Run tests', 'Build extension', 'Validate extension', 'Package extension', 'Prepare draft GitHub Release', 'Publish to Chrome Web Store', 'Publish to Microsoft Edge Add-ons']) {
-    assert.match(workflow, new RegExp(`- name: ${step}\\n        if: steps\\.release\\.outputs\\.recovery != 'true' && steps\\.release\\.outputs\\.edge_recovery != 'true'`));
+  for (const step of ['Check out release tag', 'Verify release version', 'Run tests', 'Build extension', 'Validate extension', 'Package extension', 'Prepare draft GitHub Release', 'Publish to Chrome Web Store']) {
+    assert.match(workflow, new RegExp(`- name: ${step}\\n        if: steps\\.release\\.outputs\\.recovery != 'true'$`, 'm'));
   }
-  assert.match(workflow, /- name: Resume Microsoft Edge Add-ons upload\n        if: steps\.release\.outputs\.edge_recovery == 'true'/);
-  assert.match(workflow, /npm run edge:publish\n/);
-  assert.match(workflow, /resume that operation instead of resubmitting Chrome/i);
-  assert.match(workflow, /Chrome Web Store and Edge Add-ons acceptance were confirmed/i);
-  assert.match(workflow, /Recovery mode skips both store submissions/i);
+  assert.match(workflow, /Chrome Web Store acceptance was confirmed/i);
+  assert.match(workflow, /Recovery mode skips the store submission/i);
   assert.match(workflow, /draft remains unpublished/i);
   assert.match(workflow, /timeout 60s gh release edit/);
 });
 
-test('an Edge-only run skips Chrome and still submits to Edge', async () => {
-  const workflow = await readWorkflow();
-  // Chrome accepted the version and Edge did not — a rotated Edge API key, say. The
-  // retry has to reach Edge without offering Chrome the same version twice, and the
-  // three recovery modes must stay mutually exclusive so no dispatch can mean two
-  // things at once.
-  assert.match(workflow, /- name: Publish to Chrome Web Store\n        if: steps\.release\.outputs\.recovery != 'true' && steps\.release\.outputs\.edge_recovery != 'true' && steps\.release\.outputs\.skip_chrome != 'true'/);
-  assert.match(workflow, /- name: Publish to Microsoft Edge Add-ons\n        if: steps\.release\.outputs\.recovery != 'true' && steps\.release\.outputs\.edge_recovery != 'true'\n/);
-  assert.match(workflow, /skip_chrome=\$SKIP_CHROME_REQUESTED/);
-  assert.match(workflow, /Choose either GitHub-only recovery or an Edge-only submission, not both\./);
-  assert.match(workflow, /Choose either Edge upload recovery or an Edge-only submission, not both\./);
-  assert.match(workflow, /re-run with skip_chrome_web_store to submit Edge only/i);
-});
-
-test('store guides document safe recovery', async () => {
+test('the Chrome guide documents safe recovery and no retired Edge path', async () => {
   const chrome = await readFile(chromeGuidePath, 'utf8');
-  const edge = await readFile(edgeGuidePath, 'utf8');
-  for (const guide of [chrome, edge]) {
-    assert.match(guide, /publish_github_release_only/);
-    assert.match(guide, /skip_chrome_web_store/);
-    assert.match(guide, /both.*store/i);
-  }
+  assert.match(chrome, /publish_github_release_only/);
+  assert.match(chrome, /Edge/);
+  assert.match(chrome, /retired|withdrawn/i);
+  assert.doesNotMatch(chrome, /resume_edge_upload_operation_id|skip_chrome_web_store|edge:publish/);
 });
 
 test('CI runs typecheck, tests, build, validation and the end-to-end suite', async () => {
@@ -133,4 +106,18 @@ test('npm scripts cover the full local verification path', async () => {
 
 test('retired v2 layout test is gone', async () => {
   await assert.rejects(access(fileURLToPath(new URL('./newtab-layout.test.mjs', import.meta.url))));
+});
+
+test('retired Edge publishing is gone from the repository', async () => {
+  for (const file of [
+    '../EDGE_STORE_SUBMISSION.md',
+    './edge-api.mjs',
+    './edge-api.test.mjs',
+    './edge-publish.mjs',
+    './edge-publish.test.mjs',
+  ]) {
+    await assert.rejects(access(fileURLToPath(new URL(file, import.meta.url))), `${file} should not exist.`);
+  }
+  const pkg = JSON.parse(await readFile(packageJsonPath, 'utf8'));
+  assert.equal(pkg.scripts['edge:publish'], undefined);
 });

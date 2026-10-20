@@ -71,7 +71,7 @@ function renderHtml(release) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MarkTab - 书签驱动的新标签页扩展</title>
-  <meta name="description" content="MarkTab 是一个以书签为核心的 Chrome/Edge 新标签页扩展，用更安静、清晰、快速的方式管理和访问常用网页。">
+  <meta name="description" content="MarkTab 是一个以书签为核心的 Chrome 新标签页扩展，用更安静、清晰、快速的方式管理和访问常用网页。">
   <meta property="og:title" content="MarkTab">
   <meta property="og:description" content="以书签为核心的浏览器新标签页扩展。">
   <meta property="og:type" content="website">
@@ -676,7 +676,6 @@ function renderHtml(release) {
             <div class="badges" aria-label="Project badges">
               <span class="badge">Manifest V3</span>
               <span class="badge">Chrome Extension</span>
-              <span class="badge">Edge Compatible</span>
               <span class="badge">Local-first</span>
             </div>
           </div>
@@ -838,7 +837,7 @@ function renderHtml(release) {
             <article class="install-card">
               <span class="step">2</span>
               <h3>打开扩展管理页面</h3>
-              <p>Chrome 使用 <code>chrome://extensions/</code>，Edge 使用 <code>edge://extensions/</code>。</p>
+              <p>在 Chrome 地址栏打开 <code>chrome://extensions/</code>。</p>
             </article>
             <article class="install-card">
               <span class="step">3</span>
@@ -849,7 +848,7 @@ function renderHtml(release) {
           <div class="download-panel">
             <div>
               <strong>Latest release: v${version}</strong>
-              <span>Manifest V3 package for Chrome and Edge compatible browsers.</span>
+              <span>Manifest V3 package for Chrome.</span>
             </div>
             <a class="btn btn-primary" href="${zipUrl}">Download v${version}</a>
           </div>

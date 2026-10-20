@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
  *
  * Everything is taken from the real unpacked build in `dist/extension`, in a
  * throwaway profile seeded with a representative library, at exactly 1280×800
- * (the size Chrome Web Store and Edge Add-ons ask for) plus the 440×280 promo
+ * (the size the Chrome Web Store asks for) plus the 440×280 promo
  * tile. Each shot is written as PNG (store upload) and JPEG (listing page).
  *
  * Usage: `npm run build && npm run screenshots`

@@ -11,16 +11,7 @@ on:
         required: true
         type: string
       publish_github_release_only:
-        description: Publish draft only after Chrome and Edge store acceptance is confirmed
-        required: false
-        default: false
-        type: boolean
-      resume_edge_upload_operation_id:
-        description: Resume an existing Edge upload operation without resubmitting Chrome
-        required: false
-        type: string
-      skip_chrome_web_store:
-        description: Submit to Edge Add-ons without resubmitting Chrome (Chrome already accepted this version)
+        description: Publish draft only after Chrome Web Store acceptance is confirmed
         required: false
         default: false
         type: boolean
@@ -43,8 +34,6 @@ jobs:
         env:
           REQUESTED_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           RECOVERY_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_github_release_only || false }}
-          EDGE_UPLOAD_OPERATION_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.resume_edge_upload_operation_id || '' }}
-          SKIP_CHROME_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_chrome_web_store || false }}
         run: |
           if [[ ! "$REQUESTED_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Release tag must match vX.Y.Z." >&2
@@ -53,36 +42,13 @@ jobs:
           echo "tag=$REQUESTED_TAG" >> "$GITHUB_OUTPUT"
           echo "version=${REQUESTED_TAG#v}" >> "$GITHUB_OUTPUT"
           echo "recovery=$RECOVERY_REQUESTED" >> "$GITHUB_OUTPUT"
-          if [[ -n "$EDGE_UPLOAD_OPERATION_ID" && ! "$EDGE_UPLOAD_OPERATION_ID" =~ ^[A-Za-z0-9-]+$ ]]; then
-            echo "Edge upload operation ID has an invalid format." >&2
-            exit 1
-          fi
-          if [[ "$RECOVERY_REQUESTED" == "true" && -n "$EDGE_UPLOAD_OPERATION_ID" ]]; then
-            echo "Choose either GitHub-only recovery or Edge upload recovery, not both." >&2
-            exit 1
-          fi
-          if [[ "$SKIP_CHROME_REQUESTED" == "true" && "$RECOVERY_REQUESTED" == "true" ]]; then
-            echo "Choose either GitHub-only recovery or an Edge-only submission, not both." >&2
-            exit 1
-          fi
-          if [[ "$SKIP_CHROME_REQUESTED" == "true" && -n "$EDGE_UPLOAD_OPERATION_ID" ]]; then
-            echo "Choose either Edge upload recovery or an Edge-only submission, not both." >&2
-            exit 1
-          fi
-          echo "edge_recovery=$([[ -n "$EDGE_UPLOAD_OPERATION_ID" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-          echo "skip_chrome=$SKIP_CHROME_REQUESTED" >> "$GITHUB_OUTPUT"
-          echo "edge_upload_operation_id=$EDGE_UPLOAD_OPERATION_ID" >> "$GITHUB_OUTPUT"
 
       - name: Check out release tag
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        if: steps.release.outputs.recovery != 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: refs/tags/${{ steps.release.outputs.tag }}
-
-      - name: Check out Edge recovery tooling
-        if: steps.release.outputs.edge_recovery == 'true'
-        uses: actions/checkout@v4
 
       - name: Set up Node.js
         if: steps.release.outputs.recovery != 'true'
@@ -92,33 +58,33 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        if: steps.release.outputs.recovery != 'true'
         run: npm ci
 
       - name: Verify release version
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        if: steps.release.outputs.recovery != 'true'
         env:
           TAG: ${{ steps.release.outputs.tag }}
         run: node scripts/release-version.mjs "$TAG"
 
       - name: Run tests
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        if: steps.release.outputs.recovery != 'true'
         run: npm test
 
       - name: Build extension
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        if: steps.release.outputs.recovery != 'true'
         run: npm run build
 
       - name: Validate extension
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        if: steps.release.outputs.recovery != 'true'
         run: npm run validate
 
       - name: Package extension
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        if: steps.release.outputs.recovery != 'true'
         run: npm run package
 
       - name: Prepare draft GitHub Release
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
+        if: steps.release.outputs.recovery != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
@@ -136,7 +102,7 @@ jobs:
           gh release upload "$TAG" "dist/marktab-$VERSION.zip" --clobber
 
       - name: Publish to Chrome Web Store
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true' && steps.release.outputs.skip_chrome != 'true'
+        if: steps.release.outputs.recovery != 'true'
         env:
           VERSION: ${{ steps.release.outputs.version }}
           CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
@@ -146,32 +112,12 @@ jobs:
           CWS_ITEM_ID: ${{ secrets.CWS_ITEM_ID }}
         run: npm run cws:publish -- "dist/marktab-$VERSION.zip"
 
-      - name: Publish to Microsoft Edge Add-ons
-        if: steps.release.outputs.recovery != 'true' && steps.release.outputs.edge_recovery != 'true'
-        env:
-          VERSION: ${{ steps.release.outputs.version }}
-          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
-          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
-          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
-        run: npm run edge:publish -- "dist/marktab-$VERSION.zip"
-
-      - name: Resume Microsoft Edge Add-ons upload
-        if: steps.release.outputs.edge_recovery == 'true'
-        env:
-          VERSION: ${{ steps.release.outputs.version }}
-          EDGE_UPLOAD_OPERATION_ID: ${{ steps.release.outputs.edge_upload_operation_id }}
-          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
-          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
-          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
-        run: npm run edge:publish
-
       - name: Publish GitHub Release
         if: steps.release.outputs.recovery == 'true' || success()
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
           RECOVERY_ONLY: ${{ steps.release.outputs.recovery }}
-          EDGE_RECOVERY: ${{ steps.release.outputs.edge_recovery }}
         run: |
           IS_DRAFT=$(timeout 60s gh release view "$TAG" --json isDraft --jq '.isDraft')
           if [[ "$IS_DRAFT" != "true" ]]; then
@@ -179,9 +125,7 @@ jobs:
             exit 1
           fi
           if [[ "$RECOVERY_ONLY" == "true" ]]; then
-            echo "Recovery mode: Chrome Web Store and Edge Add-ons acceptance were confirmed by the operator."
-          elif [[ "$EDGE_RECOVERY" == "true" ]]; then
-            echo "Recovery mode: resumed the existing Edge upload without resubmitting Chrome."
+            echo "Recovery mode: Chrome Web Store acceptance was confirmed by the operator."
           fi
           for attempt in 1 2 3; do
             if timeout 60s gh release edit "$TAG" --draft=false; then
@@ -200,8 +144,6 @@ jobs:
           {
             echo "## Release stopped"
             echo "The draft remains unpublished if draft creation completed."
-            echo "Inspect the failed step and both store dashboards before retrying the existing tag."
-            echo "If Edge returned an InProgress operation ID, resume that operation instead of resubmitting Chrome."
-            echo "If Chrome already accepted this version, re-run with skip_chrome_web_store to submit Edge only."
-            echo "Recovery mode skips both store submissions and must only be used after both dashboards confirm acceptance."
+            echo "Inspect the failed step and the Chrome Web Store dashboard before retrying the existing tag."
+            echo "Recovery mode skips the store submission and must only be used after the dashboard confirms acceptance."
           } >> "$GITHUB_STEP_SUMMARY"

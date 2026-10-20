@@ -2,8 +2,7 @@
 
 最后更新：2026-10-15
 
-MarkTab 是一个用于在 Chrome 和 Microsoft Edge 新标签页展示、搜索和整理本地浏览器书签的扩展，
-当前版本 3.0.0。
+MarkTab 是一个用于在 Chrome 新标签页展示、搜索和整理本地浏览器书签的扩展，当前版本 3.0.0。
 
 ## 一句话总结
 
@@ -89,8 +88,8 @@ https://github.com/halunhaku/marktab/issues
 
 Last updated: 2026-10-15
 
-MarkTab is a browser extension for displaying, searching and organising local Chrome and
-Microsoft Edge bookmarks on the new tab page. Current version: 3.0.0.
+MarkTab is a browser extension for displaying, searching and organising local Chrome bookmarks
+on the new tab page. Current version: 3.0.0.
 
 ## Summary
 

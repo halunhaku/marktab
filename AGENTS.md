@@ -1,9 +1,9 @@
 # MarkTab Agent Guide
 
-MarkTab is a Chrome/Edge Manifest V3 new tab extension that turns the browser's own bookmark
-tree into a searchable, keyboard-first dashboard. Keep it small, fast, private and easy to
-review for store submission. This file is the contract for anyone — human or agent — changing
-the repository.
+MarkTab is a Chrome Manifest V3 new tab extension that turns the browser's own bookmark tree
+into a searchable, keyboard-first dashboard. Keep it small, fast, private and easy to review for
+store submission. This file is the contract for anyone — human or agent — changing the
+repository.
 
 Current shape: **Preact 11 + `@preact/signals`, Vite 8, TypeScript (strict), CSS Modules**,
 MV3, version `3.0.0`. Sources live in `src/**`; **nothing** in this repo ships as a bare
@@ -151,3 +151,13 @@ MV3, version `3.0.0`. Sources live in `src/**`; **nothing** in this repo ships a
 - Version bumps go through `npm run bump -- X.Y.Z`; never hand-edit one version file. The
   shipped manifest is `public/manifest.json`, and `scripts/release-version.mjs` requires
   `package.json`, that manifest and the release tag to agree.
+
+## Release scope
+
+- **The Chrome Web Store is the only store MarkTab publishes to.** Do not add a second store
+  publisher, a second set of store credentials or a second branch in `release.yml`: the
+  Microsoft Edge Add-ons pipeline was deliberately removed, and
+  `scripts/release-workflow.test.mjs` fails if its scripts, secrets or `workflow_dispatch`
+  inputs come back. `CHROME_STORE_SUBMISSION.md` explains why and what a human still has to do
+  in Partner Center. The extension still installs in Chromium-based browsers, but "it works in
+  Edge" is not a reason to resurrect the Edge publisher.
