@@ -5,15 +5,18 @@ const FALLBACK_RELEASE_URL = `${GITHUB_REPO}/releases/tag/v${FALLBACK_VERSION}`;
 const FALLBACK_RELEASE_ZIP = `${GITHUB_REPO}/releases/download/v${FALLBACK_VERSION}/marktab-${FALLBACK_VERSION}.zip`;
 const PRIVACY_URL = `${GITHUB_REPO}/blob/main/PRIVACY_POLICY.md`;
 const LICENSE_URL = `${GITHUB_REPO}#license`;
-const SCREENSHOT_BASE = 'https://raw.githubusercontent.com/halunhaku/marktab/main/screenshots';
+// The tracked screenshot set lives in `store-assets/` (captured by `npm run screenshots`
+// from the real build), so point at the files that exist rather than a README-only folder.
+const SCREENSHOT_BASE = 'https://raw.githubusercontent.com/halunhaku/marktab/main/store-assets';
 
 const screenshots = {
-  home: `${SCREENSHOT_BASE}/home.png`,
-  popup: `${SCREENSHOT_BASE}/popup.png`,
-  pinned: `${SCREENSHOT_BASE}/pinned.png`,
-  recent: `${SCREENSHOT_BASE}/recent.png`,
-  spotlight: `${SCREENSHOT_BASE}/spotlight.png`,
-  folder: `${SCREENSHOT_BASE}/folder.png`
+  home: `${SCREENSHOT_BASE}/newtab-screenshot-1280x800.jpg`,
+  popup: `${SCREENSHOT_BASE}/popup-screenshot-1280x800.jpg`,
+  pinned: `${SCREENSHOT_BASE}/pinned-1280x800.jpg`,
+  recent: `${SCREENSHOT_BASE}/recent-1280x800.jpg`,
+  spotlight: `${SCREENSHOT_BASE}/palette-screenshot-1280x800.jpg`,
+  folder: `${SCREENSHOT_BASE}/folder-screenshot-1280x800.jpg`,
+  settings: `${SCREENSHOT_BASE}/settings-1280x800.jpg`
 };
 
 const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
@@ -695,7 +698,7 @@ function renderHtml(release) {
           <div class="section-head">
             <span class="eyebrow">Preview</span>
             <h2>真实界面，而不是概念图。</h2>
-            <p class="section-desc">Landing page 使用仓库中的 README 截图资源，展示首页、快捷面板、搜索、固定书签、最近访问和文件夹视图。</p>
+            <p class="section-desc">Landing page 使用仓库中的真实截图（store-assets/），展示首页、快捷面板、搜索、固定书签、最近访问和文件夹视图。</p>
           </div>
           <div class="preview-grid">
             <figure class="preview-large">
