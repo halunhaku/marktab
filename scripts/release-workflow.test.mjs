@@ -45,7 +45,7 @@ test('release order is install, test, build, validate, package, Chrome Web Store
     'gh release create "$TAG" --verify-tag --draft',
     'gh release upload "$TAG" "dist/marktab-$VERSION.zip" --clobber',
     'npm run cws:publish -- "dist/marktab-$VERSION.zip"',
-    'gh release edit "$TAG" --draft=false',
+    'gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false',
   ];
   const positions = tokens.map((token) => positionOf(workflow, token));
   assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
@@ -70,7 +70,9 @@ test('recovery skips the store and keeps failed releases as drafts', async () =>
   assert.match(workflow, /Chrome Web Store acceptance was confirmed/i);
   assert.match(workflow, /Recovery mode skips the store submission/i);
   assert.match(workflow, /draft remains unpublished/i);
-  assert.match(workflow, /timeout 60s gh release edit/);
+  // Recovery mode checks nothing out, so `gh` has no .git to infer the repository from.
+  assert.match(workflow, /gh release view "\$TAG" --repo "\$GITHUB_REPOSITORY"/);
+  assert.match(workflow, /timeout 60s gh release edit "\$TAG" --repo "\$GITHUB_REPOSITORY" --draft=false/);
 });
 
 test('the Chrome guide documents safe recovery and no retired Edge path', async () => {
