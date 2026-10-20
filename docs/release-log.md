@@ -94,9 +94,9 @@
   tag. The `Release` run created the draft GitHub Release with `marktab-3.0.0.zip`
   (92 020 bytes, sha256 `7b55cda1…b9b0a89`, identical to the locally packaged artifact), the
   Chrome Web Store accepted the public review submission, and the Edge Add-ons upload failed
-  with `HTTP 401` before any operation existed — so the Edge submission is still missing and the
-  GitHub Release is still a draft. Store review is asynchronous and must be confirmed in both
-  dashboards.
+  with `HTTP 401` before any operation existed, which left the GitHub Release as a draft.
+  Resolution, 2026-10-20: Chrome review passed, the Edge listing was unpublished, and the draft
+  was published from `main` (`8a55050`) — see the 2026-10-20 entry below.
 - Recovery: the Edge retry needs refreshed `EDGE_CLIENT_ID` / `EDGE_API_KEY` from Partner Center
   and `workflow_dispatch` with `skip_chrome_web_store`, which skips the Chrome step without
   offering it the same version twice. The mode was added for this failure (`skip_chrome_web_store`
@@ -178,6 +178,19 @@
   ships to one store.
 - Historical entries below are left as written; the v2/v3.0.0 notes that describe Edge uploads
   record what happened at the time.
+- **Release hygiene, same day:**
+  - `.github/workflows/release.yml` could not publish a draft at all on the
+    `publish_github_release_only` path: recovery skips every checkout, so `gh` had no `.git`
+    to infer the repository from and failed with `fatal: not a git repository`. Both the draft
+    check and the edit now pass `--repo "$GITHUB_REPOSITORY"` (`14ae579`), covered by
+    `scripts/release-workflow.test.mjs`.
+  - The draft GitHub Release `v3.0.0` was published at 2026-10-20T01:37:07Z by
+    `workflow_dispatch` + `publish_github_release_only`, after Chrome review passed. The asset
+    is the same `marktab-3.0.0.zip` Chrome approved; the Chrome Web Store was not contacted.
+  - The landing-page worker's preview images pointed at a `screenshots/` folder that does not
+    exist, so all seven (including `og:image`) returned 404; they now use the tracked
+    `store-assets/` captures (`8a55050`). The worker still needs a `wrangler deploy` to serve
+    the new HTML.
 - **Manual steps completed (2026-10-20), by the maintainer:**
   1. MarkTab was **unpublished** from the Microsoft Edge Add-ons store via Partner Center, so the
      item's state is *Unavailable in store → Unpublished from store*: not downloadable by new
