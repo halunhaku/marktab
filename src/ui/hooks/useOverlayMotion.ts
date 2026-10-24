@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
+import { useLayoutEffect, useRef } from 'preact/hooks';
 import { exitTiming, fadeIn, fadeOutCopy, scrollOffsets, type FadeTiming, type ScrollOffset } from '../motion';
 
 /**
@@ -56,7 +56,12 @@ export function useOverlayMotion(
     fadeIn(enterRef.current);
   }, []);
 
-  useEffect(
+  // The exit runs from a *layout* cleanup, not a passive one: Preact flushes
+  // passive cleanups after paint, and a panel that unmounts before that flush
+  // never paints its exit at all (measured: the copy was missing on some runs).
+  // A layout cleanup runs with the removal itself, so the 80 ms copy is
+  // deterministic and still never holds up focus or `inert`.
+  useLayoutEffect(
     () => () => {
       const last = snapshot.current;
       if (last) fadeOutCopy(last.node, last.rect, last.time, last.offsets);

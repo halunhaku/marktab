@@ -191,6 +191,11 @@ export function exitTiming(element: Element | null): FadeTiming | null {
  * The caller has already removed the real element, so this never delays focus
  * restoration, `inert` or pointer handling — and the copy cannot be reached by
  * the pointer, the keyboard or a screen reader.
+ *
+ * `time` was resolved when the overlay opened, so a preference change while it
+ * was on screen (turning on reduced motion) would otherwise start one last fade
+ * with stale timing. The current preference is therefore checked here, not only
+ * when the timing was read.
  */
 export function fadeOutCopy(
   element: Element | null,
@@ -198,7 +203,7 @@ export function fadeOutCopy(
   time: FadeTiming | null,
   offsets: readonly ScrollOffset[] = [],
 ): void {
-  if (!element || !rect || !time || keyboardDriven) return;
+  if (!element || !rect || !time || keyboardDriven || reducedNow()) return;
 
   const copy = element.cloneNode(true) as HTMLElement;
   copy.setAttribute('aria-hidden', 'true');
