@@ -1,11 +1,24 @@
-/* Size and placement belong to the hero's grid — see `.clockSlot` in
-   `Hero.module.css`; this file owns everything inside the dial. */
+/*
+ * The printed clock: a thin double ring (the day's arc and the minute's ring)
+ * beside the time, which is set in the mono face at display size.
+ *
+ * Both arcs are redrawn every second from the current time, and both now settle
+ * instantly: `--dur-tick` is 0, so a ring is a fact rather than a motion, and the
+ * page never animates on a clock tick.
+ */
+.clock {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+/* The ring graphic. Size only; the dial reads from the SVG in viewBox units. */
 .dial {
   position: relative;
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
+  flex: 0 0 auto;
+  width: 104px;
+  height: 104px;
 }
 
 .arc {
@@ -20,41 +33,41 @@
 .arcTrack {
   fill: none;
   stroke: var(--border-1);
-  stroke-width: 3;
+  stroke-width: 1;
 }
 
 .arcValue {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 3;
-  stroke-linecap: round;
-  /* The day arc is data you read, not motion you watch: easing it over exactly one
-     tick (`--dur-tick`) keeps the tip creeping with the clock instead of stepping
-     once a second. */
-  transition: stroke-dashoffset var(--dur-tick) linear;
+  stroke: var(--border-2);
+  stroke-width: 1.2;
+  stroke-linecap: butt;
 }
 
-/* The minute ring is the dial's motion cue — one lap a minute, 4.6 px per second —
-   so it snaps in `--dur-fast` and stays crisp, where the day arc's creep would
-   smear it. Outside the day arc, clear of the time label. */
 .arcMinute {
   fill: none;
-  stroke: var(--accent-border);
-  stroke-width: 2;
-  stroke-linecap: round;
-  transition: stroke-dashoffset var(--dur-fast) linear;
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-linecap: butt;
 }
 
 .time {
-  font-family: var(--font-mono);
-  font-size: var(--text-xl);
-  font-weight: var(--weight-medium);
+  font-family: var(--font-clock);
+  font-size: var(--text-clock);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-regular);
   letter-spacing: var(--tracking-tight);
+  line-height: 1;
   color: var(--text-1);
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
-  .time {
-    font-size: var(--text-lg);
+  .dial {
+    width: 72px;
+    height: 72px;
+  }
+
+  .clock {
+    gap: var(--space-4);
   }
 }

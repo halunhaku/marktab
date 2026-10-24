@@ -1,11 +1,12 @@
 .home {
   display: flex;
   flex-direction: column;
-  padding-bottom: var(--space-12);
+  padding-bottom: var(--section-gap);
 }
 
+/* Chapters are separated by the section gap, not by cards inside cards. */
 .section {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--section-gap);
 }
 
 .muted {

@@ -1,7 +1,8 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  /* Rows carry their own bottom hairline, so dividers run continuously. */
+  border-top: 1px solid var(--border-1);
 }
 
 .more {

@@ -4,162 +4,162 @@ MarkTab 3's visual language, quoted from the code that implements it. **Every va
 from `src/ui/styles/tokens.css`** plus the global element defaults in `src/ui/styles/base.css`;
 if this document and those files disagree, the CSS wins and this document is a bug.
 
-The token set is called **"Quiet Signal"**: a low-chroma neutral ramp, one blue accent family
-that is never configurable (ADR-004), cool-tinted elevation that is never pure black, and a
-hard budget of two blurred surfaces (ADR-006).
+The token set is called **"Paper"**: a warm neutral ramp, ink text, one ochre accent family that
+is never configurable (ADR-022), hairlines instead of elevation, **no blur anywhere**
+(ADR-024), and a local serif reserved for the greeting and a page's own title (ADR-023).
 
-Two superseded v2 rules are explicitly *not* part of this system:
-
-| v2 rule | v3 replacement |
+| Earlier rule | Paper replacement |
 | --- | --- |
-| Serif headings (`Noto Serif SC`) with sans body | Sans headings, monospace for numerals — **ADR-005** |
-| User-selectable accent colour ("Mist Blue" variant selector) | One accent family, `--accent*` — **ADR-004** |
+| Cool neutral ramp with a blue accent (ADR-004) | Warm paper ramp, one ochre accent — **ADR-022** |
+| Serif banned entirely, sans headings (ADR-005) | Sans headings, serif only through `.serif-heading` — **ADR-023** |
+| Two blurred surfaces (rail, scrim) (ADR-006) | Zero `backdrop-filter`; opacity-only motion — **ADR-024** |
 
 ---
 
 ## 1. Colour
 
-Colour is applied through three layers, resolved in this order:
+Colour is applied through four layers, resolved in this order:
 
 1. `:root` — light defaults, also used before hydration;
 2. `[data-theme='dark']` — the resolved dark palette;
-3. `[data-density]` / `[data-motion]` — non-colour preferences.
+3. `[data-density='compact']` — geometry only, never colour or type size;
+4. `[data-motion='reduced']` — durations.
 
 `public/theme-boot.js` writes `data-theme`, `data-density`, `data-motion`, `data-booting` and
 `data-platform` on `<html>` before the first frame, so an explicit dark choice never flashes
-white.
+light paper. The theme switch itself is instant: no colour transition is declared on `body`.
 
-### 1.1 Neutral ramp
+### 1.1 Paper ramp
+
+Every surface is **opaque**. There is no translucency, so a card over the canvas can never
+read as a grey smudge.
 
 | Token | Light | Dark | Use |
 | --- | --- | --- | --- |
-| `--canvas` | `#f5f6f9` | `#0c0e12` | Page background (behind the ambient wash). |
-| `--canvas-deep` | `#eceef3` | `#080a0d` | Lower stop of the ambient gradient. |
-| `--surface-1` | `rgb(255 255 255 / 88%)` | `rgb(26 29 36 / 84%)` | Translucent card surface (rail, cards). |
-| `--surface-2` | `#ffffff` | `#191c22` | Opaque raised surface (menus, dialogs, fields). |
-| `--surface-3` | `#eceef3` | `#22262e` | Recessed fill (thumbnails, tiles, code). |
-| `--surface-hover` | `rgb(19 26 45 / 4%)` | `rgb(255 255 255 / 6%)` | Hover wash over a surface. |
-| `--surface-active` | `rgb(19 26 45 / 7%)` | `rgb(255 255 255 / 10%)` | Pressed/selected row wash. |
-| `--overlay-scrim` | `rgb(20 24 33 / 32%)` | `rgb(4 6 9 / 56%)` | Behind the drawer, palette and dialogs. |
-| `--text-1` | `#14161b` | `#edf0f5` | Primary text. |
-| `--text-2` | `#4b5260` | `#a8b0bd` | Secondary text (hosts, meta). |
-| `--text-3` | `#626976` | `#97a0b0` | Tertiary text (labels, hints). Tuned so it clears WCAG AA (4.5:1) on the lightest surface it can land on — 4.76:1 light, 4.92:1 dark on the palette's active row. |
-| `--text-inverse` | `#ffffff` | `#0c0e12` | Text on an accent-filled control. |
-| `--border-1` | `rgb(19 26 45 / 9%)` | `rgb(255 255 255 / 8%)` | Hairline dividers. |
-| `--border-2` | `rgb(19 26 45 / 15%)` | `rgb(255 255 255 / 15%)` | Control outlines. |
-| `--border-strong` | `rgb(19 26 45 / 26%)` | `rgb(255 255 255 / 26%)` | Emphasised outlines, hovered scrollbar thumb. |
+| `--canvas` | `#f7f3e9` | `#191713` | The page. |
+| `--canvas-deep` | `#eee7d9` | `#12110e` | Recessed page tone (drawer ground, empty blocks). |
+| `--surface-1` | `#fcf9f1` | `#211e19` | The rail, empty-state boxes, one step off the page. |
+| `--surface-2` | `#fffdf7` | `#29251f` | Cards, fields, panels — the "sheet". |
+| `--surface-3` | `#eee7d9` | `#332e26` | Thumbnails, keycaps, loading bars. |
+| `--surface-hover` | `#efe7d8` | `#393229` | Hover wash. Opaque, like everything else. |
+| `--surface-active` | `#e9decb` | `#40362b` | Pressed/selected wash. |
+| `--overlay-scrim` | `rgb(38 31 23 / 28%)` | `rgb(8 7 5 / 64%)` | Behind the palette, dialogs and the drawer. Plain tint, no blur. |
+| `--text-1` | `#29231c` | `#f3ecdf` | Primary ink. |
+| `--text-2` | `#554a3c` | `#d2c6b3` | Secondary text (hosts, descriptions). |
+| `--text-3` | `#685a48` | `#bcb09b` | Muted tier: meta, counts, hints. Measured worst case 5.02:1 (light) / 5.52:1 (dark). |
+| `--border-1` | `#d5cbbb` | `#554c3f` | Hairline rules and dividers. Decorative; no contrast floor. |
+| `--border-2` | `#7d715f` | `#9d917c` | Control outlines — the *only* thing that says "this is a control". Measured worst case 3.59:1 / 3.80:1 (WCAG 1.4.11 needs 3:1). |
 
 ### 1.2 Accent family (the only accent)
 
 | Token | Light | Dark |
 | --- | --- | --- |
-| `--accent` | `#5b6cff` | `#7aa2ff` |
-| `--accent-strong` | `#4150e4` | `#93b4ff` |
-| `--accent-solid` | `#4150e4` | `#7aa2ff` |
-| `--accent-hover` | `#5f70ff` | `#8cadff` |
-| `--accent-soft` | `rgb(91 108 255 / 11%)` | `rgb(122 162 255 / 16%)` |
-| `--accent-softer` | `rgb(91 108 255 / 6%)` | `rgb(122 162 255 / 9%)` |
-| `--accent-border` | `rgb(91 108 255 / 34%)` | `rgb(122 162 255 / 38%)` |
-| `--accent-contrast` | `#ffffff` | `#0b0f1a` |
-| `--accent-glow` | `rgb(91 108 255 / 18%)` | `rgb(122 162 255 / 22%)` |
+| `--accent` | `#8a3f25` | `#f0b294` |
+| `--accent-hover` | `#72311c` | `#fac8ae` |
+| `--accent-soft` | `#f3e1d6` | `#443027` |
+| `--on-accent` | `#fffdf7` | `#2c1c14` |
 
-There is no second accent and no accent-colour preference. The accent marks state, focus and
-key actions only; it is not a decorative fill and it is not a gradient.
+Aliases keep one meaning per job, and all of them point at the values above:
 
-Two tokens exist because the accent has two jobs that need different values: `--accent-solid`
-is the accent *as a fill* behind `--accent-contrast` text (primary buttons), and
-`--accent-strong` is the accent *as text or an icon* on a light surface or on `--accent-soft`
-(active rail and settings items, link-style buttons, pin state). Using `--accent` for either
-job fails WCAG AA — it is a mid-tone that reads well as a border, glow or bar, and badly as
-text or as a label background. `tests/e2e/a11y.spec.ts` is the check that keeps this honest.
+| Alias | Points at | Job |
+| --- | --- | --- |
+| `--accent-strong`, `--accent-solid` | `var(--accent)` | The accent as text/icon, and as a fill. |
+| `--accent-contrast`, `--text-inverse` | `var(--on-accent)` | The label on an accent fill. |
+| `--accent-border`, `--border-strong` | `var(--border-2)` | A control outline (there is no separate accent outline). |
+| `--accent-softer` | `var(--surface-hover)` | A neutral wash, not an accent tint. |
+| `--focus` | `#8a3f25` / `#fac8ae` | The focus ring colour. |
+
+There is no second accent, no accent-colour preference and no decorative accent fill. The
+accent marks state (active nav row, active palette row, pinned edge), focus, and the one
+primary action on a surface. Contrast, measured against the worst surface each can land on:
+accent-as-text 5.60:1 light / 6.46:1 dark; `--on-accent` on accent 7.33:1 / 8.96:1. Status
+colours stay distinguishable from ochre in both themes.
 
 ### 1.3 Status
 
 | Token | Light | Dark |
 | --- | --- | --- |
-| `--success` / `--success-soft` | `#17805a` / `rgb(23 128 90 / 12%)` | `#46c390` / `rgb(70 195 144 / 15%)` |
-| `--warning` / `--warning-soft` | `#9a6212` / `rgb(154 98 18 / 13%)` | `#e0a852` / `rgb(224 168 82 / 15%)` |
-| `--error` / `--error-soft` | `#c93b41` / `rgb(201 59 65 / 12%)` | `#ff7a80` / `rgb(255 122 128 / 15%)` |
-| `--focus` | `#4356ff` | `#8fadff` |
+| `--success` / `--success-soft` | `#236142` / `#e7f0e8` | `#a3dbb5` / `#20382a` |
+| `--warning` / `--warning-soft` | `#795017` / `#f6ecd9` | `#e7c28b` / `#393222` |
+| `--error` / `--error-soft` | `#a32636` / `#f9e5e8` | `#ffb0b8` / `#432931` |
 
-`--focus` is separate from `--accent`: status and focus must stay distinguishable from the
-brand blue in both themes.
+Status tones appear as text on their own soft fill (6.03–6.30:1 light, 7.55–8.04:1 dark) and
+as the edge of an inline notice. They are never a page fill and never a gradient.
 
-### 1.4 Ambient background
+### 1.4 No ambient background
 
-`body::before` paints one fixed, non-interactive wash: two `--accent-softer` radial pools plus a
-`178deg` `--canvas → --canvas-deep` linear gradient, clipped with `transparent 62%` / `60%`. It
-carries no information, stays below the 3% alpha threshold and costs a single paint. No other
-decorative gradient is permitted except brand/icon surfaces and the popup primary treatment.
-**Gradients on text are forbidden.**
+`body` paints `--canvas` and nothing else. There is no `body::before` wash, no radial pool and
+no decorative gradient anywhere except two drawn chevrons (`TextField`'s select arrow), which
+are clipped edges rather than colour. Selection uses `--accent-soft` with `--text-1`.
 
 ## 2. Elevation
 
-Cool-tinted, never pure black.
+Paper does not float: a card is a hairline box, a row is a rule, and a control is an outline.
 
 | Token | Light | Dark |
 | --- | --- | --- |
-| `--shadow-1` | `0 1px 2px rgb(19 26 45 / 6%), 0 1px 1px rgb(19 26 45 / 4%)` | `0 1px 2px rgb(0 0 0 / 40%)` |
-| `--shadow-2` | `0 2px 4px rgb(19 26 45 / 5%), 0 10px 22px -14px rgb(19 26 45 / 26%)` | `0 2px 6px rgb(0 0 0 / 38%), 0 12px 26px -16px rgb(0 0 0 / 70%)` |
-| `--shadow-3` | `0 4px 10px rgb(19 26 45 / 7%), 0 24px 48px -22px rgb(19 26 45 / 34%)` | `0 6px 14px rgb(0 0 0 / 42%), 0 28px 56px -24px rgb(0 0 0 / 78%)` |
-| `--shadow-focus` | `0 0 0 3px rgb(91 108 255 / 22%)` | `0 0 0 3px rgb(122 162 255 / 26%)` |
+| `--shadow-1` | `none` | `none` |
+| `--shadow-2` | `none` | `none` |
+| `--shadow-focus` | `none` | `none` |
+| `--shadow-3` | `0 8px 24px -16px rgb(48 34 17 / 20%)` | `0 8px 24px -16px rgb(9 7 4 / 45%)` |
 | `--ring` | `0 0 0 2px var(--surface-2), 0 0 0 4px var(--focus)` | same definition |
 
-`--shadow-1` is a resting card, `--shadow-2` a floating control (drawer toggle, sticky bar),
-`--shadow-3` an overlay (drawer, menu, dialog). `--ring` is the two-part focus ring: a surface
-gap plus the focus colour, so it stays visible on any surface.
+`--shadow-3` is spent on exactly the surfaces that sit above live content: the palette, menus,
+dialogs, toasts, the drawer and the drawer's floating toggle. Nothing else casts — a card, a
+row or a control never does. `--ring` is the two-solid-ring focus construction;
+`:focus-visible` in `base.css` renders the same idea with an outline and a 2 px offset.
 
-## 3. Blur budget
+## 3. Blur budget: none
 
-`backdrop-filter` is allowed on exactly two surfaces — the surfaces that sit above live content:
-
-| Token | Light | Dark | Surface |
-| --- | --- | --- | --- |
-| `--rail-blur` | `18px` | `22px` | The navigation rail |
-| `--scrim-blur` | `6px` | `8px` | The overlay scrim (palette, drawer, dialogs) |
-
-Everything else may be translucent (`--surface-1`) but must not blur. Blurring cards destroys
-the layering that makes these two surfaces legible and pays a compositing cost on a page that
-opens with every new tab (ADR-006).
+`backdrop-filter` appears zero times in `src/**`. `--rail-blur` and `--scrim-blur` exist at
+`0` so no component can reintroduce one by reaching for a token that looks available. The
+scrim's tint (28% warm ink light, 64% dark) carries the separation instead (ADR-024).
 
 ## 4. Typography
 
-### 4.1 Families and the sans/mono rule
+### 4.1 Families
 
 ```css
 --font-sans: system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', 'PingFang SC',
   'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, 'JetBrains Mono', 'Cascadia Mono', Menlo,
   Consolas, monospace;
+--font-serif: Georgia, 'Times New Roman', 'Songti SC', SimSun, serif;
+--font-heading: var(--font-serif);
+--font-clock: var(--font-mono);
 ```
 
-- **Headings and body: sans.** `base.css` sets `body { font-family: var(--font-sans); font-size:
-  var(--text-md); }` and `h1..h4 { font-weight: var(--weight-semibold); line-height:
-  var(--leading-tight); letter-spacing: var(--tracking-tight); text-wrap: balance; }`. There is
-  no display face (ADR-005).
-- **Numerals, dates and clock values: monospace.** The clock, rail statistics
-  (`App.module.css → .statValue`) and formatted dates use `--font-mono`, so digits do not jitter
-  as they change.
-- Both stacks include Simplified Chinese fallbacks (`PingFang SC`, `Hiragino Sans GB`,
-  `Microsoft YaHei`, `Noto Sans SC`) so the Chinese catalogue renders with the same metrics.
+- **Body, labels and headings: sans.** `base.css` sets `body { font-family: var(--font-sans);
+  font-size: var(--text-md); }` and `h1..h4 { font-weight: var(--weight-semibold); line-height:
+  var(--leading-tight); letter-spacing: var(--tracking-tight); text-wrap: balance; }`.
+- **Serif is a two-line voice, applied by class.** `.serif-heading` (in `base.css`) sets
+  `font-family: var(--font-heading)` and regular weight. It is composed on exactly two
+  elements: the home greeting (`Hero`) and the `h1` from `SectionHeader level="page"` (folder,
+  pinned, recent, settings). Dialog titles and section titles stay sans. No serif is applied to
+  `h1..h4` wholesale (ADR-023).
+- **Numerals, dates, hosts and the clock: monospace with tabular figures.**
+  `.tabular-numerals` is the utility; the clock uses `--font-clock` and every count/meta line
+  that can change uses `font-variant-numeric: tabular-nums` so digits do not jitter.
+- No network font is requested. A machine without Georgia or Songti falls back to a system
+  serif, which is the intended behaviour.
 
 ### 4.2 Scale
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `--text-2xs` | `0.6875rem` (11px) | Badges, `Kbd` chips |
-| `--text-xs` | `0.75rem` (12px) | Meta, captions |
-| `--text-sm` | `0.8125rem` (13px) | Dense rows, labels |
+| `--text-xs` | `0.75rem` (12px) | Meta, captions, keycaps, counts |
+| `--text-sm` | `0.8125rem` (13px) | Dense rows, labels, descriptions |
 | `--text-md` | `0.875rem` (14px) | Body (the `body` default) |
-| `--text-lg` | `1rem` (16px) | Emphasised body, section titles |
-| `--text-xl` | `1.25rem` (20px) | View titles |
-| `--text-2xl` | `1.625rem` (26px) | Page headings |
-| `--text-clock` | `clamp(2.5rem, 6vw, 3.75rem)` | Hero clock |
+| `--text-lg` | `0.9375rem` (15px) | Section titles, emphasised body |
+| `--text-xl` | `1.0625rem` (17px) | Dialog and view titles |
+| `--text-2xl` | `1.5rem` (24px) | A page's own title (serif) |
+| `--text-3xl` | `2.25rem` (36px) | The hero greeting (serif) |
+| `--text-clock` | `clamp(2.5rem, 4.5vw, 3.5rem)` | The hero time |
 
 Weights: `--weight-regular: 400`, `--weight-medium: 500`, `--weight-semibold: 600`,
-`--weight-bold: 680`. Leading: `--leading-tight: 1.2`, `--leading-snug: 1.35`,
-`--leading-normal: 1.5`. Tracking: `--tracking-tighter: -0.03em`, `--tracking-tight: -0.015em`,
-`--tracking-wide: 0.02em`, `--tracking-caps: 0.08em`.
+`--weight-bold: 680`. Leading: `--leading-tight: 1.2`, `--leading-snug: 1.4`,
+`--leading-normal: 1.65`. Tracking: `--tracking-tighter: -0.02em`, `--tracking-tight: -0.01em`,
+`--tracking-wide: 0.02em`, `--tracking-caps: 0.06em`.
 
 ## 5. Space
 
@@ -174,45 +174,56 @@ A 4 px base scale; use the token, never a raw pixel value.
 | `--space-4` | `1rem` | `--space-16` | `4rem` |
 | `--space-5` | `1.25rem` | | |
 
+Rhythm tokens: `--section-gap` (`--space-12`) separates chapters, `--card-gap` (`--space-3`)
+spaces a grid, `--card-pad` (`--space-4`) is the inside of a card.
+
 ## 6. Radius
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `--radius-xs` | `6px` | Badges, small chips |
-| `--radius-sm` | `8px` | Buttons, fields, `Kbd` |
-| `--radius-md` | `11px` | Rows, menu items |
-| `--radius-lg` | `15px` | Cards, tiles |
-| `--radius-xl` | `20px` | Panels, dialogs, palette |
-| `--radius-full` | `999px` | Pills, avatars, status dots |
+| `--radius-xs` | `2px` | Keycaps, selection rules, favicon tiles |
+| `--radius-sm` | `4px` | Buttons, fields, chips |
+| `--radius-md` | `4px` | Row washes, toasts |
+| `--radius-lg` | `6px` | Cards, panels' inner blocks |
+| `--radius-xl` | `8px` | The palette, dialogs |
+| `--radius-full` | `999px` | **Only** the switch track and thumb |
 
 ## 7. Motion
 
 | Token | Value |
 | --- | --- |
-| `--dur-instant` | `80ms` |
-| `--dur-fast` | `130ms` |
-| `--dur-base` | `190ms` |
-| `--dur-slow` | `320ms` |
-| `--dur-tick` | `1000ms` |
-| `--ease-out` | `cubic-bezier(0.16, 0.84, 0.44, 1)` |
-| `--ease-in-out` | `cubic-bezier(0.4, 0, 0.2, 1)` |
-| `--ease-emphasis` | `cubic-bezier(0.34, 1.32, 0.5, 1)` |
+| `--dur-instant` | `50ms` |
+| `--dur-fast` | `80ms` |
+| `--dur-base` | `120ms` |
+| `--dur-slow` | `160ms` |
+| `--dur-tick` / `--dur-theme` / `--dur-results` / `--stagger` / `--dur-none` / `--delay-none` | `0ms` |
+| `--ease-out` | `cubic-bezier(0.2, 0.8, 0.2, 1)` |
+| `--ease-emphasis` | `cubic-bezier(0.2, 0.8, 0.2, 1)` |
+
+Only opacity and transform are ever animated; `transition: all` is forbidden, and nothing
+animates `height`, `width`, `filter`, `backdrop-filter` or `box-shadow`.
+
+| What | Motion | Where |
+| --- | --- | --- |
+| Hover, press, focus | colour / border / text tone on the same frame — no transition at all, so no movement, scale or lag | every `*.module.css`; the only `transition` declarations left are `opacity` |
+| Palette, menu, dialog, drawer | opacity `.85 → 1` in 120 ms; close is an 80 ms fade of a non-interactive copy | `src/ui/motion.ts` + `useOverlayMotion` |
+| Toast, popup "saved" confirmation | opacity `.85 → 1` in 120 ms | `useOverlayMotion`, `PopupApp.module.css` |
+| Pin icon | opacity `.65 → 1` in 50 ms | `LinkCard` / `LinkRow` `.pinButton` |
+| Clock, theme, results, switch, appended rows, desktop rail collapse | `0ms` | `ClockDial` (no transition), `Switch` (no transition), shell (no transition) |
+| Keyboard-triggered open | `0ms` | `motion.ts` tracks the last input modality |
 
 `motion` is an independent axis with three settings — `system`, `reduced`, `full`:
 
-- `[data-motion='reduced']` zeroes every duration; transitions collapse to nothing rather
+- `[data-motion='reduced']` zeroes every duration, so transitions collapse to nothing rather
   than merely getting faster.
 - `@media (prefers-reduced-motion: reduce)` applies the same zeroing to `:root:not([data-motion=
   'full'])`, so an explicit "full" choice is honoured while the OS default is respected.
+- `motion.ts` reads the duration tokens off the element, so both switches reach the WAAPI
+  animations without a second code path, and a keyboard open or close skips them entirely.
 
-The home clock dial (`ClockDial.module.css`) is the one place where a duration follows the data
-rather than an interaction, and its two arcs differ on purpose. Both are redrawn every second from
-the current time: the day arc eases over exactly `--dur-tick` — one tick — because at 0.23 px per
-minute a shorter duration would turn a creep into a visible step, and the minute ring snaps in
-`--dur-fast` because that is the one motion the dial is meant to show. Every other transition stays
-at or below `--dur-slow`.
-
-Motion never gates input: no transition may delay a keystroke response (principle 13).
+Focus, `inert` and pointer handling are effective on the frame the state changes; the 80 ms
+exit is a copy appended at the overlay's last rect, never a deferred unmount. The first frame
+of a page has no entry animation.
 
 ## 8. Layout tokens
 
@@ -223,10 +234,15 @@ Motion never gates input: no transition may delay a keystroke response (principl
 | `--content-max` | `1240px` | Content column max width |
 | `--content-pad` | `var(--space-8)` | Content padding (`--space-6` when compact) |
 | `--toolbar-h` | `56px` | Sticky toolbar / header height |
-| `--control-h` | `34px` | Default control height |
-| `--control-h-lg` | `40px` | Large control height |
-| `--row-h` | `52px` | List row height |
-| `--grid-min` | `236px` | Card grid floor |
+| `--control-h-sm` | `32px` | Small control (icon button, chip, menu item) |
+| `--control-h` | `36px` | Default control |
+| `--control-h-lg` | `40px` | Large control, text field, palette field |
+| `--row-h` | `60px` | List row height |
+| `--grid-min` | `200px` | Card grid floor |
+| `--card-h` | `96px` | Grid card height |
+| `--hero-min-h` | `176px` | Home masthead minimum |
+| `--palette-max-w` | `640px` | Palette panel cap |
+| `--popup-w` / `--popup-max-h` | `360px` / `600px` | Popup sheet |
 | `--z-rail` | `20` | Rail / drawer |
 | `--z-sticky` | `30` | Sticky toolbar, drawer toggle |
 | `--z-menu` | `60` | Context menus |
@@ -240,17 +256,17 @@ the root (ADR-007), so the shell itself never re-lays out.
 
 ### 8.1 Density
 
-`data-density="compact"` is a spacing/geometry axis, not a colour one. It overrides:
+`data-density="compact"` is a spacing/geometry axis. It never shrinks type — a smaller row is a
+denser list, not a smaller word.
 
 | Token | Comfortable | Compact |
 | --- | --- | --- |
-| `--control-h` | `34px` | `30px` |
-| `--control-h-lg` | `40px` | `34px` |
-| `--row-h` | `52px` | `42px` |
-| `--grid-min` | `236px` | `204px` |
+| `--control-h-sm` | `32px` | `28px` |
+| `--control-h` | `36px` | `32px` |
+| `--control-h-lg` | `40px` | `36px` |
+| `--row-h` | `60px` | `52px` |
+| `--card-pad` | `var(--space-4)` | `var(--space-3)` |
 | `--content-pad` | `var(--space-8)` | `var(--space-6)` |
-| `--text-md` | `0.875rem` | `0.8125rem` |
-| `--text-lg` | `1rem` | `0.9375rem` |
 
 ## 9. Components
 
@@ -259,25 +275,26 @@ reads tokens only.
 
 | Component | Exports | Notes |
 | --- | --- | --- |
-| `Button` | `Button`, `IconButton` | `variant`: `primary`, `secondary`, `ghost`, `danger`, `link`; `size`: `sm`, `md`, `lg`; optional `icon`. `IconButton` **requires** a `label`, used as the accessible name and the tooltip. |
-| `TextField` | `TextField`, `SelectField` | Persistent label plus an optional hint/error line. |
-| `Switch` | `Switch` | Labelled toggle; the whole row is the hit target. |
-| `Segmented` | `Segmented` | Generic segmented control for mutually exclusive options: theme, density and motion in Settings, folder view and sort in the folder toolbar and in Settings → Folders. Takes a required `label` (accessible group name) and an optional `size`. |
-| `Menu` | `Menu`, `MenuHost` | One menu at a time, positioned from an anchor rect; `MenuHost` renders whatever the overlay store requests. |
-| `Dialog` | `Dialog` | Owns initial focus, the Tab ring, Escape, scroll lock and focus restoration. Consumers never re-implement that. |
+| `Button` | `Button`, `IconButton` | `variant`: `primary`, `secondary`, `ghost`, `danger`, `link`; `size`: `sm`, `md`, `lg`; optional `icon`. `primary` is the accent fill, `secondary` an outline, `ghost` a wash. `IconButton` **requires** a `label`, used as the accessible name and the tooltip. |
+| `TextField` | `TextField`, `SelectField` | Persistent label plus an optional hint/error line; identified by its `--border-2` outline. |
+| `Switch` | `Switch` | Labelled toggle; the whole row is the hit target; settles instantly. |
+| `Segmented` | `Segmented` | Mutually exclusive options: theme, density and motion in Settings, folder view and sort. Selected segment is `--accent-soft`. |
+| `Menu` | `Menu`, `MenuHost` | One menu at a time, positioned from an anchor rect; fades in on open. |
+| `Dialog` | `Dialog` | Owns initial focus, the Tab ring, Escape, scroll lock and focus restoration. Fades in on open; closes with an 80 ms copy. |
 | `Toast` | `ToastHost` | Polite, dismissible, never focuses itself. Undo actions ride here. |
-| `Favicon` | `Favicon` | Site icon with a letter-tile fallback when the favicon fails or is disabled. |
-| `CardGrid` | `CardGrid` | Grid with a `--grid-min` floor. |
-| `SectionHeader` | `SectionHeader` | Title, meta line, optional right-aligned action. |
-| `EmptyState` | `EmptyState` | Icon, title, description, optional action. |
-| `Skeleton` | `Skeleton` | Loading placeholder that reserves final geometry. |
-| `Kbd` | `Kbd`, `keycaps`, `isMacPlatform` | Renders `Mod+K` as ⌘K on macOS and Ctrl+K elsewhere. |
+| `Favicon` | `Favicon` | Site icon with a letter-tile fallback; a hairline square, no shadow. |
+| `CardGrid` | `CardGrid` | Grid with a `--grid-min` floor and `--card-gap`. |
+| `SectionHeader` | `SectionHeader` | Title on a hairline rule, mono meta, optional action. `level="page"` renders an `h1` with `.serif-heading`. |
+| `EmptyState` | `EmptyState` | One hairline box: icon, title, description, optional action. |
+| `Skeleton` | `Skeleton` | A static `--surface-3` block that reserves final geometry; no shimmer. |
+| `Kbd` | `Kbd`, `keycaps`, `isMacPlatform` | Mono keycaps; renders `Mod+K` as ⌘K on macOS and Ctrl+K elsewhere. |
 | `Icon` | `Icon`, `ICON_NAMES`, `IconName` | One 24×24 stroke icon set; `strokeWidth` `1.6` (or `0.9` for filled glyphs). |
 | `cx` | `cx` | Class-name joiner. |
 
-Feature-level patterns (`src/ui/features/**`) that behave like components: `LinkRow`,
-`LinkCard`, the folder grid/toolbar/breadcrumb, the palette panel and rows, the settings rows
-and sections, and the rail.
+Feature-level patterns (`src/ui/features/**`) that behave like components: `LinkRow` (60 px,
+continuous rules), `LinkCard` (96 px index card, controls stacked in the corner), the folder
+grid/toolbar/breadcrumb/chips, the palette panel and rows, the settings rows and sections, and
+the rail.
 
 ## 10. Responsive contract
 
@@ -288,9 +305,9 @@ where `useMediaQuery` is the only JS reader.
 
 | Range | Behaviour |
 | --- | --- |
-| **> 1200 px** | Fixed rail: two-column grid, rail as a real column, collapsible to the `68px` icon rail (`--rail-w-rail`). |
-| **≤ 1200 px** | Drawer: single column, the rail becomes a `position: fixed` overlay translated off-canvas, opened by the floating `drawerToggle`; opening paints a scrim with `--overlay-scrim` + `--scrim-blur`, and the toggle hides while the drawer is open. The drawer closes on navigation and when the window grows. |
-| **≤ 768 px** | Compact. The shell itself changes only its content padding, to `var(--space-5) var(--space-4) var(--space-8)` (ADR-013); individual features adapt themselves at the same width: the hero collapses to one column, the palette moves to `6vh` top padding, settings rows wrap, the settings nav stops being sticky, breadcrumbs and the folder toolbar reflow. |
+| **> 1200 px** | Fixed rail: two-column grid, rail as a real column, collapsible to the `68px` icon rail. Collapse is instant. |
+| **≤ 1200 px** | Drawer: single column, the rail becomes a `position: fixed` overlay that is `visibility: hidden` while closed, opened by the floating `drawerToggle`; opening paints a flat `--overlay-scrim` and fades the rail in, and the toggle hides while the drawer is open. The content column keeps `--space-4 + --control-h-lg` of top clearance so the toggle never sits on a greeting. The drawer closes on navigation and when the window grows. |
+| **≤ 768 px** | Compact shell padding; the hero stacks (copy, clock, search), the clock ring shrinks, the palette moves to `6vh` top padding and drops row paths, settings rows wrap, the settings nav stops being sticky, breadcrumbs and the folder toolbar reflow, and list rows let the host fall onto its own line under the title. |
 
 At every width the content column scrolls, not the page: `body { overflow: hidden; }` and
 `.content { overflow-y: auto; overscroll-behavior: contain; }`. When an overlay is open,
@@ -302,24 +319,28 @@ At every width the content column scrolls, not the page: `body { overflow: hidde
 
 - Read tokens for colour, type, space, radius, duration and easing; add a token before adding a
   one-off value.
-- Keep one accent family, one icon set (`Icon`) and one focus ring (`--ring`).
-- Reserve final geometry for loading content (`Skeleton`, `--row-h`, `--grid-min`) so nothing
-  shifts (principle 15).
-- Render numerals, dates and the clock in `--font-mono`.
-- Keep targets at least 24×24 CSS px, aiming at `--control-h` / `--control-h-lg`, and give every
-  icon-only control an accessible name.
-- Express states with `--surface-hover` / `--surface-active` / `--accent-soft` rather than new
-  colours.
+- Keep one accent family, one icon set (`Icon`) and one focus construction.
+- Express depth with `--border-1` hairlines and `--border-2` control outlines; express state
+  with `--surface-hover` / `--surface-active` / `--accent-soft`.
+- Reserve final geometry for loading content (`Skeleton`, `--row-h`, `--grid-min`, `--card-h`)
+  so nothing shifts.
+- Render numerals, dates, hosts and the clock in `--font-mono` with tabular figures.
+- Keep targets at least 24×24 CSS px, aiming at `--control-h-sm` / `--control-h` /
+  `--control-h-lg`, and give every icon-only control an accessible name.
+- Route overlay motion through `src/ui/motion.ts` / `useOverlayMotion`.
 
 **Don't**
 
-- Don't add `backdrop-filter` outside the rail and the scrim.
-- Don't put a gradient behind text or a bookmark title.
-- Don't reintroduce serif headings or a second display face.
+- Don't add `backdrop-filter`, a gradient behind text, or a card shadow.
+- Don't reintroduce serif headings, a serif body, or a second display face — the serif is two
+  elements, applied by class.
 - Don't ship a theme-colour / accent picker.
+- Don't animate a response to input: hover, press, focus, typing, filtering, the clock, theme
+  changes and the switch are instant.
+- Don't use `transition: all`, and don't animate `height`, `width`, `filter`,
+  `backdrop-filter` or `box-shadow`.
 - Don't nest interactive elements (a button inside a clickable row) — one interactive node per
   row, secondary actions in the context menu.
-- Don't animate a response to input, or delay filtering behind a transition.
 - Don't hard-code light-mode colours in a CSS module; both themes must be expressible through
   tokens.
 - Don't remove or hide a focus ring.

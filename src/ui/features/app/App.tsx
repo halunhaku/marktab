@@ -1,5 +1,5 @@
 import type { JSX } from 'preact';
-import { useEffect } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
 import { reloadBookmarks, startBookmarkSync } from '@/core/bookmarks/store';
 import { settings, updateSettings } from '@/core/settings/store';
@@ -19,6 +19,7 @@ import { CommandPalette } from '@/ui/features/palette/CommandPalette';
 import { SettingsView } from '@/ui/features/settings/SettingsView';
 import { useAppearance } from '@/ui/hooks/useAppearance';
 import { useMediaQuery } from '@/ui/hooks/useMediaQuery';
+import { exitTiming, fadeIn, fadeOutCopy } from '@/ui/motion';
 import { closeDialog, closeMenu, dialogState, menuState } from '@/ui/state/overlay';
 import { closePalette, goHome, navigate, openPalette, paletteOpen, route } from '@/ui/state/router';
 import { DialogHost } from './DialogHost';
@@ -43,6 +44,25 @@ export function App(): JSX.Element {
 
   const narrow = useMediaQuery(DRAWER_QUERY);
   const drawerOpen = useSignal(false);
+  const railSlotRef = useRef<HTMLDivElement | null>(null);
+  const drawerWasOpen = useRef(false);
+
+  // The drawer is the one panel whose DOM outlives its open state, so its fade is
+  // played here: 120 ms in, and an 80 ms non-interactive copy out while the real
+  // rail becomes hidden immediately (ADR-024).
+  useEffect(() => {
+    if (!narrow.value) {
+      drawerWasOpen.current = false;
+      return;
+    }
+    if (drawerOpen.value && !drawerWasOpen.current) {
+      fadeIn(railSlotRef.current);
+    } else if (!drawerOpen.value && drawerWasOpen.current) {
+      const node = railSlotRef.current;
+      fadeOutCopy(node, node?.getBoundingClientRect() ?? null, exitTiming(node));
+    }
+    drawerWasOpen.current = drawerOpen.value;
+  }, [drawerOpen.value, narrow.value]);
 
   // Hydrate once, then keep the bookmark index and cross-tab state in sync.
   useEffect(() => {
@@ -216,7 +236,7 @@ export function App(): JSX.Element {
         <div class={styles.scrim} aria-hidden="true" onClick={() => (drawerOpen.value = false)} />
       ) : null}
 
-      <div class={styles.railSlot}>
+      <div class={styles.railSlot} ref={railSlotRef}>
         <Rail
           collapsed={collapsed && !isDrawer}
           navItems={navItems}

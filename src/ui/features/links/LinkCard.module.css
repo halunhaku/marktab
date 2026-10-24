@@ -1,27 +1,29 @@
+/*
+ * Grid card: an index card, 96 px tall, one hairline, a title of at most two
+ * lines and one line for the host.
+ *
+ * The anchor covers the card body and the controls sit outside it, so the markup
+ * stays valid (no nested interactive elements) while the whole surface remains
+ * clickable. Hover is a tint and a darker edge — the card never moves.
+ */
 .card {
   position: relative;
   display: flex;
   align-items: stretch;
   min-width: 0;
-  min-height: 88px;
+  height: var(--card-h);
   border: 1px solid var(--border-1);
   border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-1);
-  transition:
-    border-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) var(--ease-out);
+  background: var(--surface-2);
 }
 
 .card:hover {
   border-color: var(--border-2);
-  background: var(--surface-2);
-  box-shadow: var(--shadow-2);
+  background: var(--surface-1);
 }
 
 .card:focus-within {
-  border-color: var(--accent-border);
+  border-color: var(--accent);
 }
 
 .main {
@@ -29,7 +31,8 @@
   gap: var(--space-3);
   flex: 1 1 auto;
   min-width: 0;
-  padding: var(--space-4);
+  height: 100%;
+  padding: var(--card-pad);
   border-radius: var(--radius-lg);
   align-items: flex-start;
 }
@@ -47,15 +50,13 @@
 .copy {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--space-1);
   min-width: 0;
   flex: 1 1 auto;
-  /* The card's controls are absolutely positioned in the top-right corner (two
-     `--control-h` targets plus the corner offset and a little air), so the copy
-     block reserves that corner instead of letting a long title run underneath
-     them. Reserving it for both lines rather than only the first is the simplest
-     rule that never collides, and it keeps the two lines flush. */
-  padding-inline-end: calc(var(--control-h) * 2 + var(--space-4));
+  /* The card's controls stack in the top-right corner, one control wide, so the
+     copy reserves exactly that column: a 200 px card still has room for a real
+     host on its own line. */
+  padding-inline-end: calc(var(--control-h-sm) + var(--space-2));
 }
 
 .title {
@@ -76,15 +77,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-mono);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
   color: var(--text-3);
 }
 
+/* The pin keeps a resting opacity so the state is legible without hover; the only
+   motion is the pin itself fading in (50 ms, ADR-024). */
 .actions {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
   display: flex;
+  flex-direction: column;
   gap: 2px;
   opacity: 0;
   transition: opacity var(--dur-fast) var(--ease-out);
@@ -96,26 +100,42 @@
 }
 
 /* A pinned card keeps its controls visible at rest: the state is worth seeing
-   without hovering. The cluster as a whole has to be revealed — an `opacity: 1`
-   on the button alone cannot rise above its parent's `opacity: 0`. */
-/* A pinned card keeps its controls visible at rest: the state is worth seeing
-   without hovering. The cluster as a whole has to be revealed — an `opacity: 1`
-   on the button alone cannot rise above its parent's `opacity: 0`. */
+   without hovering. */
 .pinned .actions {
   opacity: 1;
 }
 
 .pinActive {
+  opacity: 1;
   color: var(--accent-strong);
 }
 
-.pinned {
-  border-color: var(--accent-border);
-  background: linear-gradient(180deg, var(--accent-softer), transparent 68%), var(--surface-1);
+/* A pinned card is marked with the accent edge, not a tinted gradient — and the
+   edge survives hover, which would otherwise darken it to the control tone. */
+.pinned,
+.pinned:hover {
+  border-color: var(--accent);
+  background: var(--surface-1);
 }
 
 @media (hover: none) {
   .actions {
     opacity: 1;
   }
+}
+
+/* The pin glyph rests at 65% and resolves to full in 50 ms — the one icon that
+   acknowledges a state change (ADR-024). */
+.pinButton {
+  opacity: 0.65;
+  transition: opacity var(--dur-instant) var(--ease-out);
+}
+
+.pinButton:hover,
+.pinButton:focus-visible {
+  opacity: 1;
+}
+
+.pinButton.pinActive {
+  opacity: 1;
 }

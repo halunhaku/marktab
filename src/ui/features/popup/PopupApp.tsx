@@ -313,7 +313,7 @@ export function PopupApp(): JSX.Element {
               </Button>
 
               {addition.value.kind === 'added' && !saved ? (
-                <p class={cx(styles.status, styles.statusSuccess)} role="status">
+                <p class={cx(styles.status, styles.statusSuccess, styles.savedFade)} role="status">
                   <Icon name="check" size={14} />
                   <span>{t('popup.added')}</span>
                 </p>

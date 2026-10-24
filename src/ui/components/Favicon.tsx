@@ -39,7 +39,6 @@ export function Favicon({ url, title, size = 20, enabled = true, class: classNam
       style={{
         width: `${size}px`,
         height: `${size}px`,
-        borderRadius: `${Math.max(5, Math.round(size * 0.28))}px`,
       }}
       data-fallback={showImage ? undefined : 'true'}
       aria-hidden="true"

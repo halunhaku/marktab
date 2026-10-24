@@ -1,12 +1,19 @@
+/*
+ * First-run note.
+ *
+ * A ruled block on the page, marked by an accent hairline on the leading edge —
+ * a margin note, not a banner. No gradient, no shadow.
+ */
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-5);
-  margin-bottom: var(--space-8);
-  border: 1px solid var(--accent-border);
+  margin-bottom: var(--section-gap);
+  border: 1px solid var(--border-1);
+  border-inline-start: 2px solid var(--accent);
   border-radius: var(--radius-lg);
-  background: linear-gradient(150deg, var(--accent-softer), transparent 62%), var(--surface-1);
+  background: var(--surface-1);
 }
 
 .head {
@@ -19,8 +26,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: var(--radius-sm);
   background: var(--accent-soft);
   color: var(--accent-strong);

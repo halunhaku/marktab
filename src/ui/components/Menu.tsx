@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { JSX } from 'preact';
+import { useOverlayMotion } from '../hooks/useOverlayMotion';
 import { Icon } from './Icon';
 import { Kbd } from './Kbd';
 import { cx } from './cx';
@@ -77,6 +78,8 @@ export function Menu({ items, anchor, align = 'end', label, onClose }: MenuProps
   useEffect(() => {
     panelRef.current?.focus();
   }, []);
+
+  useOverlayMotion(panelRef);
 
   const step = (direction: 1 | -1): void => {
     let index = active;

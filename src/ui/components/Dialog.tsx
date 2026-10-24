@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'preact/hooks';
 import type { ComponentChildren, JSX } from 'preact';
+import { useOverlayMotion } from '../hooks/useOverlayMotion';
 import { IconButton } from './Button';
 import { cx } from './cx';
 import styles from './Dialog.module.css';
@@ -38,6 +39,11 @@ export function Dialog({
   class: className,
 }: DialogProps): JSX.Element | null {
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const scrimRef = useRef<HTMLDivElement | null>(null);
+
+  // The scrim is the exit surface: the dialog is unmounted as soon as it closes,
+  // so the exit is painted from a copy (ADR-024).
+  useOverlayMotion(panelRef, scrimRef);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -85,6 +91,7 @@ export function Dialog({
   return (
     <div
       class={styles.scrim}
+      ref={scrimRef}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !busy) onClose();
       }}

@@ -32,7 +32,7 @@ export function LinkCard({ item, showHost = true, class: className }: LinkCardPr
     >
       <a {...anchor} class={styles.main} title={item.url}>
         <span class={styles.icon}>
-          <Favicon url={item.url} title={item.title} size={32} />
+          <Favicon url={item.url} title={item.title} size={24} />
         </span>
         <span class={styles.copy}>
           <span class={styles.title}>{item.title}</span>
@@ -45,7 +45,7 @@ export function LinkCard({ item, showHost = true, class: className }: LinkCardPr
           label={item.pinned ? t('item.unpin') : t('item.pin')}
           size="sm"
           active={item.pinned}
-          class={cx(item.pinned && styles.pinActive)}
+          class={cx(styles.pinButton, item.pinned && styles.pinActive)}
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();

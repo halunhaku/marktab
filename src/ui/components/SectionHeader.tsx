@@ -23,7 +23,7 @@ export function SectionHeader({
   const Heading = level === 'page' ? 'h1' : 'h2';
   return (
     <div class={cx(styles.header, level === 'page' && styles.page, className)}>
-      <Heading class={styles.title}>{title}</Heading>
+      <Heading class={cx(styles.title, level === 'page' && 'serif-heading')}>{title}</Heading>
       {meta ? <span class={styles.meta}>{meta}</span> : null}
       <span class={styles.spacer} />
       {action ? <div class={styles.action}>{action}</div> : null}

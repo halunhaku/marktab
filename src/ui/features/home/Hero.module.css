@@ -1,38 +1,46 @@
+/*
+ * Home masthead.
+ *
+ * Not a card: the greeting, the date and the time are printed straight onto the
+ * paper, and one hairline closes the block. The search entry is a line of the
+ * index rather than a raised field — it carries its shortcut, as an index carries
+ * a page number.
+ */
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     'copy clock'
     'search search';
-  align-items: center;
-  gap: var(--space-5) var(--space-6);
-  padding: var(--space-6) var(--space-6) var(--space-5);
-  margin-bottom: var(--space-8);
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-xl);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-1);
+  align-items: end;
+  gap: var(--space-5) var(--space-8);
+  min-height: var(--hero-min-h);
+  padding: var(--space-4) 0 var(--space-5);
+  margin-bottom: var(--section-gap);
+  border-bottom: 1px solid var(--border-1);
 }
 
 .copy {
   grid-area: copy;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
   min-width: 0;
 }
 
+/* The one serif line on the page (`.serif-heading`, ADR-023). */
 .greeting {
-  font-size: var(--text-2xl);
-  font-weight: var(--weight-bold);
+  font-size: var(--text-3xl);
   letter-spacing: var(--tracking-tighter);
+  line-height: var(--leading-tight);
 }
 
 .date {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--text-3);
-  letter-spacing: var(--tracking-wide);
+  letter-spacing: var(--tracking-caps);
+  font-variant-numeric: tabular-nums;
 }
 
 .tagline {
@@ -41,35 +49,32 @@
   color: var(--text-2);
 }
 
-/* The dial's box in the hero grid; the dial itself owns its contents. */
+/* The clock's box in the hero grid; the dial and the time lay themselves out
+   inside it. */
 .clockSlot {
   grid-area: clock;
-  width: 116px;
-  height: 116px;
+  justify-self: end;
 }
 
+/* A line of the index: a hairline box that tints on hover, with its key cap at
+   the end. No shadow, no lift. */
 .search {
   grid-area: search;
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  height: 46px;
-  padding-inline: var(--space-4);
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
+  height: var(--control-h-lg);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
   color: var(--text-3);
-  box-shadow: var(--shadow-1);
-  transition:
-    border-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
 }
 
 .search:hover {
-  border-color: var(--accent-border);
+  border-color: var(--border-2);
+  background: var(--surface-2);
   color: var(--text-2);
-  box-shadow: var(--shadow-focus);
 }
 
 .searchLabel {
@@ -102,7 +107,7 @@
 .skeletonCards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--grid-min), 1fr));
-  gap: var(--space-3);
+  gap: var(--card-gap);
 }
 
 @media (max-width: 768px) {
@@ -112,12 +117,11 @@
       'copy'
       'clock'
       'search';
-    padding: var(--space-5);
+    align-items: start;
+    gap: var(--space-4);
   }
 
   .clockSlot {
     justify-self: start;
-    width: 88px;
-    height: 88px;
   }
 }

@@ -30,36 +30,35 @@
   line-height: var(--leading-snug);
 }
 
+/* The track keeps a real outline at rest so the control is legible without a
+   shadow; the thumb is the one place a fully round shape is used. */
 .track {
   position: relative;
   flex: 0 0 auto;
   width: 38px;
   height: 22px;
+  border: 1px solid var(--border-2);
   border-radius: var(--radius-full);
   background: var(--surface-3);
-  box-shadow: inset 0 0 0 1px var(--border-1);
-  transition:
-    background-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .thumb {
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 2px;
+  left: 2px;
   width: 16px;
   height: 16px;
   border-radius: var(--radius-full);
-  background: var(--surface-2);
-  box-shadow: var(--shadow-1);
-  transition: transform var(--dur-base) var(--ease-emphasis);
+  background: var(--text-2);
 }
 
+/* A switch settles instantly: no thumb travel, no colour fade. */
 .row[aria-checked='true'] .track {
+  border-color: var(--accent);
   background: var(--accent);
-  box-shadow: inset 0 0 0 1px transparent;
 }
 
 .row[aria-checked='true'] .thumb {
+  background: var(--on-accent);
   transform: translateX(16px);
 }

@@ -1,3 +1,7 @@
+/*
+ * A settings section is a chapter of the page, not a card: the section header's
+ * rule opens it, rows are separated by the same hairline, and nothing floats.
+ */
 .section {
   scroll-margin-top: var(--space-4);
 }
@@ -9,22 +13,10 @@
 .card {
   display: flex;
   flex-direction: column;
-  margin-top: var(--space-3);
-  padding: var(--space-1) var(--space-5);
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-1);
 }
 
 /* Hairline between rows, drawn by the rows themselves so no component needs to
-   know whether it is first or last in the card. */
+   know whether it is first or last. */
 .card > * + * {
   border-top: 1px solid var(--border-1);
-}
-
-@media (max-width: 768px) {
-  .card {
-    padding: var(--space-1) var(--space-4);
-  }
 }

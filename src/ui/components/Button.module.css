@@ -2,7 +2,6 @@
   --_bg: transparent;
   --_fg: var(--text-1);
   --_border: transparent;
-  --_shadow: none;
 
   display: inline-flex;
   align-items: center;
@@ -11,24 +10,15 @@
   height: var(--control-h);
   padding-inline: var(--space-3);
   border: 1px solid var(--_border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--_bg);
-  box-shadow: var(--_shadow);
   color: var(--_fg);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-tight);
   white-space: nowrap;
-  transition:
-    background-color var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    transform var(--dur-instant) var(--ease-out);
-}
-
-.button:active:not(:disabled) {
-  transform: translateY(0.5px);
+  /* Hover, press and focus repaint on the same frame: no transition is declared,
+     so the button never moves, scales, lifts or lags behind the pointer. */
 }
 
 .button:disabled {
@@ -55,12 +45,11 @@
 /* ---- variants -------------------------------------------------------- */
 
 .primary {
-  /* Filled with `--accent-solid`, not `--accent`: the label is real text and has
-     to clear 4.5:1 against its own background in both themes. */
+  /* Filled with the accent itself: its label is `--on-accent`, which clears 4.5:1
+     against it in both themes. */
   --_bg: var(--accent-solid);
   --_fg: var(--accent-contrast);
   --_border: transparent;
-  --_shadow: 0 1px 2px rgb(19 26 45 / 14%);
 }
 
 .primary:hover:not(:disabled) {
@@ -68,18 +57,17 @@
 }
 
 .primary:active:not(:disabled) {
-  --_bg: var(--accent-strong);
+  --_bg: var(--accent-hover);
 }
 
 .secondary {
   --_bg: var(--surface-2);
   --_border: var(--border-2);
-  --_shadow: var(--shadow-1);
 }
 
 .secondary:hover:not(:disabled) {
-  --_bg: var(--surface-2);
-  --_border: var(--border-strong);
+  --_bg: var(--surface-hover);
+  --_border: var(--border-2);
 }
 
 .ghost:hover:not(:disabled) {
@@ -117,14 +105,13 @@
 /* ---- sizes ----------------------------------------------------------- */
 
 .sm {
-  height: calc(var(--control-h) - 4px);
+  height: var(--control-h-sm);
   padding-inline: var(--space-2);
   font-size: var(--text-xs);
-  border-radius: var(--radius-sm);
 }
 
 .sm.iconOnly {
-  width: calc(var(--control-h) - 4px);
+  width: var(--control-h-sm);
 }
 
 .lg {
@@ -137,6 +124,8 @@
   width: var(--control-h-lg);
 }
 
+/* An indeterminate progress glyph: the only looping motion in the UI, and it is
+   a transform, so it stays on the compositor. */
 .spinner {
   animation: spin 720ms linear infinite;
 }

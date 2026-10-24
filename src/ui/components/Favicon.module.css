@@ -1,11 +1,13 @@
+/* A favicon is a square of paper with a printed edge — no drop shadow. */
 .tile {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
   overflow: hidden;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-xs);
   background: var(--surface-3);
-  box-shadow: inset 0 0 0 1px var(--border-1);
 }
 
 .image {

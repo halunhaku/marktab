@@ -2,14 +2,15 @@
  * Application shell.
  *
  * Two areas, and only two: the navigation rail and the content column. The rail
- * is the single always-visible navigation surface (see `docs/design-principles.md`
- * and ADR-006/007); every other layer — palette, menus, dialogs, toasts — is
- * hosted here as an overlay so the shell itself stays static and cheap to paint.
+ * is the single always-visible navigation surface (ADR-012); every other layer —
+ * palette, menus, dialogs, toasts — is hosted here as an overlay so the shell
+ * itself stays static and cheap to paint.
  *
- * Above 1200px the rail is a column that collapses to icons. At and below 1200px
- * it becomes an overlay drawer over the content, and at 768px and below the
- * content padding tightens. The JS breakpoint (`useMediaQuery`) and these media
- * queries must stay in sync.
+ * Above 1200px the rail is a column that collapses to icons, and that collapse is
+ * instant: no width or transform animation ever runs in the shell (ADR-024). At
+ * and below 1200px the rail becomes an overlay drawer, faded in and out through
+ * the Web Animations API; at 768px and below the content padding tightens. The JS
+ * breakpoint (`useMediaQuery`) and these media queries must stay in sync.
  */
 
 .shell {
@@ -71,7 +72,7 @@
   gap: var(--space-4);
   min-width: 0;
   color: var(--text-3);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
 }
 
 .stat {
@@ -84,6 +85,7 @@
 .statValue {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
   font-weight: var(--weight-semibold);
   color: var(--text-2);
 }
@@ -96,6 +98,7 @@
 
 /* ---- skip link -------------------------------------------------------- */
 
+/* Hidden until focused, then printed at once — a focus response never fades. */
 .skip {
   position: fixed;
   inset-block-start: var(--space-3);
@@ -105,14 +108,14 @@
   border: 1px solid var(--border-2);
   border-radius: var(--radius-sm);
   background: var(--surface-2);
-  box-shadow: var(--shadow-2);
   font-size: var(--text-sm);
-  transform: translateY(-250%);
-  transition: transform var(--dur-fast) var(--ease-out);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .skip:focus-visible {
-  transform: none;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* ---- drawer (<= 1200px) ----------------------------------------------- */
@@ -123,24 +126,33 @@
 }
 
 @media (max-width: 1200px) {
+  /* The drawer toggle floats over the content column, so the column keeps a
+     control's height of clearance above the first line instead of letting a
+     greeting run under it. */
+  .inner {
+    padding-block-start: calc(var(--space-4) + var(--control-h-lg));
+  }
+
   .shell,
   .railCollapsed {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'content';
   }
 
+  /* The drawer is an overlay, not a column: it is off the tab order and out of
+     sight while closed, and it appears on the frame it opens. The fade in and out
+     is played by `App` through `fadeIn`/`fadeOutCopy`. */
   .railSlot {
     position: fixed;
     inset-block: 0;
     inset-inline-start: 0;
     width: var(--rail-w);
     z-index: var(--z-rail);
-    transform: translateX(-102%);
-    transition: transform var(--dur-base) var(--ease-out);
+    visibility: hidden;
   }
 
   .drawerOpen .railSlot {
-    transform: none;
+    visibility: visible;
     box-shadow: var(--shadow-3);
   }
 
@@ -150,8 +162,6 @@
     inset: 0;
     z-index: calc(var(--z-rail) - 1);
     background: var(--overlay-scrim);
-    backdrop-filter: blur(var(--scrim-blur));
-    -webkit-backdrop-filter: blur(var(--scrim-blur));
   }
 
   .drawerToggle {
@@ -160,7 +170,7 @@
     inset-block-start: var(--space-4);
     inset-inline-start: var(--space-4);
     z-index: var(--z-sticky);
-    box-shadow: var(--shadow-2);
+    box-shadow: var(--shadow-3);
   }
 
   /* The drawer owns the screen while it is open; the toggle would float on top. */
@@ -171,6 +181,6 @@
 
 @media (max-width: 768px) {
   .inner {
-    padding: var(--space-5) var(--space-4) var(--space-8);
+    padding: calc(var(--space-4) + var(--control-h-lg)) var(--space-4) var(--space-8);
   }
 }

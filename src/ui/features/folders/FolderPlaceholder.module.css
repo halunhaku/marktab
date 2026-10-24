@@ -1,7 +1,8 @@
 /*
  * Placeholder states for the folder view: loading, error, empty, no match,
  * unknown folder. They all live in the same surface so the page never shifts
- * horizontally when the state changes.
+ * horizontally when the state changes, and the loading shape already has the
+ * geometry of the content that replaces it.
  */
 
 .skeleton {
@@ -13,5 +14,5 @@
 .skeletonGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--grid-min), 1fr));
-  gap: var(--space-3);
+  gap: var(--card-gap);
 }

@@ -1,26 +1,7 @@
+/* A loading placeholder is a quiet grey block that already has the final
+   geometry: no shimmer, no pulse — the page simply fills in (ADR-024). */
 .bar {
   display: block;
   border-radius: var(--radius-sm);
-  background: linear-gradient(
-    90deg,
-    var(--surface-3) 0%,
-    color-mix(in srgb, var(--surface-3) 60%, var(--surface-2)) 50%,
-    var(--surface-3) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.4s var(--ease-in-out) infinite;
-}
-
-@keyframes shimmer {
-  from {
-    background-position: 130% 0;
-  }
-
-  to {
-    background-position: -30% 0;
-  }
-}
-
-[data-motion='reduced'] .bar {
-  animation: none;
+  background: var(--surface-3);
 }

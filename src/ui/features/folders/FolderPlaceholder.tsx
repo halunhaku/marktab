@@ -39,7 +39,7 @@ export function FolderPlaceholder(props: FolderPlaceholderProps): JSX.Element {
           {Array.from({ length: count }, (_, index) => (
             <Skeleton
               key={index}
-              height={card ? '88px' : 'var(--row-h)'}
+              height={card ? 'var(--card-h)' : 'var(--row-h)'}
               radius="var(--radius-lg)"
             />
           ))}

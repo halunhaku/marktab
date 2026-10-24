@@ -1,19 +1,19 @@
 .view {
   display: flex;
   flex-direction: column;
-  padding-bottom: var(--space-12);
+  padding-bottom: var(--section-gap);
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  border-top: 1px solid var(--border-1);
 }
 
 .skeletonList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 1px;
 }
 
 .note {
@@ -48,13 +48,13 @@
   flex: 1 1 auto;
 }
 
-/* The manual position, as a label above the card. It used to be a badge
-   absolutely positioned in the card's top-left corner, which is exactly where the
-   card's favicon sits — the number and the icon rendered on top of each other. */
+/* The manual position, as a printed number above the card (not a badge in the
+   card's top-left corner, which is where the favicon sits). */
 .order {
   padding-inline: var(--space-2);
   font-family: var(--font-mono);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
   letter-spacing: var(--tracking-caps);
   color: var(--text-3);
 }
@@ -65,4 +65,3 @@
   gap: 2px;
   padding: var(--space-1) 0 0;
 }
-

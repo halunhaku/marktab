@@ -1,9 +1,9 @@
 /*
  * Command palette.
  *
- * The palette is one of the two surfaces allowed to blur the page behind it (the
- * rail is the other), so the scrim carries the blur budget and the panel itself
- * stays opaque and cheap to repaint while a query is typed.
+ * One opaque sheet with a single hairline border, 640 px wide at most, over a
+ * plain scrim — no blur, no second layer of shadow. Results paint as they are
+ * computed; no row is animated in.
  */
 
 .root {
@@ -15,22 +15,18 @@
   justify-content: center;
   padding: 12vh var(--space-4) var(--space-6);
   background: var(--overlay-scrim);
-  backdrop-filter: blur(var(--scrim-blur));
-  -webkit-backdrop-filter: blur(var(--scrim-blur));
-  animation: fade var(--dur-fast) var(--ease-out);
 }
 
 .panel {
   display: flex;
   flex-direction: column;
-  width: min(640px, 100%);
+  width: min(var(--palette-max-w), 100%);
   max-height: min(72vh, 680px);
   overflow: hidden;
   border: 1px solid var(--border-2);
   border-radius: var(--radius-xl);
   background: var(--surface-2);
   box-shadow: var(--shadow-3);
-  animation: rise var(--dur-base) var(--ease-out);
 }
 
 .panel:focus {
@@ -41,7 +37,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-4) var(--space-3);
+  height: calc(var(--control-h-lg) + var(--space-3));
+  padding-inline: var(--space-4);
   border-bottom: 1px solid var(--border-1);
 }
 
@@ -52,7 +49,7 @@
 .input {
   flex: 1 1 auto;
   min-width: 0;
-  height: var(--control-h);
+  height: var(--control-h-lg);
   border: none;
   background: none;
   font-size: var(--text-lg);
@@ -101,12 +98,13 @@
   margin-top: var(--space-2);
 }
 
+/* A group heading is a small printed label above a ruled list. */
 .groupTitle {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3) var(--space-1);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -116,7 +114,7 @@
 .groupMeta {
   margin-inline-start: auto;
   font-family: var(--font-mono);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
   font-weight: var(--weight-regular);
   letter-spacing: 0;
   text-transform: none;
@@ -129,22 +127,22 @@
   width: 100%;
   min-height: var(--control-h-lg);
   padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xs);
   color: var(--text-1);
   cursor: default;
-  transition: background-color var(--dur-instant) var(--ease-out);
 }
 
 .row:hover {
   background: var(--surface-hover);
 }
 
-/* Two cues for the selection: tinted fill plus a leading accent bar, so the
-   active row is unambiguous even on a low-contrast display. */
+/* The selection is a tint plus a leading accent rule, so it is unambiguous on a
+   low-contrast display. */
 .active,
 .active:hover {
   background: var(--accent-soft);
-  box-shadow: inset 2px 0 0 0 var(--accent);
+  border-inline-start: 2px solid var(--accent);
+  padding-inline-start: calc(var(--space-2) - 2px);
 }
 
 .rowIcon {
@@ -188,7 +186,7 @@
 
 .host {
   font-family: var(--font-mono);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
   color: var(--text-3);
   white-space: nowrap;
 }
@@ -214,28 +212,6 @@
   gap: var(--space-2);
   font-size: var(--text-xs);
   color: var(--text-3);
-}
-
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.99);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 @media (max-width: 768px) {

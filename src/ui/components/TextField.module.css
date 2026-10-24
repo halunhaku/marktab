@@ -12,18 +12,17 @@
   letter-spacing: var(--tracking-wide);
 }
 
+/* Fields are identified by their outline, not by a shadow: `--border-2` clears
+   3:1 on every surface (WCAG 1.4.11). */
 .input,
 .select {
   height: var(--control-h-lg);
   padding-inline: var(--space-3);
   border: 1px solid var(--border-2);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--surface-2);
   color: var(--text-1);
   font-size: var(--text-md);
-  transition:
-    border-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .input::placeholder {
@@ -32,19 +31,18 @@
 
 .input:hover,
 .select:hover {
-  border-color: var(--border-strong);
+  border-color: var(--focus);
 }
 
 .input:focus-visible,
 .select:focus-visible {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: var(--shadow-focus);
+  border-color: var(--focus);
 }
 
 .select {
   appearance: none;
   padding-inline-end: var(--space-8);
+  /* The chevron is drawn with two clipped edges, not a background image. */
   background-image: linear-gradient(45deg, transparent 50%, var(--text-3) 50%),
     linear-gradient(135deg, var(--text-3) 50%, transparent 50%);
   background-position:

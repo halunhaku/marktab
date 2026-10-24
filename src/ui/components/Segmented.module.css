@@ -1,11 +1,13 @@
+/* A segmented control is a bordered strip of labels; the chosen one is tinted,
+   never raised. */
 .group {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   padding: 2px;
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-md);
-  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
 }
 
 .segment {
@@ -14,29 +16,30 @@
   gap: var(--space-2);
   height: calc(var(--control-h) - 8px);
   padding-inline: var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   color: var(--text-2);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
-  transition:
-    background-color var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .segment:hover {
   color: var(--text-1);
+  background: var(--surface-hover);
 }
 
 .selected {
-  background: var(--surface-2);
-  color: var(--text-1);
-  box-shadow: var(--shadow-1);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.selected:hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 .sm .segment {
-  height: calc(var(--control-h) - 12px);
+  height: calc(var(--control-h-sm) - 6px);
   padding-inline: var(--space-2);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
   gap: 4px;
 }

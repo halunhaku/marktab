@@ -69,9 +69,18 @@ MV3, version `3.0.0`. Sources live in `src/**`; **nothing** in this repo ships a
   'camelCaseOnly'`), so a class named `.itemRow` is read as `styles.itemRow`.
 - **Never hard-code a colour, size, radius, duration or easing.** Read the token. If no token
   fits, add one to `tokens.css` and document it in `DESIGN_SYSTEM.md`.
-- Do not introduce a second accent family, a theme-colour picker, serif headings, or
-  `backdrop-filter` outside the two permitted surfaces (rail and palette scrim) — ADR-004,
-  ADR-005 and ADR-006.
+- The visual language is **paper**: one ochre accent family and no theme-colour picker
+  (ADR-022); a local-only serif used *only* through the global `.serif-heading` class on the
+  greeting and a page's own `h1` (ADR-023); **zero `backdrop-filter`** anywhere and no
+  elevation shadows on cards, rows or controls (ADR-024). Depth comes from hairlines
+  (`--border-1`) and control outlines (`--border-2`), never from a blur or a lift.
+- Motion is opacity-only and interaction-only: hover, press and focus paint with no movement;
+  panels, menus, dialogs, the drawer and toasts fade `0.85 → 1` over `--dur-base` (120 ms) and
+  close with an 80 ms non-interactive copy — go through `src/ui/motion.ts` /
+  `useOverlayMotion`, never a hand-rolled keyframe. Typing, filtering, the clock, theme
+  switches, the switch control, appended rows and the desktop rail's collapse are `0ms`.
+  `transition: all` is forbidden, and nothing animates `height`, `width`, `filter`,
+  `backdrop-filter` or `box-shadow`.
 - The shell stays a rail plus one content column (ADR-012), and the rail keeps exactly one
   breakpoint: `(max-width: 1200px)`, written once in `App.module.css` and mirrored by
   `DRAWER_QUERY` in `App.tsx` (ADR-013). Adding a second breakpoint needs a reason.
@@ -118,7 +127,8 @@ MV3, version `3.0.0`. Sources live in `src/**`; **nothing** in this repo ships a
   focus, the Tab ring, Escape and focus restoration, asynchronous results are announced
   politely, and `--dur-*` tokens zero out under reduced motion (principles 3, 5, 6, 8, 12, 13).
 - Icon-only buttons carry an accessible name. Interactive targets are at least 24×24 CSS px,
-  aiming at the 34–40 px control tokens (principle 16).
+  aiming at the 32/36/40 px control tokens (`--control-h-sm`, `--control-h`, `--control-h-lg`;
+  principle 16). Compact density shrinks rows and controls only — it never shrinks type.
 - Empty, loading, no-result and error states are compact and share the design kit; loading must
   not shift the layout (principle 15).
 - Large libraries stay bounded: render a windowed set and reveal more incrementally

@@ -24,6 +24,7 @@ import { EmptyState } from '@/ui/components/EmptyState';
 import { Icon, type IconName } from '@/ui/components/Icon';
 import { Kbd } from '@/ui/components/Kbd';
 import { formatNumber } from '@/ui/format';
+import { useOverlayMotion } from '@/ui/hooks/useOverlayMotion';
 import { openDialog } from '@/ui/state/overlay';
 import { closePalette, navigate, paletteInitialQuery, paletteOpen } from '@/ui/state/router';
 import { showToast } from '@/ui/state/toast';
@@ -301,6 +302,9 @@ function PalettePanel(): JSX.Element {
   const armed = useSignal(false);
   const input = useRef<HTMLInputElement | null>(null);
   const panel = useRef<HTMLDivElement | null>(null);
+  const root = useRef<HTMLDivElement | null>(null);
+
+  useOverlayMotion(panel, root);
 
   const model = useComputed<PaletteModel>(() => buildModel(query.value));
   const { sections, rows, count, idle, empty } = model.value;
@@ -420,6 +424,7 @@ function PalettePanel(): JSX.Element {
   return (
     <div
       class={styles.root}
+      ref={root}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) closePalette();
       }}

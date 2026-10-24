@@ -1,8 +1,16 @@
+/*
+ * Section header: a chapter rule.
+ *
+ * The title sits on a hairline that runs to the end of the column, so each block
+ * of the page reads as a chapter rather than as a floating card label.
+ */
 .header {
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
+  padding-bottom: var(--space-2);
   margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-1);
 }
 
 .page {
@@ -10,19 +18,23 @@
 }
 
 .title {
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
   color: var(--text-1);
 }
 
+/* Page titles take the serif voice (the `.serif-heading` class the caller
+   composes on); only the size belongs here. */
 .page .title {
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
+  letter-spacing: var(--tracking-tight);
 }
 
 .meta {
   font-family: var(--font-mono);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
   color: var(--text-3);
   letter-spacing: var(--tracking-wide);
 }

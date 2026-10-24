@@ -47,7 +47,7 @@ export function LinkRow({
           label={item.pinned ? t('item.unpin') : t('item.pin')}
           size="sm"
           active={item.pinned}
-          class={cx(item.pinned && styles.pinActive)}
+          class={cx(styles.pinButton, item.pinned && styles.pinActive)}
           onClick={() => togglePin(item)}
         />
         <IconButton

@@ -45,7 +45,7 @@ export function Hero({
   return (
     <section class={cx(styles.hero, className)} aria-labelledby="home-greeting">
       <div class={styles.copy}>
-        <h1 class={styles.greeting} id="home-greeting">
+        <h1 class={cx(styles.greeting, 'serif-heading')} id="home-greeting">
           {greeting}
         </h1>
         <p class={styles.date}>{date}</p>
@@ -80,7 +80,7 @@ export function HomeSkeleton({ rows }: HomeSkeletonProps): JSX.Element {
           <Skeleton width="12rem" height="0.75rem" />
           <div class={styles.skeletonCards}>
             {Array.from({ length: 4 }, (_, card) => (
-              <Skeleton key={card} height="5.5rem" radius="var(--radius-lg)" />
+              <Skeleton key={card} height="var(--card-h)" radius="var(--radius-lg)" />
             ))}
           </div>
         </div>

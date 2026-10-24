@@ -1,3 +1,7 @@
+/*
+ * Breadcrumb as a running head: small mono, muted, with the current page set in
+ * the text colour. No pill, no fill unless hovered.
+ */
 .nav {
   min-width: 0;
   margin-bottom: var(--space-2);
@@ -11,7 +15,9 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
   color: var(--text-3);
 }
 
@@ -39,9 +45,6 @@
   font: inherit;
   color: var(--text-2);
   cursor: pointer;
-  transition:
-    background-color var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
 }
 
 .crumb:hover {

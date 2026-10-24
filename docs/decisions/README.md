@@ -78,7 +78,8 @@ a bug.
 
 ## ADR-004 — One accent family, no user-configurable theme colour
 
-**Status:** accepted (2026-10)
+**Status:** accepted (2026-10) — the rule stands, the colour is superseded by
+[ADR-022](#adr-022--a-single-ochre-accent-family-no-user-configurable-colour)
 
 **Context.** v2 shipped an accent-colour selector. It multiplied every visual state
 by N themes, and it was the most common source of unreadable combinations.
@@ -98,7 +99,8 @@ matrix.
 
 ## ADR-005 — Sans-serif headings, monospace numerals
 
-**Status:** accepted (2026-10) — supersedes the v2 "serif headings" rule
+**Status:** superseded by [ADR-023](#adr-023--a-local-serif-for-the-greeting-and-a-pages-own-title)
+(2026-10); the monospace-numerals half still stands and is restated there
 
 **Context.** The v2 design system paired a serif display face with sans body text.
 That pairing reads as editorial, and it fights the product's actual tone: a
@@ -117,7 +119,8 @@ every new tab would be worse than any typographic nicety.
 
 ## ADR-006 — Blur is spent on two surfaces only
 
-**Status:** accepted (2026-10)
+**Status:** superseded by [ADR-024](#adr-024--zero-blur-and-opacity-only-motion) (2026-10):
+the paper language has no blur budget at all
 
 **Context.** `backdrop-filter` is the most expensive thing a page can put in a
 composited layer, and on a new tab page it runs while the index is still building.
@@ -713,3 +716,116 @@ either state as a `role="status"` warning row, translated in both catalogues, st
 look for it, and the two tested paths
 (`tests/unit/persistence-guards.test.ts`: a rejected sync write, a rejected local write,
 each cleared by the next success) keep it that way.
+
+---
+
+## ADR-022 — A single ochre accent family, no user-configurable colour
+
+**Status:** accepted (2026-10) — supersedes the colour half of ADR-004
+
+**Context.** The v3 surface was built on a mid-tone blue (`#5b6cff` / `#7aa2ff`) over a
+cool grey ramp. The redesign brief asked for a paper surface: warm neutrals, ink text and
+printed rules. A blue accent on warm paper reads as a link pasted onto a page, and it was
+the only cool element left in the composition.
+
+**Decision.** One accent family, ochre (`#8a3f25` light / `#f0b294` dark), with a soft
+wash (`--accent-soft`), a hover tone and an on-accent ink. The aliases the old system used
+(`--accent-strong`, `--accent-solid`, `--accent-contrast`, `--accent-border`,
+`--accent-soft(er)`) are kept as pointers to those values so no call site had to be
+rewritten into a different vocabulary. There is still no accent picker and no second
+accent: `--success`, `--warning`, `--error` and `--focus` are status tones, not brand
+variants.
+
+**Alternatives.**
+- *Keep the blue and change only the neutrals* — the warm ramp with a cool accent is the
+  most common "editorial" mistake; the accent stops looking printed.
+- *Add a second, decorative tone for markers and badges* — every added tone is another
+  contrast pair to re-verify in both themes, and the accent already marks state, focus and
+  the one primary action per surface.
+- *Expose the accent in Settings* — ADR-004's reasoning is unchanged: N accents multiply
+  every visual state.
+
+**Consequences.** Every accent usage is one contrast pair, verified at 5.60:1 (light) and
+6.46:1 (dark) as text on the worst surface it lands on, and 7.33:1 / 8.96:1 as a fill
+behind `--on-accent`. Status colours are chosen to stay distinguishable from ochre in both
+themes (`--success` is a green that is darker in light mode and lighter in dark mode,
+never a second warm). `tests/e2e/a11y.spec.ts` remains the enforcement.
+
+---
+
+## ADR-023 — A local serif for the greeting and a page's own title
+
+**Status:** accepted (2026-10) — supersedes ADR-005's "no serif" rule
+
+**Context.** ADR-005 removed the serif because v2 paired a display serif with sans body on
+mixed English/Chinese bookmark titles. The paper direction needs a human, printed voice for
+the one place the page speaks to the reader (the greeting) and for the title of a page; a
+whole serif UI would not survive the density of rows, hosts and counts.
+
+**Decision.** `--font-serif` is a **local-only** stack — `Georgia`, `Times New Roman`,
+`Songti SC`, `SimSun`, `serif` — and `--font-heading` points at it. It is applied through
+the global `.serif-heading` class in `base.css` to exactly two things: the home greeting,
+and the `h1` rendered by `SectionHeader level="page"` (folder, pinned, recent, settings).
+`h1..h4` themselves stay sans, so a new heading is sans unless it opts in. Counts, hosts,
+dates and the clock stay in `--font-mono` with `font-variant-numeric: tabular-nums`; the
+clock's family token is `--font-clock`, a pointer at the mono stack.
+
+**Alternatives.**
+- *Ship a webfont (Fraunces, Newsreader, Source Serif)* — an offline extension must not
+  fetch a font, and a FOUT on every new tab is worse than any typographic nicety.
+- *Serif every heading* — it collapses the hierarchy in dense surfaces and puts CJK
+  headings on a different baseline from their own meta line.
+- *Serif body text* — unreadable at 12–14 px with mixed Latin/CJK titles.
+
+**Consequences.** Two sizes carry the serif: `--text-3xl` (36 px, the greeting) and
+`--text-2xl` (24 px, page titles), both at regular weight — a bold serif at display size
+reads as a headline rather than a page. A machine without Georgia/Songti falls back to a
+system serif, which is the intended behaviour, not a bug.
+
+---
+
+## ADR-024 — Zero blur, and opacity-only motion
+
+**Status:** accepted (2026-10) — supersedes ADR-006
+
+**Context.** ADR-006 allowed `backdrop-filter` on the rail and the scrim. In the paper
+language both are opaque sheets: a blurred rail over warm paper reads as frosted glass and
+loses the printed edge that separates the spine from the page, and blurring a new tab page
+while its index is still building is the most expensive thing the first paint can do.
+
+**Decision.** `backdrop-filter` appears nowhere; `--rail-blur` / `--scrim-blur` exist at
+`0` so a component cannot reach for a value that would reintroduce one. Elevation is spent
+on exactly three overlays (palette, menu/dialog, drawer) with a single soft edge
+(`--shadow-3`); cards, rows and controls are hairline boxes. Motion is:
+
+| Element | Motion |
+| --- | --- |
+| hover / press / focus | colour, border and text tone change on the same frame; no movement, no scale, no shadow transition |
+| palette, menu, dialog, drawer | opacity `.85 → 1` in `--dur-base` (120 ms); on close an 80 ms non-interactive copy fades out |
+| toast, popup "saved" confirmation | opacity `.85 → 1` in `--dur-base` |
+| pin icon | opacity `.65 → 1` in `--dur-instant` (50 ms) |
+| clock, theme, results, switch, appended rows, desktop collapse | `0 ms` |
+| keyboard-triggered open (Enter/Space/Escape/arrows) | `0 ms` |
+
+The primitives live in `src/ui/motion.ts` (Web Animations API) and read `--dur-base`,
+`--dur-fast` and `--ease-out` from the element, so `[data-motion='reduced']` and
+`prefers-reduced-motion: reduce` collapse them to nothing without a second code path. An
+overlay's focus, `inert` state and pointer handling are effective on the frame the state
+changes, never after the fade: the exit is a copy, not a deferred unmount. Nothing animates
+`height`, `width`, `filter`, `backdrop-filter` or `box-shadow`, and the first frame of a
+page has no entry animation.
+
+**Alternatives.**
+- *Keep the two blurred surfaces for continuity* — they were the only two, and they were
+  the two that most contradicted the paper metaphor.
+- *Slide or scale panels in* — transform motion at 120 ms reads as a spring; the paper
+  language wants a page that is simply there.
+- *Transition hover colours over 150–200 ms* — a new tab is opened dozens of times a day,
+  and a slow tint makes a keyboard-first surface feel laggy; 80 ms is the longest cue that
+  still feels immediate.
+
+**Consequences.** The rule is checkable: `backdrop-filter` is expected to appear zero times
+in `src/**`, `--shadow-1` and `--shadow-2` are `none`, and the only `transition` declarations
+left in a module animate `opacity` — a hover, a press or a focus change paints on the same
+frame it happens, with no transition at all. The cost is that overlays can no longer imply
+depth through blur, so the scrim (28% warm ink light / 64% dark) carries it on its own.
