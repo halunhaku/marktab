@@ -301,10 +301,10 @@ because nothing is published there any more. The `EDGE_PRODUCT_ID`, `EDGE_CLIENT
 
 ## Pre-submission checklist
 
-- [ ] `npm run bump -- 3.0.0` has run (version agrees across `package.json`, `public/manifest.json`, `README.md` and this file).
+- [ ] `npm run bump -- 3.1.0` has run (version agrees across `package.json`, `public/manifest.json`, `README.md` and this file).
 - [ ] `npm run release:check` passes locally (typecheck → test → build → validate → package).
 - [ ] `dist/marktab-3.1.0.zip` contains only the files listed under **Release package** above.
 - [ ] The permissions table in `README.md`, `PRIVACY_POLICY.md`, `AGENTS.md` and this file still names exactly five permissions.
-- [ ] Screenshots recaptured from the 3.0.0 build (`store-assets/` is currently v2-era).
+- [ ] Screenshots recaptured from the 3.1.0 build (`store-assets/` shows the paper UI in light and dark).
 - [ ] Listing claims match the extension's behaviour.
 - [ ] Manual test pass: new tab paint, palette search, pin/unpin, hidden-folder recovery, theme/density/motion, persistence, popup stats, "bookmark the current page", no network requests to developer hosts.
