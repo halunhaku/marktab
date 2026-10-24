@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { mkdir, readdir, rm } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -90,6 +90,56 @@ if (!existsSync(playwright.chromium.executablePath())) {
   console.error('Chromium is not installed. Run `npx playwright install chromium` first.');
   process.exit(1);
 }
+
+/* ---- paper tokens, read from the built stylesheet ---------------------- */
+
+/**
+ * The popup canvas and the promo tile are drawn rather than screenshotted, so
+ * their values must not come from a second, hand-written palette: the previous
+ * template kept the retired blue, its gradients and its drop shadow alive long
+ * after the product stopped using them. Every colour, font and radius below is
+ * read from the built CSS — `src/ui/styles/tokens.css` as shipped — and a token
+ * that is missing from the build is a hard failure, never a silent default.
+ */
+async function readPaperTokens() {
+  const assetsDir = path.join(extensionDir, 'assets');
+  const files = (await readdir(assetsDir)).filter((file) => file.endsWith('.css'));
+  if (files.length === 0) throw new Error('the build ships no stylesheet; run `npm run build` first.');
+  const css = (await Promise.all(files.map((file) => readFile(path.join(assetsDir, file), 'utf8')))).join('\n');
+
+  const maps = { light: new Map(), dark: new Map() };
+  // Flat `selector { declarations }` pairs: minified output has no nesting here.
+  for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    for (const part of selector.split(',')) {
+      const map = /^\s*:root\s*$/.test(part)
+        ? maps.light
+        : /\[data-theme=['"]?dark['"]?\]/.test(part)
+          ? maps.dark
+          : null;
+      if (!map) continue;
+      for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) map.set(name, value.trim());
+    }
+  }
+
+  // The drawings live on a blank page, not inside the extension: the app's
+  // `:root` does not apply there, so `var(--accent-solid)` would resolve to
+  // nothing. Follow the aliases to their final value here instead.
+  const resolve = (name, theme, seen = new Set()) => {
+    if (seen.has(name)) throw new Error(`token ${name} refers to itself.`);
+    seen.add(name);
+    const raw = maps[theme].get(name);
+    if (raw === undefined) throw new Error(`token ${name} is missing from the built stylesheet (${theme}).`);
+    return raw.replace(/var\(\s*(--[\w-]+)\s*\)/g, (_, ref) => resolve(ref, theme, seen));
+  };
+
+  return (name, theme = 'light') => {
+    const value = resolve(name, theme);
+    if (value.includes('var(')) throw new Error(`token ${name} still references an unresolved variable: ${value}`);
+    return value;
+  };
+}
+
+const paperToken = await readPaperTokens();
 
 /* ---- capture ----------------------------------------------------------- */
 
@@ -276,12 +326,14 @@ await popupPage.waitForTimeout(300);
 const popupShot = await popupPage.screenshot({ type: 'png' });
 await popupPage.close();
 
+// The canvas is paper, the sheet is separated by a hairline and nothing lifts:
+// the product has no elevation shadow, so the asset must not invent one.
 const composed = await context.newPage();
 await composed.setViewportSize(VIEWPORT);
 await composed.setContent(
-  `<body style="margin:0;height:800px;display:grid;place-items:center;background:#f5f6f9;font-family:ui-sans-serif">
+  `<body style="margin:0;height:800px;display:grid;place-items:center;background:${paperToken('--canvas')};font-family:${paperToken('--font-sans')}">
      <img alt="" src="data:image/png;base64,${popupShot.toString('base64')}"
-          style="border-radius:18px;box-shadow:0 24px 48px -22px rgb(19 26 45 / 34%);border:1px solid #e3e6ee" />
+          style="display:block;border:1px solid ${paperToken('--border-1')};border-radius:${paperToken('--radius-xl')}" />
    </body>`,
 );
 await composed.waitForTimeout(300);
@@ -291,8 +343,11 @@ await composed.close();
 /* ---- 440×280 promo tile ------------------------------------------------ */
 
 // The small tile is a marketing image, not a screenshot: a legible wordmark on
-// the product's own ambient background, drawn from the same tokens the app uses
-// (`src/ui/styles/tokens.css`). Nothing here is a fabricated interface.
+// the product's own paper, drawn from the tokens the build ships
+// (`src/ui/styles/tokens.css`). No gradient, no shadow, no blur — the paper
+// language is one ochre accent on a warm sheet, and the wordmark is set in the
+// serif the product reserves for a page's own title. Nothing here is a
+// fabricated interface.
 const promo = await context.newPage();
 await promo.setViewportSize(PROMO);
 await promo.setContent(`<!doctype html>
@@ -300,27 +355,53 @@ await promo.setContent(`<!doctype html>
   * { margin: 0; box-sizing: border-box; }
   body {
     width: 440px; height: 280px; display: grid; place-items: center;
-    font-family: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    background:
-      radial-gradient(28rem 18rem at 8% -12%, rgb(91 108 255 / 6%), transparent 62%),
-      radial-gradient(24rem 16rem at 106% 6%, rgb(91 108 255 / 6%), transparent 60%),
-      linear-gradient(178deg, #f5f6f9 0%, #eceef3 100%);
-    color: #14161b;
+    font-family: ${paperToken('--font-sans')};
+    background: ${paperToken('--canvas')};
+    color: ${paperToken('--text-1')};
   }
-  .stack { display: grid; justify-items: center; gap: 14px; text-align: center; padding: 0 28px; }
+  .stack {
+    display: grid; justify-items: center; gap: ${paperToken('--space-3')};
+    padding-inline: ${paperToken('--space-6')}; text-align: center;
+  }
   .mark {
-    width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
-    background: linear-gradient(150deg, #5b6cff, #4150e4);
-    box-shadow: 0 6px 16px rgb(91 108 255 / 26%);
+    display: grid; place-items: center;
+    width: 42px; height: 42px;
+    border-radius: ${paperToken('--radius-sm')};
+    background: ${paperToken('--accent-solid')};
   }
   .mark span {
-    width: 18px; height: 18px; border-radius: 5px;
-    border: 2.6px solid #fff; border-block-end-color: transparent; border-inline-end-color: transparent;
-    transform: rotate(45deg) translate(1.5px, -1.5px);
+    width: 16px; height: 16px; border-radius: 1px;
+    border: 2.4px solid ${paperToken('--on-accent')};
+    border-block-end-color: transparent; border-inline-end-color: transparent;
+    transform: rotate(45deg) translate(1.4px, -1.4px);
   }
-  h1 { font-size: 34px; letter-spacing: -0.02em; font-weight: 600; }
-  p { font-size: 14px; line-height: 1.45; color: #5a6172; max-width: 330px; }
-  em { font-style: normal; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #14161b; }
+  h1 {
+    font-family: ${paperToken('--font-heading')};
+    font-size: ${paperToken('--text-3xl')};
+    font-weight: ${paperToken('--weight-semibold')};
+    letter-spacing: ${paperToken('--tracking-tighter')};
+    line-height: ${paperToken('--leading-tight')};
+  }
+  p {
+    max-width: 330px;
+    font-size: ${paperToken('--text-sm')};
+    line-height: ${paperToken('--leading-snug')};
+    color: ${paperToken('--text-2')};
+  }
+  em {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; padding-inline: 5px;
+    border: 1px solid ${paperToken('--border-1')};
+    border-radius: ${paperToken('--radius-xs')};
+    background: ${paperToken('--surface-2')};
+    color: ${paperToken('--text-2')};
+    font-style: normal;
+    font-family: ${paperToken('--font-mono')};
+    font-size: ${paperToken('--text-xs')};
+    font-weight: ${paperToken('--weight-medium')};
+    line-height: 1;
+    vertical-align: -3px;
+  }
 </style></head>
 <body>
   <div class="stack">

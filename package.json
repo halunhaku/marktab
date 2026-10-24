@@ -1,6 +1,6 @@
 {
   "name": "marktab",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "type": "module",
   "description": "MarkTab 3 — a fast, private, keyboard-first bookmark new tab for Chrome.",

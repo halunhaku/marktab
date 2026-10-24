@@ -1,6 +1,6 @@
 # MarkTab — Chrome Web Store submission
 
-Applies to **MarkTab 3.0.0** (`package.json` version, mirrored in `public/manifest.json`).
+Applies to **MarkTab 3.1.0** (`package.json` version, mirrored in `public/manifest.json`).
 The Chrome Web Store is the only store this extension ships to; see
 [Microsoft Edge — publishing retired](#microsoft-edge--publishing-retired).
 
@@ -129,7 +129,7 @@ MarkTab does not need.
 
 ## Release package
 
-`npm run package` (`scripts/package-release.mjs`) produces **`dist/marktab-3.0.0.zip`**, and the
+`npm run package` (`scripts/package-release.mjs`) produces **`dist/marktab-3.1.0.zip`**, and the
 ZIP contains exactly the contents of `dist/extension` — the same tree Playwright loads and the
 same tree `npm run validate` checks:
 
@@ -165,7 +165,7 @@ only ever zips `dist/extension`, so the way to keep them out is to keep them out
 
 ## Reviewer instructions (how to test)
 
-1. Unzip `marktab-3.0.0.zip` to a permanent folder.
+1. Unzip `marktab-3.1.0.zip` to a permanent folder.
 2. Open `chrome://extensions/`, enable **Developer mode**, click **Load unpacked**, and select
    that folder (the one containing `manifest.json`).
 3. Open a **new tab** — MarkTab replaces the new tab page (there is no options page; all
@@ -303,7 +303,7 @@ because nothing is published there any more. The `EDGE_PRODUCT_ID`, `EDGE_CLIENT
 
 - [ ] `npm run bump -- 3.0.0` has run (version agrees across `package.json`, `public/manifest.json`, `README.md` and this file).
 - [ ] `npm run release:check` passes locally (typecheck → test → build → validate → package).
-- [ ] `dist/marktab-3.0.0.zip` contains only the files listed under **Release package** above.
+- [ ] `dist/marktab-3.1.0.zip` contains only the files listed under **Release package** above.
 - [ ] The permissions table in `README.md`, `PRIVACY_POLICY.md`, `AGENTS.md` and this file still names exactly five permissions.
 - [ ] Screenshots recaptured from the 3.0.0 build (`store-assets/` is currently v2-era).
 - [ ] Listing claims match the extension's behaviour.

@@ -204,3 +204,52 @@
     ([submission states](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/submission-states)).
     The operational notes live in
     [CHROME_STORE_SUBMISSION.md](../CHROME_STORE_SUBMISSION.md#microsoft-edge--publishing-retired).
+
+## v3.1.0 — paper visuals and motion
+
+- Date: 2026-10-24
+- Status: release candidate, not tagged and not uploaded. The paper redesign is on `main`
+  (`a8336de`); this entry records the version bump, the recaptured store assets and the release
+  gate on the bumped tree. Tagging, the GitHub Release, the Chrome Web Store upload and the
+  landing-page `wrangler deploy` are still manual steps.
+- Validation (this tree, `npm run release:check`):
+  - `npm run typecheck` — passed.
+  - `npm test` — passed: 323 unit tests in 16 files (vitest), 85 script tests
+    (`node --test scripts/*.test.mjs`), no failures or skips.
+  - `npm run build` — passed; the Vite build still warns that `theme-boot.js` is a classic
+    script, which is deliberate (it runs before the module graph).
+  - `npm run validate` — `Release validation passed.` Runtime payload 239.1 KiB (JS 159.9 KiB,
+    CSS 55.1 KiB) across 18 files; five permissions, empty host/optional permissions, no content
+    scripts and no remote-code patterns.
+  - `npm run package` — `dist/marktab-3.1.0.zip`, 18 files, 244 792 bytes uncompressed,
+    92 665 bytes on disk, sha256 `386286a2f29f29f2b2d2ac63cc259051eb090e393d18bab27c37d9577094c982`.
+  - `npm run test:e2e` — 40/40 passed in 54.8 s against the unpacked `dist/extension` in real
+    Chromium, including the `axe-core` audit of every surface in both themes and the 3 000-bookmark
+    guard (boot 53 ms, search 9 ms, no long task). `release:check` does not run it; CI does.
+- `npm run screenshots` recaptured all 22 `store-assets/` files (11 PNG + 11 JPEG) from this
+  build: seven 1280×800 surfaces in light and dark, the composed popup sheet at 1280×800 and the
+  440×280 promo tile. File names, formats and dimensions are unchanged, so
+  `SCREENSHOT_ASSETS` in the landing-page worker and `scripts/landing-screenshots.test.mjs`
+  needed no edit.
+- Version: `npm run bump -- 3.1.0` wrote `package.json`, `public/manifest.json`, `README.md`,
+  `CHROME_STORE_SUBMISSION.md` and the landing worker's `FALLBACK_VERSION` (which still said
+  `2.1.1`, so the landing page would have advertised a version two releases behind); the script
+  does not touch `package-lock.json`, so `npm install --package-lock-only` synced its root
+  version. Two manual follow-ups the script cannot do: the submission guide's headline said
+  3.0.0 and now says 3.1.0, and `public/manifest.json` was re-serialized with its `permissions`
+  array expanded — restored to one line so the manifest diff is the version field alone.
+- Notes:
+  - **The capture tool no longer carries a palette.** `scripts/capture-store-assets.mjs` reads
+    the paper tokens out of the built stylesheet (`dist/extension/assets/*.css`) and follows
+    `var()` aliases to their final values, so the composed popup canvas and the promo tile are
+    painted from `src/ui/styles/tokens.css` as shipped. The previous template hard-coded the
+    retired blue, two radial gradients and a drop shadow; all three are gone — the canvas is
+    `--canvas`, the popup sheet is separated by a `--border-1` hairline at `--radius-xl`, and the
+    tile's wordmark is the local serif. A token missing from the build now fails the run instead
+    of falling back to a stale colour.
+  - **Product code is untouched.** No `src/**`, `tests/**`, permission, manifest field (beyond
+    `version`), privacy or dependency change; `npm ci` reproduced the lock file.
+  - **Still manual:** `wrangler deploy` for `cloudflare/marktab-home-worker.js` (it currently
+    serves the previous version as its fallback), and the store upload of
+    `dist/marktab-3.1.0.zip`. The landing page reads its preview images from `main`, so the
+    recaptured screenshots only appear once this branch lands on `main`.

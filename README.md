@@ -13,7 +13,7 @@
   <code>Manifest V3</code>
   · <code>Chrome 114+</code>
   · <code>Preact 11</code>
-  · <code>v3.0.0</code>
+  · <code>v3.1.0</code>
 </p>
 
 ---
@@ -87,7 +87,7 @@ The build emits the whole extension to `dist/extension`. Then:
 4. Select the `dist/extension` folder — not the repository root, which contains TypeScript
    sources that no browser can load.
 
-For store installs, download `marktab-3.0.0.zip` from the GitHub release, unzip it to a
+For store installs, download `marktab-3.1.0.zip` from the GitHub release, unzip it to a
 permanent folder, and load that folder unpacked.
 
 ## Development
@@ -120,7 +120,7 @@ are files, not a served app.
 | `npm run release:check` | `typecheck && test && build && validate && package` — the full local gate. |
 | `npm run screenshots` | `node scripts/capture-store-assets.mjs` — recaptures `store-assets/` from the built extension. |
 | `npm run cws:publish -- <zip>` | Uploads the zip to the Chrome Web Store (credentials from env). |
-| `npm run bump -- 3.0.0` | Writes the new version into `package.json`, `public/manifest.json`, `README.md`, `CHROME_STORE_SUBMISSION.md` and `cloudflare/marktab-home-worker.js`. |
+| `npm run bump -- 3.1.0` | Writes the new version into `package.json`, `public/manifest.json`, `README.md`, `CHROME_STORE_SUBMISSION.md` and `cloudflare/marktab-home-worker.js`. |
 
 `npm run build` must run before `npm run validate`, `npm run package` or `npm run test:e2e`:
 all three consume `dist/extension`, and the validator fails fast with
@@ -239,14 +239,14 @@ A pushed `vX.Y.Z` tag is the release boundary; `package.json` and `public/manife
 already carry that version (`scripts/release-version.mjs` fails the run otherwise).
 
 ```bash
-npm run bump -- 3.0.0        # sync every version-bearing file
+npm run bump -- 3.1.0        # sync every version-bearing file
 npm run release:check        # typecheck → tests → build → validate → package
 git add -A && git commit -m "release: v3.0.0"
 git tag v3.0.0 && git push origin HEAD && git push origin v3.0.0
 ```
 
 `.github/workflows/release.yml` then checks out the tag, verifies the version, runs tests,
-builds, validates, packages `dist/marktab-3.0.0.zip` from `dist/extension` (sorted entries and
+builds, validates, packages `dist/marktab-3.1.0.zip` from `dist/extension` (sorted entries and
 a fixed timestamp, so the archive is reproducible and a store diff is meaningful), creates a
 **draft** GitHub release, submits to the Chrome Web Store, and only then publishes the draft. A
 failure at the store step leaves the draft unpublished; recover with `workflow_dispatch` using
