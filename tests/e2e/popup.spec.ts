@@ -33,6 +33,9 @@ test.describe('popup', () => {
     const opened = context.waitForEvent('page');
     const field = popup.getByLabel('Search bookmarks');
     await field.fill('github');
+    // Enter submits whatever the field's own state holds, so let the value land
+    // before the keystroke: without this the submit can race the input event.
+    await expect(field).toHaveValue('github');
     // Submitting closes the panel, exactly as the real popup does, so the
     // keystroke's own promise can reject after the close: that is expected.
     await field.press('Enter').catch(() => undefined);

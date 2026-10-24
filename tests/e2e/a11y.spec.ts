@@ -107,7 +107,9 @@ test.describe('accessibility', () => {
           async () => {
             await page.keyboard.press(`${MOD}+k`);
             await page.getByRole('combobox', { name: 'Search bookmarks' }).fill('example');
-            await page.waitForTimeout(300);
+            // Audit the loaded result, not a frame that still shows the idle
+            // suggestions: the bookmark row is the deterministic ready state.
+            await expect(page.locator('[role="option"][data-kind="bookmark"]').first()).toBeVisible();
           },
         ],
         [

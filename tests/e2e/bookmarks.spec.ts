@@ -122,6 +122,13 @@ test.describe('bookmark data', () => {
     await newTab.keyboard.press(`${MOD}+k`);
     await newTab.getByRole('combobox', { name: 'Search bookmarks' }).fill('github');
 
+    // The palette builds its rows and its active row from one model, and the
+    // web-search row is appended to every non-empty query. Until the bookmark
+    // result has painted, the only row is that web search for "github", so a
+    // keystroke sent at that moment opens google.com in a new tab instead. Wait
+    // for the result itself before pressing a key that acts on it.
+    await expect(newTab.locator('[role="option"][data-url="https://github.com/"]')).toBeVisible();
+
     const opened = context.waitForEvent('page');
     await newTab.keyboard.press('Shift+Enter');
     const tab = await opened;

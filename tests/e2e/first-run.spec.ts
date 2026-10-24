@@ -161,6 +161,10 @@ test.describe('first run', () => {
 
     await newTab.keyboard.press(`${MOD}+k`);
     await expect(query).toBeVisible();
+    // The palette attaches its own keydown listener in an effect. Focus is set
+    // by an effect in the same flush, so waiting for it guarantees Escape will
+    // be heard instead of pressed into a panel that is not listening yet.
+    await expect(query).toBeFocused();
     await newTab.keyboard.press('Escape');
     await expect(query).toHaveCount(0);
   });
