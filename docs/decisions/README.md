@@ -809,7 +809,15 @@ on exactly three overlays (palette, menu/dialog, drawer) with a single soft edge
 
 The primitives live in `src/ui/motion.ts` (Web Animations API) and read `--dur-base`,
 `--dur-fast` and `--ease-out` from the element, so `[data-motion='reduced']` and
-`prefers-reduced-motion: reduce` collapse them to nothing without a second code path. An
+`prefers-reduced-motion: reduce` collapse them to nothing without a second code path. The same
+module mirrors the last input modality onto `<html data-input>`, and `tokens.css` zeroes every
+duration under `[data-input='keyboard']`: the CSS-only cues (pin, action cluster, folder
+chevron, the popup's saved confirmation) obey the keyboard rule too, which a JS-only check
+could not reach. A key press also cancels a fade that is still running, and so does turning on
+reduced motion — a preference change applies to what is on screen, not only to the next fade. The
+exit duration is its own token (`--dur-exit`, 80 ms, zeroed only by reduced motion): the keyboard
+block must not zero it, or a pointer close after typing would skip its fade, and the keyboard rule
+is already applied to the close itself. An
 overlay's focus, `inert` state and pointer handling are effective on the frame the state
 changes, never after the fade: the exit is a copy, not a deferred unmount. Nothing animates
 `height`, `width`, `filter`, `backdrop-filter` or `box-shadow`, and the first frame of a

@@ -15,7 +15,7 @@ export interface ButtonProps extends NativeButtonProps {
   iconRight?: IconName;
   /** Stretch to the container width (dialogs, popup). */
   block?: boolean;
-  /** Keeps the label width stable while the leading icon becomes a spinner. */
+  /** Keeps the label width stable while the leading icon becomes a static busy glyph. */
   busy?: boolean;
   class?: string;
   children?: JSX.Element | JSX.Element[] | string | number | null;
@@ -40,8 +40,9 @@ export function Button({
       type={type}
       class={cx(styles.button, styles[variant], styles[size], block && styles.block, className)}
       data-busy={busy ? 'true' : undefined}
+      aria-busy={busy ? 'true' : undefined}
     >
-      {busy ? <Icon name="history" size={glyph} class={styles.spinner} /> : null}
+      {busy ? <Icon name="history" size={glyph} class={styles.busyIcon} /> : null}
       {!busy && icon ? <Icon name={icon} size={glyph} /> : null}
       {children === undefined || children === null ? null : <span class={styles.label}>{children}</span>}
       {iconRight ? <Icon name={iconRight} size={glyph} /> : null}

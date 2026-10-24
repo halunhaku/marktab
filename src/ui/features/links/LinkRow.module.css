@@ -80,6 +80,7 @@
   display: flex;
   gap: 2px;
   opacity: 0;
+  /* Token duration: 0 ms when the reveal came from the keyboard (ADR-024). */
   transition: opacity var(--dur-fast) var(--ease-out);
 }
 
@@ -88,7 +89,8 @@
   opacity: 1;
 }
 
-/* The pin rests at 65% and resolves to full in 50 ms. */
+/* The pin rests at 65% and resolves to full in `--dur-instant`; 0 ms when the
+   toggle came from the keyboard (ADR-024). */
 .pinButton {
   opacity: 0.65;
   transition: opacity var(--dur-instant) var(--ease-out);

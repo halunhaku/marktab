@@ -124,20 +124,9 @@
   width: var(--control-h-lg);
 }
 
-/* An indeterminate progress glyph: the only looping motion in the UI, and it is
-   a transform, so it stays on the compositor. */
-.spinner {
-  animation: spin 720ms linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spinner {
-    animation-duration: 1.6s;
-  }
+/* Busy is a static glyph, not a spinner: the paper language has no looping
+   animation, and a frozen spinner under reduced motion would read as a broken
+   one. The label stays in place and the button also carries `aria-busy`. */
+.busyIcon {
+  opacity: 0.55;
 }

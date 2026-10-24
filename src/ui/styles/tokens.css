@@ -148,6 +148,11 @@
   --dur-fast: 80ms;
   --dur-base: 120ms;
   --dur-slow: 160ms;
+  /* The exit half of an overlay: read by `motion.ts` only, and deliberately not
+     zeroed by `[data-input='keyboard']` — a close that came from the pointer still
+     fades even if the user typed a moment earlier. The keyboard rule is enforced
+     when the close is handled, not through the token. */
+  --dur-exit: 80ms;
   /* The clock, the theme, the result list, the switch, appended rows and the
      desktop rail's collapse are all instantaneous. */
   --dur-tick: 0ms;
@@ -241,6 +246,24 @@
   --content-pad: var(--space-6);
 }
 
+/* A keyboard interaction paints with no motion at all — the same collapse as
+   reduced motion. `src/ui/motion.ts` mirrors the last input modality onto
+   `<html data-input>`, so the CSS-only opacity cues (the action cluster, the pin,
+   the folder chevron, the popup's saved confirmation) obey the keyboard rule as
+   well as the Web Animations fades do (ADR-024). */
+[data-input='keyboard'] {
+  --dur-instant: 0ms;
+  --dur-fast: 0ms;
+  --dur-base: 0ms;
+  --dur-slow: 0ms;
+  --dur-tick: 0ms;
+  --dur-theme: 0ms;
+  --dur-results: 0ms;
+  --stagger: 0ms;
+  --dur-none: 0ms;
+  --delay-none: 0ms;
+}
+
 /* Reduced motion is a hard switch: every duration collapses to nothing, so the
    UI is instant instead of merely faster. */
 [data-motion='reduced'] {
@@ -248,6 +271,7 @@
   --dur-fast: 0ms;
   --dur-base: 0ms;
   --dur-slow: 0ms;
+  --dur-exit: 0ms;
   --dur-tick: 0ms;
   --dur-theme: 0ms;
   --dur-results: 0ms;
@@ -262,6 +286,7 @@
     --dur-fast: 0ms;
     --dur-base: 0ms;
     --dur-slow: 0ms;
+    --dur-exit: 0ms;
     --dur-tick: 0ms;
     --dur-theme: 0ms;
     --dur-results: 0ms;

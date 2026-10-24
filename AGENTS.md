@@ -79,8 +79,11 @@ MV3, version `3.0.0`. Sources live in `src/**`; **nothing** in this repo ships a
   close with an 80 ms non-interactive copy — go through `src/ui/motion.ts` /
   `useOverlayMotion`, never a hand-rolled keyframe. Typing, filtering, the clock, theme
   switches, the switch control, appended rows and the desktop rail's collapse are `0ms`.
-  `transition: all` is forbidden, and nothing animates `height`, `width`, `filter`,
-  `backdrop-filter` or `box-shadow`.
+  Anything triggered from the keyboard is `0ms` too — `motion.ts` mirrors the modality onto
+  `html[data-input]`, which zeroes the CSS durations, so a CSS opacity cue must read the
+  `--dur-*` tokens rather than hard-code a duration. `transition: all` is forbidden, no looping
+  animation is allowed, and nothing animates `height`, `width`, `filter`, `backdrop-filter` or
+  `box-shadow`.
 - The shell stays a rail plus one content column (ADR-012), and the rail keeps exactly one
   breakpoint: `(max-width: 1200px)`, written once in `App.module.css` and mirrored by
   `DRAWER_QUERY` in `App.tsx` (ADR-013). Adding a second breakpoint needs a reason.

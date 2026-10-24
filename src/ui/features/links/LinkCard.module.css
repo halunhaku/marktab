@@ -91,6 +91,9 @@
   flex-direction: column;
   gap: 2px;
   opacity: 0;
+  /* 80 ms by pointer, 0 ms when the reveal was triggered from the keyboard: the
+     duration is a token, and `tokens.css` zeroes every duration under
+     `[data-input='keyboard']` (ADR-024). */
   transition: opacity var(--dur-fast) var(--ease-out);
 }
 
@@ -124,8 +127,9 @@
   }
 }
 
-/* The pin glyph rests at 65% and resolves to full in 50 ms — the one icon that
-   acknowledges a state change (ADR-024). */
+/* The pin glyph rests at 65% and resolves to full in `--dur-instant` (50 ms) — the
+   one icon that acknowledges a state change. Both durations are tokens, so the
+   fade is 0 ms for a keyboard-triggered pin and under reduced motion (ADR-024). */
 .pinButton {
   opacity: 0.65;
   transition: opacity var(--dur-instant) var(--ease-out);

@@ -81,7 +81,8 @@
   color: var(--text-3);
 }
 
-/* The reveal is opacity only: the chevron does not slide. */
+/* The reveal is opacity only: the chevron does not slide, and the token is 0 ms
+   for a keyboard-triggered reveal (ADR-024). */
 .chevron {
   color: var(--text-3);
   opacity: 0;

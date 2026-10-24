@@ -196,12 +196,14 @@ spaces a grid, `--card-pad` (`--space-4`) is the inside of a card.
 | `--dur-fast` | `80ms` |
 | `--dur-base` | `120ms` |
 | `--dur-slow` | `160ms` |
+| `--dur-exit` | `80ms` — the overlay exit only; read by `motion.ts` and deliberately not zeroed by `[data-input='keyboard']`, because a pointer close still fades after typing (the keyboard rule is applied to the close itself) |
 | `--dur-tick` / `--dur-theme` / `--dur-results` / `--stagger` / `--dur-none` / `--delay-none` | `0ms` |
 | `--ease-out` | `cubic-bezier(0.2, 0.8, 0.2, 1)` |
 | `--ease-emphasis` | `cubic-bezier(0.2, 0.8, 0.2, 1)` |
 
-Only opacity and transform are ever animated; `transition: all` is forbidden, and nothing
-animates `height`, `width`, `filter`, `backdrop-filter` or `box-shadow`.
+Only opacity is ever animated — there is no looping animation anywhere, so nothing turns, pulses
+or shimmers. `transition: all` is forbidden, and nothing animates `height`, `width`, `filter`,
+`backdrop-filter` or `box-shadow`.
 
 | What | Motion | Where |
 | --- | --- | --- |
@@ -210,12 +212,14 @@ animates `height`, `width`, `filter`, `backdrop-filter` or `box-shadow`.
 | Toast, popup "saved" confirmation | opacity `.85 → 1` in 120 ms | `useOverlayMotion`, `PopupApp.module.css` |
 | Pin icon | opacity `.65 → 1` in 50 ms | `LinkCard` / `LinkRow` `.pinButton` |
 | Clock, theme, results, switch, appended rows, desktop rail collapse | `0ms` | `ClockDial` (no transition), `Switch` (no transition), shell (no transition) |
-| Keyboard-triggered open | `0ms` | `motion.ts` tracks the last input modality |
+| Any keyboard-triggered interaction (open, pin, focus, submit) | `0ms` — WAAPI fades are skipped, CSS opacity transitions collapse, and a fade already running is cancelled | `motion.ts` mirrors the modality onto `<html data-input>`; `tokens.css` zeroes every duration under it |
+| Switching to reduced motion | running fades are cancelled, not left to finish | `motion.ts` (`MutationObserver` on `data-motion`, `prefers-reduced-motion` change) |
 
 `motion` is an independent axis with three settings — `system`, `reduced`, `full`:
 
 - `[data-motion='reduced']` zeroes every duration, so transitions collapse to nothing rather
-  than merely getting faster.
+  than merely getting faster; a fade already in flight is cancelled the moment the attribute
+  changes.
 - `@media (prefers-reduced-motion: reduce)` applies the same zeroing to `:root:not([data-motion=
   'full'])`, so an explicit "full" choice is honoured while the OS default is respected.
 - `motion.ts` reads the duration tokens off the element, so both switches reach the WAAPI
@@ -275,7 +279,7 @@ reads tokens only.
 
 | Component | Exports | Notes |
 | --- | --- | --- |
-| `Button` | `Button`, `IconButton` | `variant`: `primary`, `secondary`, `ghost`, `danger`, `link`; `size`: `sm`, `md`, `lg`; optional `icon`. `primary` is the accent fill, `secondary` an outline, `ghost` a wash. `IconButton` **requires** a `label`, used as the accessible name and the tooltip. |
+| `Button` | `Button`, `IconButton` | `variant`: `primary`, `secondary`, `ghost`, `danger`, `link`; `size`: `sm`, `md`, `lg`; optional `icon`. `primary` is the accent fill, `secondary` an outline, `ghost` a wash. `busy` swaps the leading icon for a static dimmed glyph and sets `aria-busy` (no spinner ever turns). `IconButton` **requires** a `label`, used as the accessible name and the tooltip. |
 | `TextField` | `TextField`, `SelectField` | Persistent label plus an optional hint/error line; identified by its `--border-2` outline. |
 | `Switch` | `Switch` | Labelled toggle; the whole row is the hit target; settles instantly. |
 | `Segmented` | `Segmented` | Mutually exclusive options: theme, density and motion in Settings, folder view and sort. Selected segment is `--accent-soft`. |

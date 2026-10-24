@@ -19,7 +19,7 @@ import { CommandPalette } from '@/ui/features/palette/CommandPalette';
 import { SettingsView } from '@/ui/features/settings/SettingsView';
 import { useAppearance } from '@/ui/hooks/useAppearance';
 import { useMediaQuery } from '@/ui/hooks/useMediaQuery';
-import { exitTiming, fadeIn, fadeOutCopy } from '@/ui/motion';
+import { exitTiming, fadeIn, fadeOutCopy, scrollOffsets } from '@/ui/motion';
 import { closeDialog, closeMenu, dialogState, menuState } from '@/ui/state/overlay';
 import { closePalette, goHome, navigate, openPalette, paletteOpen, route } from '@/ui/state/router';
 import { DialogHost } from './DialogHost';
@@ -59,7 +59,7 @@ export function App(): JSX.Element {
       fadeIn(railSlotRef.current);
     } else if (!drawerOpen.value && drawerWasOpen.current) {
       const node = railSlotRef.current;
-      fadeOutCopy(node, node?.getBoundingClientRect() ?? null, exitTiming(node));
+      fadeOutCopy(node, node?.getBoundingClientRect() ?? null, exitTiming(node), scrollOffsets(node));
     }
     drawerWasOpen.current = drawerOpen.value;
   }, [drawerOpen.value, narrow.value]);
